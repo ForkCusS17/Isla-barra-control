@@ -5,17 +5,17 @@ Herramienta privada de consultoría para hostelería (bares, restaurantes, hotel
 
 ## Archivo y arquitectura
 - Un único archivo: `isla_barra_control_mvp.html` (HTML + CSS + JavaScript, sin dependencias ni framework). Mantenerlo así mientras sea suficiente; no añadir frameworks ni servicios de pago sin justificarlo.
-- Datos en `localStorage` del navegador (clave `islaBarraControlMVP_v1`, esquema 2). **No hay sincronización entre dispositivos**: no afirmar lo contrario. La copia JSON (Exportar/Importar) es la única forma de mover datos.
+- Datos en `localStorage` del navegador (clave `islaBarraControlMVP_v1`, esquema 3). **No hay sincronización entre dispositivos**: no afirmar lo contrario. La copia JSON (Exportar/Importar) es la única forma de mover datos.
 - Los datos reales del usuario viven en su navegador: todo cambio de esquema debe migrarse en `normalize()` y probarse con copias antiguas (`tests/fixtures/legacy.json`).
-- Mapa del código (todo en el `<script>`): datos `normalize, loadData, save`; costes `recipeLineCost, directCost, netPrice, gross, margin, costPct, recipeIssues, drinkFlag`; ingredientes `ingredientFromForm, deleteIngredient (archiva si se usa), renderIngredients`; recetas `renderRecipeLines`; ventas `theoSales, syncSales, renderSales`; stock `stockCalc, stockWarnings, stageOf, trendGroups, prevOf, followHTML`; informe `renderReport, followReport, pendingData`; copias `exportBackup, importBackup`.
+- Mapa del código (todo en el `<script>`): datos `normalize, loadData, save`; costes `recipeLineCost, directCost, netPrice, gross, margin, costPct, recipeIssues, drinkFlag`; ingredientes `ingredientFromForm, deleteIngredient (archiva si se usa), renderIngredients`; recetas `renderRecipeLines`; ventas `theoSales, syncSales, renderSales`; stock `stockCalc, stockWarnings, stageOf, trendGroups, prevOf, followHTML`; informe `renderReport, followReport, pendingData`; diagnóstico `normDiag, diagFromForm, diagProblem, editDiag, renderDiagnostics`; copias `exportBackup, importBackup`.
 
-## Modelo de datos (esquema 2)
+## Modelo de datos (esquema 3)
 `data = {schema, settings:{marginMin}, sales[], ingredients[], business{}, drinks[], stocks[], diagnostics[]}`
 - ingredient: `{id,name,category,supplier,format,unit('ml'|'g'|'unit'),packUnit,packInput,packQty(en unidad base),packPrice,unitCost,notes,active}`
 - drink: `{id,name,category,price,taxRate,otherCost,recipeItems:[{ingredientId,qty}],ingredientCost(copia),recipe,notes}`
 - sales: `{id,label,start,end,lines:[{drinkId,qty}]}`
 - stock (control): `{id,date,start,end,product,unit,opening,purchases,closing,salesUse,tastings,comps,waste,otherOut,legitUse,threshold,status('Validados'|'Sin validar'),salesId,hypothesis,causeState,cause,action,result,notes,actual,theoretical,variance}`
-- diagnostics: `{id,area,status,finding,action,check,priority,due}`
+- diagnostics: `{id,area,status('Pendiente'|'En revisión'|'Verificado'|'Resuelto'),finding,evidence,action,check,priority('Alta'|'Media'|'Baja'),due,owner,result}`. Esquema 3 añadió `evidence`, `owner` y `result`; las copias antiguas se migran con textos vacíos en `normDiag()`.
 
 ## Reglas de negocio (no cambiar sin hablarlo)
 - Unidad base: ml, g o unidad; nunca mezclar unidades incompatibles.
@@ -28,6 +28,7 @@ Herramienta privada de consultoría para hostelería (bares, restaurantes, hotel
 - Un control guardado conserva su consumo teórico calculado (copia); no se recalcula solo si cambian las recetas.
 - Un ingrediente usado en recetas se archiva en vez de borrarse.
 - El informe distingue hechos, hipótesis y conclusiones; incluye datos pendientes de verificar y fecha de generación.
+- Diagnóstico: un hallazgo exige evidencia (dato u observación que lo respalda) y recomendación; «Verificado» o «Resuelto» exigen el resultado de la revisión. El informe separa evidencia (hecho), recomendación, cómo comprobarla y resultado; sin resultado no se concluye el efecto ni se estiman ahorros.
 
 ## Ejemplos de prueba obligatorios
 A) Ron 700 ml a 14 € → 0,02 €/ml; 50 ml = 1 €. B) Precio 9 €, coste 2,10 € → margen 6,90 €, coste 23,33 %, margen 76,67 %. C) Stock 7000 + 2800 − 3500 = 6300 real; teórico 5000 + 800 = 5800; desviación +500 (se muestra y se pide validar; no se afirma pérdida).
@@ -46,15 +47,16 @@ Azul atlántico #0E4A5A (principal), turquesa #2A9D8F, arena #D9B382, crema #F6F
 - Responder en español.
 
 ## Pruebas
-`npm install`, `npx playwright install chromium` y `npm test`: 4 series (117 comprobaciones, Chromium a 390 px).
+`npm install`, `npx playwright install chromium` y `npm test`: 5 series (153 comprobaciones, Chromium a 390 px).
 - `base`: cálculos, ingredientes, recetas, stock, informe, copias y fallos de almacenamiento.
 - `demo`: importa el bar ficticio y lo compara con un cálculo independiente hecho en Python.
 - `sales`: consumo teórico automático desde ventas y recetas.
 - `cycle`: seguimiento de desviaciones y comparación de controles.
+- `diag`: diagnóstico (formulario y validación, edición, migración de copias antiguas, informe, 390 px).
 `python3 tools/make_demo.py` regenera `data/` (bar ficticio y valores esperados). Las pruebas fallidas devuelven código de salida distinto de 0.
 
 ## Estado y pendientes
-Hecho: ficha, ingredientes (conversión de unidades, archivar, buscar y filtrar), recetas con costes vivos, bebidas con impuesto incluido y avisos, ventas por periodo, control de stock con seguimiento y comparación, diagnóstico básico, informe con pendientes, copias con validación.
+Hecho: ficha, ingredientes (conversión de unidades, archivar, buscar y filtrar), recetas con costes vivos, bebidas con impuesto incluido y avisos, ventas por periodo, control de stock con seguimiento y comparación, diagnóstico completo (evidencia, responsable, resultado de la revisión), informe con pendientes, copias con validación.
 No verificado: móvil real; guardado como PDF en iOS/Android; tipografías de marca.
-Límites conocidos: no hay registro de compras (se usan formatos de ingrediente y entradas de stock); las ventas se anotan a mano; Diagnóstico sin evidencia, responsable ni resultado de revisión; un único umbral de margen.
-Orden propuesto: 1) Diagnóstico completo, 2) umbral de margen por categoría, 3) móvil y marca (fuentes), 4) registro de compras y movimientos, 5) publicar como página privada con enlace (decisión de arquitectura pendiente: exponer alternativas y recomendar una).
+Límites conocidos: no hay registro de compras (se usan formatos de ingrediente y entradas de stock); las ventas se anotan a mano; un único umbral de margen.
+Orden propuesto: 1) umbral de margen por categoría, 2) móvil y marca (fuentes), 3) registro de compras y movimientos, 4) publicar como página privada con enlace (decisión de arquitectura pendiente: exponer alternativas y recomendar una).

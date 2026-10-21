@@ -54,7 +54,7 @@ await stock(p,{sProduct:'Ron blanco',sUnit:'g',sStart:'2026-10-01',sEnd:'2026-10
 ok('unidades incompatibles con el catálogo: avisa',/Unidades incompatibles/.test(await p.evaluate(()=>document.getElementById('stockResult').innerText)),null);
 const nS=await p.evaluate(()=>data.stocks.length);await stock(p,{sProduct:'X',sStart:'2026-10-10',sEnd:'2026-10-01'});
 ok('fecha final anterior a la inicial: no se guarda',(await p.evaluate(()=>data.stocks.length))===nS,null);
-await p.evaluate(()=>showPage('diagnosis'));await p.fill('#diagFinding','Sin dosificación estándar');await p.fill('#diagAction','Definir receta en ml y usar medidor');await p.fill('#diagCheck','Comparar consumo por 100 ventas');await p.fill('#diagDue','2026-10-30');await p.click('#diagForm button[type=submit]');
+await p.evaluate(()=>showPage('diagnosis'));await p.fill('#diagFinding','Sin dosificación estándar');await p.fill('#diagEvidence','Visto en la visita: sin medidor');await p.fill('#diagAction','Definir receta en ml y usar medidor');await p.fill('#diagCheck','Comparar consumo por 100 ventas');await p.fill('#diagDue','2026-10-30');await p.click('#diagForm button[type=submit]');
 await p.evaluate(()=>showPage('dashboard'));
 ok('panel: avisa de datos pendientes y próxima revisión',/Datos pendientes/.test(await p.evaluate(()=>document.getElementById('dashboardActions').innerText))&&/Próxima revisión: 2026-10-30/.test(await p.evaluate(()=>document.getElementById('dashboardActions').innerText)),await p.evaluate(()=>document.getElementById('dashboardActions').innerText));
 const rep=await p.evaluate(()=>{showPage('report');const t=document.getElementById('reportContent');const rows=[...t.querySelectorAll('table')[0].querySelectorAll('tbody tr')].map(r=>[...r.cells].slice(0,6).map(c=>c.textContent.trim()));return{rows,txt:t.innerText,exp:data.drinks.map(d=>[d.name,euro(netPrice(d)),euro(directCost(d)),pc(costPct(d)),euro(gross(d)),pc(margin(d))])}});
@@ -65,7 +65,7 @@ ok('sin errores de JavaScript durante el recorrido',p.errs.length===0,p.errs);
 await p.evaluate(()=>{showPage('drinks');window.scrollTo(0,0)});await p.screenshot({path:TMP+'s_drinks.png',fullPage:true});await p.evaluate(()=>{showPage('ingredients')});await p.screenshot({path:TMP+'s_ing.png',fullPage:true});await p.evaluate(()=>{showPage('stock');viewStock(data.stocks[data.stocks.length-1].id)});await p.screenshot({path:TMP+'s_stock.png',fullPage:true});
 const before=canon(await p.evaluate(()=>data));
 const [dl]=await Promise.all([p.waitForEvent('download'),p.evaluate(()=>exportBackup())]);const path=await dl.path();const ex=JSON.parse(fs.readFileSync(path,'utf8'));
-ok('exportación con app, schema, fecha y todos los datos',ex.app==='Isla & Barra Control'&&ex.schema===2&&!!ex.exportedAt&&ex.drinks.length===4&&ex.ingredients.length===4&&ex.stocks.length>=3&&ex.diagnostics.length===1,Object.keys(ex));
+ok('exportación con app, schema, fecha y todos los datos',ex.app==='Isla & Barra Control'&&ex.schema===3&&!!ex.exportedAt&&ex.drinks.length===4&&ex.ingredients.length===4&&ex.stocks.length>=3&&ex.diagnostics.length===1,Object.keys(ex));
 let q=await mk();await q.setInputFiles('#importFile',path);await q.waitForTimeout(300);
 ok('importar la copia exportada restituye exactamente los mismos datos',canon(await q.evaluate(()=>data))===before,null);
 ok('importar pide confirmación y guarda copia interna',q.dl.some(m=>/sustituirá/.test(m))&&(await q.evaluate(()=>!!localStorage.getItem(KEY+'_antes_de_importar'))),q.dl);

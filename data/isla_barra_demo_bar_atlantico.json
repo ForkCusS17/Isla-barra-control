@@ -1,6 +1,6 @@
 {
  "app": "Isla & Barra Control",
- "schema": 2,
+ "schema": 3,
  "sales": [
   {
    "id": "v-sem41",
@@ -107,7 +107,7 @@
    ]
   }
  ],
- "exportedAt": "2026-10-21T06:21:12Z",
+ "exportedAt": "2026-10-21T11:32:26Z",
  "settings": {
   "marginMin": 55
  },
@@ -839,7 +839,10 @@
    "due": "2026-10-28",
    "finding": "Ron blanco: desviación residual de +500 ml en la semana (7.000 + 2.800 − 3.500 = 6.300 ml de consumo real frente a 5.800 ml explicados). Causa sin determinar.",
    "action": "Repetir el recuento de botellas abiertas entre dos personas y comprobar que invitaciones y degustaciones se anotan el mismo día.",
-   "check": "Repetir el control la semana siguiente con el mismo método y comparar la desviación residual."
+   "check": "Repetir el control la semana siguiente con el mismo método y comparar la desviación residual.",
+   "evidence": "Control de ron blanco 7–13 oct (datos sin validar): consumo real 6.300 ml, teórico 5.800 ml, desviación +500 ml; umbral orientativo 300 ml.",
+   "owner": "Encargado de barra (ficticio)",
+   "result": "Control 14–20 oct con recuento entre dos personas: desviación +50 ml, dentro del umbral. Un solo control no basta: repetir otra semana antes de concluir."
   },
   {
    "id": "g2",
@@ -849,7 +852,10 @@
    "due": "2026-11-04",
    "finding": "Mojito y cuba libre se sirven sin una medida estándar escrita.",
    "action": "Definir la receta en ml, usar medidor y hacer una prueba controlada de 7 días.",
-   "check": "Comparar el consumo de ron por cada 100 bebidas vendidas antes y después de aplicar la medida."
+   "check": "Comparar el consumo de ron por cada 100 bebidas vendidas antes y después de aplicar la medida.",
+   "evidence": "Observado en la visita del 14 oct: no hay hoja de recetas en barra ni medidor en uso.",
+   "owner": "",
+   "result": ""
   },
   {
    "id": "g3",
@@ -859,7 +865,10 @@
    "due": "2026-11-04",
    "finding": "El chupito de tequila tiene un margen bruto estimado bajo (49 %) con 40 ml y precio de 2,20 €.",
    "action": "Valorar ajustar el tamaño del chupito o el precio. No asumir ningún ahorro hasta medirlo.",
-   "check": "Recalcular el margen y revisar las ventas del chupito durante dos semanas."
+   "check": "Recalcular el margen y revisar las ventas del chupito durante dos semanas.",
+   "evidence": "Coste directo 1,04 € (40 ml de tequila); precio neto 2,06 € (7 % incluido); margen bruto 49,4 % frente al umbral orientativo del 55 %.",
+   "owner": "",
+   "result": ""
   },
   {
    "id": "g4",
@@ -869,7 +878,10 @@
    "due": "2026-10-28",
    "finding": "La naranja deshidratada de la guarnición del gin-tonic no tiene precio registrado: su coste está incompleto.",
    "action": "Pedir el precio al proveedor y completarlo en Ingredientes.",
-   "check": "El gin-tonic deja de mostrar «Coste incompleto» y su margen se recalcula."
+   "check": "El gin-tonic deja de mostrar «Coste incompleto» y su margen se recalcula.",
+   "evidence": "En el catálogo, «Naranja deshidratada (guarnición)» tiene precio 0,00 €.",
+   "owner": "",
+   "result": ""
   },
   {
    "id": "g5",
@@ -879,7 +891,10 @@
    "due": "2026-10-14",
    "finding": "Invitaciones y degustaciones no tenían registro diario.",
    "action": "Usar una hoja de cierre con invitaciones, degustaciones y mermas.",
-   "check": "Revisar la hoja durante tres cierres consecutivos."
+   "check": "Revisar la hoja durante tres cierres consecutivos.",
+   "evidence": "En el control 7–13 oct las invitaciones y degustaciones se estimaron a final de semana: no había hoja diaria.",
+   "owner": "Encargado de barra (ficticio)",
+   "result": "Hoja de cierre revisada en tres cierres consecutivos (14–16 oct): invitaciones, degustaciones y mermas anotadas los tres días."
   }
  ]
 }

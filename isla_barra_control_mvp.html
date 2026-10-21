@@ -39,6 +39,7 @@
   <div class="panel"><h3>Acciones recomendadas</h3><div id="dashboardActions" class="list"></div></div>
   <div class="panel"><h3>Ficha del proyecto</h3><div id="dashboardBusiness"></div><div class="form-actions"><button class="btn" onclick="showPage('business')">Completar ficha</button><button class="btn ghost" onclick="showPage('report')">Ver informe</button></div></div>
  </div>
+ <div class="panel" id="backupPanel" style="margin-top:14px"><h3>Copia de seguridad</h3><p class="smalltext muted">Los datos solo están en este navegador. Exporta una copia (archivo JSON) al terminar cada visita; para recuperarla aquí o en otro dispositivo, usa «Importar».</p><div class="form-actions"><button class="btn" id="dashExport" type="button" onclick="exportBackup()">Exportar copia</button><button class="btn ghost" id="dashImport" type="button" onclick="document.getElementById('importFile').click()">Importar</button></div></div>
  <p class="footer-note">MVP local: los datos se guardan en este navegador. Exporta una copia de seguridad regularmente. No introduzcas datos personales innecesarios.</p>
 </section>
 <section id="page-business" class="page hidden">

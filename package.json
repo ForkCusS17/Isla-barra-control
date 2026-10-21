@@ -1,0 +1,11 @@
+{
+  "name": "isla-barra-control",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Isla & Barra Control: herramienta privada de consultoría para hostelería (un único HTML)",
+  "scripts": {
+    "test": "node tests/run_all.js",
+    "demo": "python3 tools/make_demo.py"
+  },
+  "devDependencies": { "playwright": "^1.56.0" }
+}

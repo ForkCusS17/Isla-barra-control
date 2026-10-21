@@ -1,0 +1,885 @@
+{
+ "app": "Isla & Barra Control",
+ "schema": 2,
+ "sales": [
+  {
+   "id": "v-sem41",
+   "label": "Semana 7–13 octubre",
+   "start": "2026-10-07",
+   "end": "2026-10-13",
+   "lines": [
+    {
+     "drinkId": "mojito",
+     "qty": 54
+    },
+    {
+     "drinkId": "cuba-libre",
+     "qty": 46
+    },
+    {
+     "drinkId": "gin-tonic",
+     "qty": 38
+    },
+    {
+     "drinkId": "margarita",
+     "qty": 30
+    },
+    {
+     "drinkId": "vodka-limon",
+     "qty": 22
+    },
+    {
+     "drinkId": "chupito-tequila",
+     "qty": 25
+    },
+    {
+     "drinkId": "ron-anejo-copa",
+     "qty": 12
+    },
+    {
+     "drinkId": "cana",
+     "qty": 120
+    },
+    {
+     "drinkId": "vino-blanco-copa",
+     "qty": 41
+    },
+    {
+     "drinkId": "cafe-solo",
+     "qty": 85
+    },
+    {
+     "drinkId": "cafe-leche",
+     "qty": 64
+    }
+   ]
+  },
+  {
+   "id": "v-sem42",
+   "label": "Semana 14–20 octubre",
+   "start": "2026-10-14",
+   "end": "2026-10-20",
+   "lines": [
+    {
+     "drinkId": "mojito",
+     "qty": 50
+    },
+    {
+     "drinkId": "cuba-libre",
+     "qty": 48
+    },
+    {
+     "drinkId": "gin-tonic",
+     "qty": 40
+    },
+    {
+     "drinkId": "margarita",
+     "qty": 28
+    },
+    {
+     "drinkId": "vodka-limon",
+     "qty": 20
+    },
+    {
+     "drinkId": "chupito-tequila",
+     "qty": 22
+    },
+    {
+     "drinkId": "ron-anejo-copa",
+     "qty": 10
+    },
+    {
+     "drinkId": "cana",
+     "qty": 110
+    },
+    {
+     "drinkId": "vino-blanco-copa",
+     "qty": 38
+    },
+    {
+     "drinkId": "cafe-solo",
+     "qty": 80
+    },
+    {
+     "drinkId": "cafe-leche",
+     "qty": 60
+    }
+   ]
+  }
+ ],
+ "exportedAt": "2026-10-21T06:21:12Z",
+ "settings": {
+  "marginMin": 55
+ },
+ "business": {
+  "name": "Bar Atlántico (ejemplo ficticio)",
+  "contact": "Responsable de barra (ficticio)",
+  "location": "Arrecife",
+  "date": "2026-10-14",
+  "type": "Bar / coctelería",
+  "period": "7–20 octubre 2026",
+  "notes": "CASO DE EJEMPLO FICTICIO para validar la app. Objetivo: entender costes y márgenes de la carta de cócteles y revisar las desviaciones de stock de la semana. Precios, ventas, proveedores y el 7 % de impuesto son inventados: ajústalos antes de usar datos reales."
+ },
+ "ingredients": [
+  {
+   "id": "ron-blanco",
+   "name": "Ron blanco",
+   "category": "Destilado",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Botella",
+   "unit": "ml",
+   "packUnit": "ml",
+   "packInput": 700,
+   "packQty": 700,
+   "packPrice": 14.0,
+   "unitCost": 0.02,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "ron-anejo",
+   "name": "Ron añejo",
+   "category": "Destilado",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Botella",
+   "unit": "ml",
+   "packUnit": "ml",
+   "packInput": 700,
+   "packQty": 700,
+   "packPrice": 19.5,
+   "unitCost": 0.027857142857142858,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "ginebra",
+   "name": "Ginebra",
+   "category": "Destilado",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Botella",
+   "unit": "ml",
+   "packUnit": "ml",
+   "packInput": 700,
+   "packQty": 700,
+   "packPrice": 16.0,
+   "unitCost": 0.022857142857142857,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "vodka",
+   "name": "Vodka",
+   "category": "Destilado",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Botella",
+   "unit": "ml",
+   "packUnit": "ml",
+   "packInput": 700,
+   "packQty": 700,
+   "packPrice": 12.6,
+   "unitCost": 0.018,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "tequila",
+   "name": "Tequila",
+   "category": "Destilado",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Botella",
+   "unit": "ml",
+   "packUnit": "ml",
+   "packInput": 700,
+   "packQty": 700,
+   "packPrice": 18.2,
+   "unitCost": 0.026,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "triple-sec",
+   "name": "Licor de naranja (triple sec)",
+   "category": "Destilado",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Botella",
+   "unit": "ml",
+   "packUnit": "ml",
+   "packInput": 700,
+   "packQty": 700,
+   "packPrice": 11.9,
+   "unitCost": 0.017,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "vermut",
+   "name": "Vermut rojo",
+   "category": "Vino / cerveza",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Botella",
+   "unit": "ml",
+   "packUnit": "l",
+   "packInput": 1,
+   "packQty": 1000,
+   "packPrice": 9.0,
+   "unitCost": 0.009,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "vino-blanco",
+   "name": "Vino blanco",
+   "category": "Vino / cerveza",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Botella",
+   "unit": "ml",
+   "packUnit": "ml",
+   "packInput": 750,
+   "packQty": 750,
+   "packPrice": 6.8,
+   "unitCost": 0.009066666666666666,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "cerveza",
+   "name": "Cerveza (botellín 330 ml)",
+   "category": "Vino / cerveza",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Caja",
+   "unit": "unit",
+   "packUnit": "unit",
+   "packInput": 24,
+   "packQty": 24,
+   "packPrice": 21.6,
+   "unitCost": 0.9,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "lima-zumo",
+   "name": "Zumo de lima",
+   "category": "Fruta / verdura",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Envase",
+   "unit": "ml",
+   "packUnit": "l",
+   "packInput": 1,
+   "packQty": 1000,
+   "packPrice": 4.5,
+   "unitCost": 0.0045,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "sirope",
+   "name": "Sirope de azúcar",
+   "category": "Sirope / azúcar",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Garrafa",
+   "unit": "ml",
+   "packUnit": "l",
+   "packInput": 1,
+   "packQty": 1000,
+   "packPrice": 3.2,
+   "unitCost": 0.0032,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "hierbabuena",
+   "name": "Hierbabuena",
+   "category": "Fruta / verdura",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Manojo",
+   "unit": "g",
+   "packUnit": "g",
+   "packInput": 100,
+   "packQty": 100,
+   "packPrice": 1.5,
+   "unitCost": 0.015,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "soda",
+   "name": "Agua con gas",
+   "category": "Refresco / mixer",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Caja 24 × 200 ml",
+   "unit": "ml",
+   "packUnit": "ml",
+   "packInput": 4800,
+   "packQty": 4800,
+   "packPrice": 8.4,
+   "unitCost": 0.00175,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "tonica",
+   "name": "Tónica",
+   "category": "Refresco / mixer",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Caja 24 × 200 ml",
+   "unit": "ml",
+   "packUnit": "ml",
+   "packInput": 4800,
+   "packQty": 4800,
+   "packPrice": 12.0,
+   "unitCost": 0.0025,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "cola",
+   "name": "Refresco de cola",
+   "category": "Refresco / mixer",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Caja 24 × 200 ml",
+   "unit": "ml",
+   "packUnit": "ml",
+   "packInput": 4800,
+   "packQty": 4800,
+   "packPrice": 11.5,
+   "unitCost": 0.002395833333333333,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "hielo",
+   "name": "Hielo",
+   "category": "Otro",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Bolsa",
+   "unit": "g",
+   "packUnit": "kg",
+   "packInput": 2,
+   "packQty": 2000,
+   "packPrice": 2.4,
+   "unitCost": 0.0012,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "cafe",
+   "name": "Café en grano",
+   "category": "Café / infusión",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Bolsa",
+   "unit": "g",
+   "packUnit": "kg",
+   "packInput": 1,
+   "packQty": 1000,
+   "packPrice": 14.0,
+   "unitCost": 0.014,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "leche",
+   "name": "Leche",
+   "category": "Lácteo",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Brik",
+   "unit": "ml",
+   "packUnit": "l",
+   "packInput": 1,
+   "packQty": 1000,
+   "packPrice": 1.05,
+   "unitCost": 0.0010500000000000002,
+   "notes": "Precio de ejemplo sin impuestos",
+   "active": true
+  },
+  {
+   "id": "naranja-deshid",
+   "name": "Naranja deshidratada (guarnición)",
+   "category": "Fruta / verdura",
+   "supplier": "Distribuciones Isla (ficticio)",
+   "format": "Bolsa",
+   "unit": "unit",
+   "packUnit": "unit",
+   "packInput": 50,
+   "packQty": 50,
+   "packPrice": 0.0,
+   "unitCost": 0.0,
+   "notes": "Precio pendiente de pedir al proveedor",
+   "active": true
+  }
+ ],
+ "drinks": [
+  {
+   "id": "mojito",
+   "name": "Mojito",
+   "category": "Cóctel",
+   "price": 9.0,
+   "taxRate": 7,
+   "ingredientCost": 1.543,
+   "otherCost": 0.1,
+   "recipe": "Macerar hierbabuena, añadir ron, lima y sirope; completar con agua con gas.",
+   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipeItems": [
+    {
+     "ingredientId": "ron-blanco",
+     "qty": 50
+    },
+    {
+     "ingredientId": "lima-zumo",
+     "qty": 20
+    },
+    {
+     "ingredientId": "sirope",
+     "qty": 15
+    },
+    {
+     "ingredientId": "hierbabuena",
+     "qty": 8
+    },
+    {
+     "ingredientId": "soda",
+     "qty": 60
+    },
+    {
+     "ingredientId": "hielo",
+     "qty": 150
+    }
+   ]
+  },
+  {
+   "id": "cuba-libre",
+   "name": "Cuba libre",
+   "category": "Cóctel",
+   "price": 8.0,
+   "taxRate": 7,
+   "ingredientCost": 1.584375,
+   "otherCost": 0.1,
+   "recipe": "",
+   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipeItems": [
+    {
+     "ingredientId": "ron-blanco",
+     "qty": 50
+    },
+    {
+     "ingredientId": "cola",
+     "qty": 150
+    },
+    {
+     "ingredientId": "lima-zumo",
+     "qty": 10
+    },
+    {
+     "ingredientId": "hielo",
+     "qty": 150
+    }
+   ]
+  },
+  {
+   "id": "gin-tonic",
+   "name": "Gin-tonic",
+   "category": "Cóctel",
+   "price": 9.5,
+   "taxRate": 7,
+   "ingredientCost": 2.0514285714285716,
+   "otherCost": 0.1,
+   "recipe": "",
+   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipeItems": [
+    {
+     "ingredientId": "ginebra",
+     "qty": 60
+    },
+    {
+     "ingredientId": "tonica",
+     "qty": 200
+    },
+    {
+     "ingredientId": "hielo",
+     "qty": 150
+    },
+    {
+     "ingredientId": "naranja-deshid",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "margarita",
+   "name": "Margarita",
+   "category": "Cóctel",
+   "price": 9.5,
+   "taxRate": 7,
+   "ingredientCost": 1.9645000000000001,
+   "otherCost": 0.1,
+   "recipe": "",
+   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipeItems": [
+    {
+     "ingredientId": "tequila",
+     "qty": 50
+    },
+    {
+     "ingredientId": "triple-sec",
+     "qty": 20
+    },
+    {
+     "ingredientId": "lima-zumo",
+     "qty": 25
+    },
+    {
+     "ingredientId": "sirope",
+     "qty": 10
+    },
+    {
+     "ingredientId": "hielo",
+     "qty": 150
+    }
+   ]
+  },
+  {
+   "id": "vodka-limon",
+   "name": "Vodka con limón",
+   "category": "Cóctel",
+   "price": 7.5,
+   "taxRate": 7,
+   "ingredientCost": 1.377,
+   "otherCost": 0.1,
+   "recipe": "",
+   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipeItems": [
+    {
+     "ingredientId": "vodka",
+     "qty": 50
+    },
+    {
+     "ingredientId": "lima-zumo",
+     "qty": 20
+    },
+    {
+     "ingredientId": "sirope",
+     "qty": 10
+    },
+    {
+     "ingredientId": "soda",
+     "qty": 100
+    },
+    {
+     "ingredientId": "hielo",
+     "qty": 150
+    }
+   ]
+  },
+  {
+   "id": "chupito-tequila",
+   "name": "Chupito de tequila",
+   "category": "Destilado",
+   "price": 2.2,
+   "taxRate": 7,
+   "ingredientCost": 1.04,
+   "otherCost": 0,
+   "recipe": "",
+   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipeItems": [
+    {
+     "ingredientId": "tequila",
+     "qty": 40
+    }
+   ]
+  },
+  {
+   "id": "ron-anejo-copa",
+   "name": "Copa de ron añejo",
+   "category": "Destilado",
+   "price": 6.0,
+   "taxRate": 7,
+   "ingredientCost": 1.512857142857143,
+   "otherCost": 0,
+   "recipe": "",
+   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipeItems": [
+    {
+     "ingredientId": "ron-anejo",
+     "qty": 50
+    },
+    {
+     "ingredientId": "hielo",
+     "qty": 100
+    }
+   ]
+  },
+  {
+   "id": "cana",
+   "name": "Caña (botellín)",
+   "category": "Cerveza",
+   "price": 2.6,
+   "taxRate": 7,
+   "ingredientCost": 0.9,
+   "otherCost": 0,
+   "recipe": "",
+   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipeItems": [
+    {
+     "ingredientId": "cerveza",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "id": "vino-blanco-copa",
+   "name": "Copa de vino blanco",
+   "category": "Vino",
+   "price": 3.2,
+   "taxRate": 7,
+   "ingredientCost": 1.0879999999999999,
+   "otherCost": 0,
+   "recipe": "",
+   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipeItems": [
+    {
+     "ingredientId": "vino-blanco",
+     "qty": 120
+    }
+   ]
+  },
+  {
+   "id": "cafe-solo",
+   "name": "Café solo",
+   "category": "Café",
+   "price": 1.4,
+   "taxRate": 7,
+   "ingredientCost": 0.098,
+   "otherCost": 0,
+   "recipe": "",
+   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipeItems": [
+    {
+     "ingredientId": "cafe",
+     "qty": 7
+    }
+   ]
+  },
+  {
+   "id": "cafe-leche",
+   "name": "Café con leche",
+   "category": "Café",
+   "price": 1.7,
+   "taxRate": 7,
+   "ingredientCost": 0.203,
+   "otherCost": 0,
+   "recipe": "",
+   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipeItems": [
+    {
+     "ingredientId": "cafe",
+     "qty": 7
+    },
+    {
+     "ingredientId": "leche",
+     "qty": 100
+    }
+   ]
+  }
+ ],
+ "stocks": [
+  {
+   "id": "s-ron2",
+   "date": "2026-10-21",
+   "start": "2026-10-14",
+   "end": "2026-10-20",
+   "product": "Ron blanco",
+   "unit": "ml",
+   "opening": 3500,
+   "purchases": 2800,
+   "closing": 1250,
+   "salesUse": 4900,
+   "tastings": 0,
+   "comps": 100,
+   "waste": 0,
+   "otherOut": 0,
+   "legitUse": 100,
+   "threshold": 300,
+   "status": "Validados",
+   "notes": "Control de seguimiento tras repetir el recuento y anotar invitaciones a diario.",
+   "actual": 5050,
+   "theoretical": 5000,
+   "variance": 50,
+   "salesId": "v-sem42"
+  },
+  {
+   "id": "s-ron",
+   "date": "2026-10-14",
+   "start": "2026-10-07",
+   "end": "2026-10-13",
+   "product": "Ron blanco",
+   "unit": "ml",
+   "opening": 7000,
+   "purchases": 2800,
+   "closing": 3500,
+   "salesUse": 5000,
+   "tastings": 300,
+   "comps": 200,
+   "waste": 100,
+   "otherOut": 200,
+   "legitUse": 800,
+   "threshold": 300,
+   "status": "Sin validar",
+   "notes": "Ventas: Mojito 54 × 50 ml + Cuba libre 46 × 50 ml. Desviación detectada; causa sin determinar. Pendiente: reconteo de botellas abiertas y revisar invitaciones sin anotar.",
+   "actual": 6300,
+   "theoretical": 5800,
+   "variance": 500,
+   "hypothesis": "Posibles invitaciones sin anotar o error en el recuento de botellas abiertas. Sin comprobar.",
+   "causeState": "Hipótesis sin comprobar",
+   "action": "Repetir el recuento entre dos personas y anotar invitaciones y degustaciones el mismo día.",
+   "result": "El control siguiente (14–20 oct) muestra una desviación de +50 ml. Falta comprobar que la causa fue la falta de registro.",
+   "salesId": "v-sem41"
+  },
+  {
+   "id": "s-gin",
+   "date": "2026-10-14",
+   "start": "2026-10-07",
+   "end": "2026-10-13",
+   "product": "Ginebra",
+   "unit": "ml",
+   "opening": 3500,
+   "purchases": 1400,
+   "closing": 2560,
+   "salesUse": 2280,
+   "tastings": 0,
+   "comps": 0,
+   "waste": 0,
+   "otherOut": 0,
+   "legitUse": 0,
+   "threshold": 150,
+   "status": "Validados",
+   "notes": "Ventas: Gin-tonic 38 × 60 ml. Inventario contado dos veces.",
+   "actual": 2340,
+   "theoretical": 2280,
+   "variance": 60,
+   "salesId": "v-sem41"
+  },
+  {
+   "id": "s-teq",
+   "date": "2026-10-14",
+   "start": "2026-10-07",
+   "end": "2026-10-13",
+   "product": "Tequila",
+   "unit": "ml",
+   "opening": 2800,
+   "purchases": 0,
+   "closing": 200,
+   "salesUse": 2500,
+   "tastings": 0,
+   "comps": 0,
+   "waste": 0,
+   "otherOut": 0,
+   "legitUse": 0,
+   "threshold": 150,
+   "status": "Validados",
+   "notes": "Ventas: Margarita 30 × 50 ml + Chupito 25 × 40 ml.",
+   "actual": 2600,
+   "theoretical": 2500,
+   "variance": 100,
+   "salesId": "v-sem41"
+  },
+  {
+   "id": "s-lima",
+   "date": "2026-10-14",
+   "start": "2026-10-07",
+   "end": "2026-10-13",
+   "product": "Zumo de lima",
+   "unit": "ml",
+   "opening": 3000,
+   "purchases": 2000,
+   "closing": 2370,
+   "salesUse": 2730,
+   "tastings": 0,
+   "comps": 0,
+   "waste": 0,
+   "otherOut": 0,
+   "legitUse": 0,
+   "threshold": 150,
+   "status": "Sin validar",
+   "notes": "Ventas: Mojito 54 × 20 + Cuba libre 46 × 10 + Margarita 30 × 25 + Vodka con limón 22 × 20. Consumo real inferior al teórico: revisar medición.",
+   "actual": 2630,
+   "theoretical": 2730,
+   "variance": -100,
+   "salesId": "v-sem41"
+  },
+  {
+   "id": "s-cerv",
+   "date": "2026-10-14",
+   "start": "2026-10-07",
+   "end": "",
+   "product": "Cerveza (botellín 330 ml)",
+   "unit": "unit",
+   "opening": 96,
+   "purchases": 48,
+   "closing": 24,
+   "salesUse": 120,
+   "tastings": 0,
+   "comps": 0,
+   "waste": 0,
+   "otherOut": 0,
+   "legitUse": 0,
+   "threshold": 6,
+   "status": "Sin validar",
+   "notes": "Periodo sin cerrar: falta la fecha final del control.",
+   "actual": 120,
+   "theoretical": 120,
+   "variance": 0,
+   "salesId": "v-sem41"
+  }
+ ],
+ "diagnostics": [
+  {
+   "id": "g1",
+   "area": "Stock e inventario",
+   "status": "En revisión",
+   "priority": "Alta",
+   "due": "2026-10-28",
+   "finding": "Ron blanco: desviación residual de +500 ml en la semana (7.000 + 2.800 − 3.500 = 6.300 ml de consumo real frente a 5.800 ml explicados). Causa sin determinar.",
+   "action": "Repetir el recuento de botellas abiertas entre dos personas y comprobar que invitaciones y degustaciones se anotan el mismo día.",
+   "check": "Repetir el control la semana siguiente con el mismo método y comparar la desviación residual."
+  },
+  {
+   "id": "g2",
+   "area": "Recetas y dosificación",
+   "status": "Pendiente",
+   "priority": "Media",
+   "due": "2026-11-04",
+   "finding": "Mojito y cuba libre se sirven sin una medida estándar escrita.",
+   "action": "Definir la receta en ml, usar medidor y hacer una prueba controlada de 7 días.",
+   "check": "Comparar el consumo de ron por cada 100 bebidas vendidas antes y después de aplicar la medida."
+  },
+  {
+   "id": "g3",
+   "area": "Carta y precios",
+   "status": "Pendiente",
+   "priority": "Media",
+   "due": "2026-11-04",
+   "finding": "El chupito de tequila tiene un margen bruto estimado bajo (49 %) con 40 ml y precio de 2,20 €.",
+   "action": "Valorar ajustar el tamaño del chupito o el precio. No asumir ningún ahorro hasta medirlo.",
+   "check": "Recalcular el margen y revisar las ventas del chupito durante dos semanas."
+  },
+  {
+   "id": "g4",
+   "area": "Compras y proveedores",
+   "status": "Pendiente",
+   "priority": "Baja",
+   "due": "2026-10-28",
+   "finding": "La naranja deshidratada de la guarnición del gin-tonic no tiene precio registrado: su coste está incompleto.",
+   "action": "Pedir el precio al proveedor y completarlo en Ingredientes.",
+   "check": "El gin-tonic deja de mostrar «Coste incompleto» y su margen se recalcula."
+  },
+  {
+   "id": "g5",
+   "area": "Organización del servicio",
+   "status": "Verificado",
+   "priority": "Media",
+   "due": "2026-10-14",
+   "finding": "Invitaciones y degustaciones no tenían registro diario.",
+   "action": "Usar una hoja de cierre con invitaciones, degustaciones y mermas.",
+   "check": "Revisar la hoja durante tres cierres consecutivos."
+  }
+ ]
+}

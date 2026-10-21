@@ -3,7 +3,7 @@ const [,,F,J,EX,OUTPDF]=process.argv;const E=JSON.parse(fs.readFileSync(EX));con
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);const n2=s=>String(s).replace(/\s/g,'');
 const eur=n=>n2(new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(n)),f2=n=>new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(n);
 const near=(a,b)=>Math.abs(a-b)<1e-9;
-(async()=>{const b=await chromium.launch();const c=await b.newContext({viewport:{width:390,height:800},acceptDownloads:true});const p=await c.newPage();p.errs=[];p.dl=[];
+(async()=>{const b=await chromium.launch();const c=await b.newContext({viewport:{width:390,height:800},acceptDownloads:true,reducedMotion:'reduce'});const p=await c.newPage();p.errs=[];p.dl=[];
 p.on('pageerror',e=>p.errs.push(String(e).slice(0,100)));p.on('dialog',d=>{p.dl.push(d.message().slice(0,80));d.accept()});await p.goto('file://'+F);
 await p.setInputFiles('#importFile',J);await p.click('#importYes');await p.waitForTimeout(200);
 const S=await p.evaluate(()=>({i:data.ingredients.length,d:data.drinks.length,s:data.stocks.length,g:data.diagnostics.length,biz:data.business.name,

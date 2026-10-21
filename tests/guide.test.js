@@ -2,7 +2,7 @@
 const {chromium,devices}=require('playwright');const path=require('path');const fs=require('fs');const TMP=path.join(__dirname,'tmp')+path.sep;fs.mkdirSync(TMP,{recursive:true});const [,,F,J]=process.argv;const T=[];
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const KEY='islaBarraControlMVP_v1',DEMO=JSON.parse(fs.readFileSync(J,'utf8'));
-const PHONE={...devices['iPhone 13'],acceptDownloads:true},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}};
+const PHONE={...devices['iPhone 13'],acceptDownloads:true,reducedMotion:'reduce'},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}};
 (async()=>{const b=await chromium.launch();const pages=[];
 const mk=async(dev=PHONE,seed)=>{const c=await b.newContext(dev);await c.clock.setFixedTime(new Date('2026-10-21T10:00:00Z'));await c.addInitScript(()=>{window.print=()=>{window.__prints=(window.__prints||0)+1}});if(seed)await c.addInitScript(([k,s])=>{if(!sessionStorage.seeded){sessionStorage.seeded=1;localStorage.setItem(k,s)}},[KEY,JSON.stringify(seed)]);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type()+': '+d.message().slice(0,60));d.dismiss()});await p.goto('file://'+F);pages.push(p);return p};
 const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error("toque en "+sel+": "+e.message.split("\n")[0])});
@@ -113,8 +113,8 @@ ok('«?» de margen bruto en el Resumen: se abre, aria-expanded=true y aclara qu
 ok('«?» tiene objetivo táctil ≥ 44 × 44 px',hm.box.width>=44&&hm.box.height>=44,hm.box);
 await tap(h,helpBtn(h,'Margen bruto'));ok('volver a tocar «?» cierra la ayuda',(await h.locator(helpBtn(h,'Margen bruto')).filter({visible:true}).first().getAttribute('aria-expanded'))==='false',null);
 const want={drinks:{'Coste directo':/2,10 €/,'Margen bruto':/no es beneficio|No es beneficio/,'% de coste':/23,33 %/,'Umbral de margen':/55 %/},stock:{'Consumo teórico':/5800 ml/,'Desviación':/\+500 ml/,'Umbral de revisión':/300 ml/,'Conciliación':/6300 ml/}};
-for(const [pg,terms] of Object.entries(want)){await nav(h,pg==='drinks'?'Bebidas':'Stock');for(const [term,re] of Object.entries(terms)){const r=await openHelp(h,term);ok(`«?» de ${term} en ${pg==='drinks'?'Bebidas':'Stock'}: explicación con ejemplo numérico`,r.exp==='true'&&r.vis&&re.test(r.note)&&/Ejemplo:/.test(r.note),r.note)}
- for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){if(dev===SMALL){const q=await mk(SMALL);await tap(q,'#wDemo');await nav(q,pg==='drinks'?'Bebidas':'Stock');for(const term of Object.keys(terms))await tap(q,helpBtn(q,term));ok(`${pg==='drinks'?'Bebidas':'Stock'} con todas las ayudas abiertas sin desbordamiento a 360 px`,await noOverflow(q),await wide(q))}else ok(`${pg==='drinks'?'Bebidas':'Stock'} con todas las ayudas abiertas sin desbordamiento a 390 px`,await noOverflow(h),await wide(h))}}
+for(const [pg,terms] of Object.entries(want)){await nav(h,pg==='drinks'?'Bebidas':'Stock');if(pg==='drinks')await tap(h,'.adv-scope:has(#marginMin) .more-toggle');for(const [term,re] of Object.entries(terms)){const r=await openHelp(h,term);ok(`«?» de ${term} en ${pg==='drinks'?'Bebidas':'Stock'}: explicación con ejemplo numérico`,r.exp==='true'&&r.vis&&re.test(r.note)&&/Ejemplo:/.test(r.note),r.note)}
+ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){if(dev===SMALL){const q=await mk(SMALL);await tap(q,'#wDemo');await nav(q,pg==='drinks'?'Bebidas':'Stock');if(pg==='drinks')await tap(q,'.adv-scope:has(#marginMin) .more-toggle');for(const term of Object.keys(terms))await tap(q,helpBtn(q,term));ok(`${pg==='drinks'?'Bebidas':'Stock'} con todas las ayudas abiertas sin desbordamiento a 360 px`,await noOverflow(q),await wide(q))}else ok(`${pg==='drinks'?'Bebidas':'Stock'} con todas las ayudas abiertas sin desbordamiento a 390 px`,await noOverflow(h),await wide(h))}}
 ok('cada «?» es un botón con nombre accesible y controla su nota',await h.evaluate(()=>[...document.querySelectorAll('button.help')].every(b=>b.getAttribute('aria-label').startsWith('Qué es: ')&&document.getElementById(b.getAttribute('aria-controls')))),null);
 // contraste del texto visible (≥ 4,5:1) en cada pantalla con el ejemplo cargado
 const contrastFails=p=>p.evaluate(()=>{const rgb=s=>{const m=s.match(/[\d.]+/g)||[0,0,0,0];return m.map(Number)};const lum=([r,g,b])=>{const f=x=>{x/=255;return x<=0.03928?x/12.92:((x+0.055)/1.055)**2.4};return .2126*f(r)+.7152*f(g)+.0722*f(b)};
@@ -123,6 +123,34 @@ const contrastFails=p=>p.evaluate(()=>{const rgb=s=>{const m=s.match(/[\d.]+/g)|
 let cf=[];for(const label of ['Resumen','Bebidas','Ingredientes','Stock','Diagnóstico','Ficha']){await nav(h,label);cf.push(...(await contrastFails(h)).map(x=>label+': '+x))}
 ok('contraste ≥ 4,5:1 en todo el texto visible (Resumen, Ficha, Bebidas, Ingredientes, Stock, Diagnóstico)',cf.length===0,cf.slice(0,8));
 {const wq=await mk();const f=await contrastFails(wq);ok('contraste ≥ 4,5:1 en la bienvenida',f.length===0,f)}
+
+// ── 5. Vista sencilla / completa ─────────────────────────────────────────────
+let m5=await mk();await tap(m5,'#wStart');
+const vis=(p,sel)=>p.locator(sel).first().isVisible();
+const advVisible=async p=>({tax:await vis(p,'#dTax'),other:await vis(p,'#dOtherCost'),marg:await vis(p,'#marginMin'),thr:await vis(p,'#sThreshold'),follow:await vis(p,'#sFollow'),cl:await p.locator('#iUnit option[value=cl]').count()});
+const onPage=async(p,label,fn)=>{await nav(p,label);return fn()};
+ok('quien empieza de cero arranca en vista sencilla',(await D(m5)).settings.mode==='simple',null);
+let a5={tax:await onPage(m5,'Bebidas',()=>vis(m5,'#dTax')),other:await vis(m5,'#dOtherCost'),marg:await vis(m5,'#marginMin'),thr:await onPage(m5,'Stock',()=>vis(m5,'#sThreshold')),follow:await vis(m5,'#sFollow'),cl:await m5.locator('#iUnit option[value=cl]').count()};
+ok('sencilla: ocultos impuesto incluido, otros costes, umbrales, seguimiento de la desviación y formato en cl',!a5.tax&&!a5.other&&!a5.marg&&!a5.thr&&!a5.follow&&a5.cl===0,a5);
+await nav(m5,'Bebidas');await tap(m5,'#drinkForm .more-toggle');
+ok('Bebidas › «Más opciones» muestra impuesto y otros costes (aria-expanded y «Menos opciones»)',(await vis(m5,'#dTax'))&&(await vis(m5,'#dOtherCost'))&&(await m5.locator('#drinkForm .more-toggle').getAttribute('aria-expanded'))==='true'&&(await text(m5,'#drinkForm .more-toggle'))==='Menos opciones',null);
+await tap(m5,'#drinkForm .more-toggle');ok('«Menos opciones» los vuelve a ocultar',!(await vis(m5,'#dTax')),null);
+await tap(m5,'.adv-scope:has(#marginMin) .more-toggle');ok('Bebidas › resumen › «Más opciones» muestra el umbral de margen',await vis(m5,'#marginMin'),null);
+await nav(m5,'Stock');await tap(m5,'#stockForm .more-toggle');ok('Stock › «Más opciones» muestra umbral y seguimiento de la desviación',(await vis(m5,'#sThreshold'))&&(await vis(m5,'#sFollow')),null);
+await nav(m5,'Ingredientes');await tap(m5,'#ingredientForm .more-toggle');ok('Ingredientes › «Más opciones» ofrece centilitros (cl)',(await m5.locator('#iUnit option[value=cl]').count())===1,null);
+const box5=await box(m5,'#ingredientForm .more-toggle');ok('«Más opciones» con altura ≥ 44 px',box5.height>=44,box5);
+await nav(m5,'Resumen');await tap(m5,'#dashSettings');ok('Resumen › «Ajustes» abre los ajustes con la vista actual marcada (Sencilla)',(await seen(m5,'#page-settings'))&&(await m5.isChecked('#modeSimple')),null);
+await tap(m5,'label[for=modeFull]');a5=await D(m5);
+ok('elegir «Completa» lo guarda en settings.mode',a5.settings.mode==='full'&&(await m5.isChecked('#modeFull')),a5.settings.mode);
+await m5.reload();a5={tax:await onPage(m5,'Bebidas',()=>vis(m5,'#dTax')),marg:await vis(m5,'#marginMin'),toggles:await m5.locator('.more-toggle').filter({visible:true}).count(),thr:await onPage(m5,'Stock',()=>vis(m5,'#sThreshold')),follow:await vis(m5,'#sFollow'),cl:await m5.locator('#iUnit option[value=cl]').count()};
+ok('completa (tras recargar): todo a la vista y sin «Más opciones»',a5.tax&&a5.marg&&a5.thr&&a5.follow&&a5.cl===1&&a5.toggles===0,a5);
+// quien ya tiene datos se queda en completa
+const v3={schema:3,business:{name:'Bar Antiguo'},ingredients:[{id:'i1',name:'Ron',unit:'ml',packQty:700,packPrice:14}],drinks:[],stocks:[],diagnostics:[],sales:[],settings:{marginMin:60}};
+let m6=await mk(PHONE,v3);ok('datos guardados por la versión anterior (sin modo): se quedan en vista completa',(await D(m6)).settings.mode==='full'&&!(await m6.evaluate(()=>document.body.classList.contains('mode-simple'))),null);
+fs.writeFileSync(TMP+'guide_v3.json',JSON.stringify({...v3,app:'Isla & Barra Control'}));
+let m7=await mk();await importTap(m7,'#wRestore',TMP+'guide_v3.json');ok('importar una copia antigua con datos: vista completa',(await D(m7)).settings.mode==='full',null);
+let m8=await mk();await tap(m8,'#wDemo');ok('el bar de ejemplo cargado desde la bienvenida mantiene la vista sencilla',(await D(m8)).settings.mode==='simple',null);
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const q=await mk(dev);await tap(q,'#wDemo');for(const [lab,sel] of [['Bebidas','#drinkForm .more-toggle'],['Stock','#stockForm .more-toggle'],['Ingredientes','#ingredientForm .more-toggle']]){await nav(q,lab);await tap(q,sel)}await nav(q,'Resumen');await tap(q,'#dashSettings');ok(`modo sencillo con «Más opciones» abiertas y Ajustes sin desbordamiento a ${wd} px`,await noOverflow(q),await wide(q))}
 
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));

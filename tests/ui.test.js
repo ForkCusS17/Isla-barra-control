@@ -2,7 +2,7 @@
 const {chromium,devices}=require('playwright');const path=require('path');const TMP=path.join(__dirname,'tmp')+path.sep;require('fs').mkdirSync(TMP,{recursive:true});const fs=require('fs');const [,,F,J]=process.argv;const T=[];
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const canon=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort()):v);
-const PHONE={...devices['iPhone 13'],acceptDownloads:true};
+const PHONE={...devices['iPhone 13'],acceptDownloads:true,reducedMotion:'reduce'};
 (async()=>{const b=await chromium.launch();
 const mk=async()=>{const c=await b.newContext(PHONE);await c.addInitScript(()=>{window.__prints=0;window.print=()=>{window.__prints++}});const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,100)));p.on('dialog',d=>{p.dl.push(d.message().slice(0,80));d.accept()});await p.goto('file://'+F);return p};
 // Toca un elemento visible; falla si no existe, no se ve o queda tapado (Playwright comprueba que el toque le llega).
@@ -39,7 +39,7 @@ await nav('Ingredientes');ok('toque › Ingredientes: pantalla visible y sin des
 await u.fill('#iName','Ron blanco');await u.selectOption('#iUnit','ml');await u.fill('#iPackQty','700');await u.fill('#iPackPrice','14');await tap(u,'#ingredientForm button:has-text("Guardar ingrediente")');
 ok('Ingredientes: «Guardar ingrediente» guarda ron 700 ml a 14 € (0,02 €/ml)',(i=>i.length===1&&i[0].name==='Ron blanco'&&i[0].unitCost===0.02)((await D()).ingredients),(await D()).ingredients);
 await nav('Bebidas');ok('toque › Bebidas: pantalla visible y sin desbordamiento',await shown('drinks'),null);
-await u.fill('#dName','Mojito');await u.fill('#dPrice','9');await u.fill('#dOtherCost','1.10');await tap(u,'#drinkForm button:has-text("+ Añadir ingrediente")');
+await u.fill('#dName','Mojito');await u.fill('#dPrice','9');await tap(u,'#drinkForm .more-toggle');await u.fill('#dOtherCost','1.10');await tap(u,'#drinkForm button:has-text("+ Añadir ingrediente")');
 await u.locator('#recipeLines select').selectOption({index:1});await u.fill('#recipeLines input[type=number]','50');await tap(u,'#drinkForm button:has-text("Guardar bebida")');
 const dr=(await D()).drinks;ok('Bebidas: «+ Añadir ingrediente» y «Guardar bebida» guardan el mojito (50 ml de ron) y el margen sale en la lista',dr.length===1&&dr[0].name==='Mojito'&&dr[0].recipeItems.length===1&&dr[0].recipeItems[0].qty===50&&/76,67\s*%/.test(await u.locator('#drinkList').innerText()),[dr,await u.locator('#drinkList').innerText()]);
 await nav('Stock');ok('toque › Stock: pantalla visible y sin desbordamiento',await shown('stock'),null);

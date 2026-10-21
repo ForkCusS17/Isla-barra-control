@@ -35,6 +35,7 @@ ok('editar: pasar a «Verificado» sin resultado se rechaza y no cambia el halla
 await p.fill('#diagResult','Semana 21–27 oct: 4.900 ml de ron por 100 mojitos frente a 5.200 antes');await p.fill('#diagOwner','');await p.click('#diagForm button[type=submit]');
 const e=await p.evaluate(()=>({n:data.diagnostics.length,g:data.diagnostics[0]}));
 ok('editar: actualiza el mismo hallazgo (mismo id, sin duplicar) con estado, resultado y responsable vacío',e.n===1&&e.g.id===g.id&&e.g.status==='Verificado'&&/4\.900 ml/.test(e.g.result)&&e.g.owner===''&&e.g.evidence===full.diagEvidence,e);
+ok('guardar y editar no crean variables globales (i, old, bad)',await p.evaluate(()=>!('i' in window)&&!('old' in window)&&!('bad' in window)),await p.evaluate(()=>['i','old','bad'].filter(k=>k in window)));
 ok('editar: aviso «Hallazgo actualizado»',(await toastTxt(p))==='Hallazgo actualizado',await toastTxt(p));
 await p.evaluate(()=>{data.diagnostics[0].extra='campo futuro';save()});await p.evaluate(()=>editDiag(data.diagnostics[0].id));await p.click('#diagForm button[type=submit]');
 ok('editar: conserva campos que el formulario no conoce',(await p.evaluate(()=>data.diagnostics[0].extra))==='campo futuro',null);
@@ -51,6 +52,9 @@ const L=await q.evaluate(()=>({d:data.diagnostics,schema:data.schema,pend:pendin
 ok('copia antigua: se importa con los 3 hallazgos y schema 3',L.d.length===3&&L.schema===3&&q.errs.length===0,[L.d.length,L.schema,q.errs]);
 ok('copia antigua: campos nuevos vacíos (evidencia, responsable, resultado) y los antiguos intactos',L.d.every(x=>x.evidence===''&&x.owner===''&&x.result==='')&&L.d[0].finding==='f1'&&L.d[0].check==='c1'&&L.d[0].due==='2026-10-20'&&L.d[0].priority==='Alta',L.d[0]);
 ok('copia antigua: estado y prioridad desconocidos pasan a Pendiente / Media; fecha no ISO se descarta',L.d[1].status==='Verificado'&&L.d[1].priority==='Media'&&L.d[1].due===''&&L.d[2].status==='Pendiente'&&L.d[2].area===''&&L.d[2].check==='c3',L.d.slice(1));
+{const dates={x1:'2026-13-45',x2:'2026-02-30',x3:'2026-00-10',x4:'2024-02-29',x5:'2026-10-20',x6:'2026-1-5'};fs.writeFileSync(TMP+'diag_dates.json',JSON.stringify({...legacy,diagnostics:Object.entries(dates).map(([id,due])=>({id,finding:'f',evidence:'e',action:'a',due}))}));
+let z=await mk();await imp(z,TMP+'diag_dates.json');const Z=await z.evaluate(()=>Object.fromEntries(data.diagnostics.map(g=>[g.id,g.due])));
+ok('fecha de revisión: se rechazan fechas imposibles (2026-13-45, 2026-02-30, mes 00) y se aceptan las reales (29-feb bisiesto)',Z.x1===''&&Z.x2===''&&Z.x3===''&&Z.x4==='2024-02-29'&&Z.x5==='2026-10-20'&&Z.x6==='',Z)}
 ok('copia antigua: pendientes avisan de evidencia, método y «Verificado» sin resultado',L.pend.filter(x=>/sin evidencia/.test(x)).length===3&&L.pend.some(x=>/«f2».*falta definir cómo comprobar/.test(x))&&L.pend.some(x=>/«f2».*«Verificado» sin resultado/.test(x)),L.pend);
 await q.evaluate(()=>editDiag('g2'));
 ok('copia antigua: editar un área que ya no está en la lista la conserva',(await q.evaluate(()=>document.getElementById('diagArea').value))==='Zona antigua',null);

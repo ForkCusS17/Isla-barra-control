@@ -104,6 +104,26 @@ await tap(pr,'#lookNow .look-item:has-text("Precios sin revisar") button');ok('�
 let em=await mk();await tap(em,'#wStart');await nav(em,'Resumen');
 ok('sin datos que revisar: «No hay señales nuevas» (sin inventar avisos)',/No hay señales nuevas/.test(await text(em,'#lookNow')),await text(em,'#lookNow'));
 
+// ── 4. Ayudas «?» y contraste ────────────────────────────────────────────────
+let h=await mk();await tap(h,'#wDemo');
+const helpBtn=(p,term)=>`button.help[aria-label="Qué es: ${term}"]`;
+const openHelp=async(p,term)=>{await tap(p,helpBtn(p,term));const btn=p.locator(helpBtn(p,term)).filter({visible:true}).first();const id=await btn.getAttribute('aria-controls');return{exp:await btn.getAttribute('aria-expanded'),note:await text(p,'#'+id),vis:await p.locator('#'+id).isVisible(),box:await btn.boundingBox()}};
+let hm=await openHelp(h,'Margen bruto');
+ok('«?» de margen bruto en el Resumen: se abre, aria-expanded=true y aclara que no es beneficio con un ejemplo',hm.exp==='true'&&hm.vis&&/No es beneficio/.test(hm.note)&&/Ejemplo: precio 9,00 € sin impuestos y coste 2,10 € → te quedan 6,90 € \(76,67 %\)/.test(hm.note),hm);
+ok('«?» tiene objetivo táctil ≥ 44 × 44 px',hm.box.width>=44&&hm.box.height>=44,hm.box);
+await tap(h,helpBtn(h,'Margen bruto'));ok('volver a tocar «?» cierra la ayuda',(await h.locator(helpBtn(h,'Margen bruto')).filter({visible:true}).first().getAttribute('aria-expanded'))==='false',null);
+const want={drinks:{'Coste directo':/2,10 €/,'Margen bruto':/no es beneficio|No es beneficio/,'% de coste':/23,33 %/,'Umbral de margen':/55 %/},stock:{'Consumo teórico':/5800 ml/,'Desviación':/\+500 ml/,'Umbral de revisión':/300 ml/,'Conciliación':/6300 ml/}};
+for(const [pg,terms] of Object.entries(want)){await nav(h,pg==='drinks'?'Bebidas':'Stock');for(const [term,re] of Object.entries(terms)){const r=await openHelp(h,term);ok(`«?» de ${term} en ${pg==='drinks'?'Bebidas':'Stock'}: explicación con ejemplo numérico`,r.exp==='true'&&r.vis&&re.test(r.note)&&/Ejemplo:/.test(r.note),r.note)}
+ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){if(dev===SMALL){const q=await mk(SMALL);await tap(q,'#wDemo');await nav(q,pg==='drinks'?'Bebidas':'Stock');for(const term of Object.keys(terms))await tap(q,helpBtn(q,term));ok(`${pg==='drinks'?'Bebidas':'Stock'} con todas las ayudas abiertas sin desbordamiento a 360 px`,await noOverflow(q),await wide(q))}else ok(`${pg==='drinks'?'Bebidas':'Stock'} con todas las ayudas abiertas sin desbordamiento a 390 px`,await noOverflow(h),await wide(h))}}
+ok('cada «?» es un botón con nombre accesible y controla su nota',await h.evaluate(()=>[...document.querySelectorAll('button.help')].every(b=>b.getAttribute('aria-label').startsWith('Qué es: ')&&document.getElementById(b.getAttribute('aria-controls')))),null);
+// contraste del texto visible (≥ 4,5:1) en cada pantalla con el ejemplo cargado
+const contrastFails=p=>p.evaluate(()=>{const rgb=s=>{const m=s.match(/[\d.]+/g)||[0,0,0,0];return m.map(Number)};const lum=([r,g,b])=>{const f=x=>{x/=255;return x<=0.03928?x/12.92:((x+0.055)/1.055)**2.4};return .2126*f(r)+.7152*f(g)+.0722*f(b)};
+ const bgOf=el=>{for(let e=el;e;e=e.parentElement){const c=rgb(getComputedStyle(e).backgroundColor);if((c[3]===undefined||c[3]>0.5))return c}return[255,255,255]};const bad=[];
+ document.querySelectorAll('body *').forEach(el=>{if(!el.offsetParent&&getComputedStyle(el).position!=='fixed')return;const own=[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim());if(!own)return;const cs=getComputedStyle(el);if(cs.visibility==='hidden'||Number(cs.opacity)<0.5)return;let op=1;for(let e=el;e;e=e.parentElement)op*=Number(getComputedStyle(e).opacity);if(op<0.95)return;const a=lum(rgb(cs.color)),b2=lum(bgOf(el)),r=(Math.max(a,b2)+.05)/(Math.min(a,b2)+.05);if(r<4.5)bad.push(el.tagName+'.'+el.className+' «'+el.textContent.trim().slice(0,30)+'» '+r.toFixed(2))});return bad});
+let cf=[];for(const label of ['Resumen','Bebidas','Ingredientes','Stock','Diagnóstico','Ficha']){await nav(h,label);cf.push(...(await contrastFails(h)).map(x=>label+': '+x))}
+ok('contraste ≥ 4,5:1 en todo el texto visible (Resumen, Ficha, Bebidas, Ingredientes, Stock, Diagnóstico)',cf.length===0,cf.slice(0,8));
+{const wq=await mk();const f=await contrastFails(wq);ok('contraste ≥ 4,5:1 en la bienvenida',f.length===0,f)}
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO guía: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message);process.exit(1)});

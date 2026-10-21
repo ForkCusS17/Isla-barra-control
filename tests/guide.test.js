@@ -48,6 +48,33 @@ await tap(r,'#appConfirmYes');d=await D(r);
 ok('salir del ejemplo restaura los datos reales y borra la copia interna',d.business.name==='Bar Real'&&!d.business.isDemo&&d.drinks.length===0&&(await stored(r,KEY+'_antes_del_ejemplo'))===null,{name:d.business.name,demo:d.business.isDemo});
 await r.reload();ok('tras recargar siguen los datos reales sin rastro del ejemplo',(await D(r)).business.name==='Bar Real'&&!(await seen(r,'#demoBadge')),null);
 
+// ── 2. Guía de inicio ────────────────────────────────────────────────────────
+let g=await mk();await tap(g,'#wStart');await nav(g,'Resumen');
+const gcount=async()=>text(g,'#guideCount');
+ok('guía: empieza en «0 de 6» con barra de progreso y el primer paso destacado (Ficha)',(await gcount())==='0 de 6'&&(await g.locator('#guidePanel [role=progressbar]').getAttribute('aria-valuenow'))==='0'&&/Siguiente: Ficha completa/.test(await text(g,'#guideNext'))&&/Por qué:/.test(await text(g,'#guideNext')),await text(g,'#guidePanel'));
+await tap(g,'#guideGo');ok('guía: «Continuar» lleva a la Ficha',await seen(g,'#page-business'),null);
+await g.fill('#bName','Bar Guía');await tap(g,'#businessForm button:has-text("Guardar ficha")');await nav(g,'Resumen');
+ok('guía: con nombre pero sin localidad ni periodo la ficha no cuenta y dice qué falta',(await gcount())==='0 de 6'&&/Falta: localidad, periodo analizado/.test(await text(g,'#guideNext')),await text(g,'#guideNext'));
+await tap(g,'#guideGo');await g.fill('#bLocation','Arrecife');await g.fill('#bPeriod','1–7 nov');await tap(g,'#businessForm button:has-text("Guardar ficha")');await nav(g,'Resumen');
+ok('guía: ficha completa → «1 de 6», chip «✓ Ficha completa» y siguiente: ingredientes',(await gcount())==='1 de 6'&&/✓ Ficha completa/.test(await text(g,'#guidePanel .chips'))&&/Siguiente: 5 ingredientes con precio/.test(await text(g,'#guideNext')),await text(g,'#guidePanel'));
+await tap(g,'#guideGo');ok('guía: «Continuar» lleva a Ingredientes',await seen(g,'#page-ingredients'),null);
+const addI=async(n,q,pr)=>{await g.fill('#iName',n);await g.selectOption('#iUnit','ml');await g.fill('#iPackQty',String(q));await g.fill('#iPackPrice',String(pr));await tap(g,'#ingredientForm button:has-text("Guardar ingrediente")')};
+for(const [n,pr] of [['Ron',14],['Ginebra',16],['Vodka',12],['Tequila',18]])await addI(n,700,pr);await addI('Sirope',1000,0);
+await nav(g,'Resumen');ok('guía: 4 con precio y 1 sin precio → sigue en ingredientes («Tienes 4 de 5»)',(await gcount())==='1 de 6'&&/Tienes 4 de 5/.test(await text(g,'#guideNext')),await text(g,'#guideNext'));
+await nav(g,'Ingredientes');await addI('Zumo de lima',1000,4.5);await nav(g,'Resumen');
+ok('guía: 5 ingredientes con precio → «2 de 6» y siguiente: bebidas',(await gcount())==='2 de 6'&&/Siguiente: 3 bebidas con receta/.test(await text(g,'#guideNext')),await text(g,'#guidePanel'));
+await tap(g,'#guideHide');ok('guía: «Ocultar la guía» la oculta y deja un botón para mostrarla con el progreso',!(await seen(g,'#guideNext'))&&/Mostrar la guía de inicio \(2 de 6\)/.test(await text(g,'#guideShow')),null);
+await g.reload();ok('guía: sigue oculta tras recargar',await seen(g,'#guideShow')&&!(await seen(g,'#guideCount')),null);
+await tap(g,'#guideShow');ok('guía: «Mostrar» la vuelve a enseñar',(await gcount())==='2 de 6',null);
+let gd=await mk();await tap(gd,'#wDemo');
+ok('guía con el ejemplo: «5 de 6», falta revisar el informe',(await text(gd,'#guideCount'))==='5 de 6'&&/Siguiente: Informe revisado/.test(await text(gd,'#guideNext')),await text(gd,'#guidePanel'));
+await tap(gd,'#guideGo');ok('guía: «Continuar» lleva al Informe',await seen(gd,'#page-report'),null);
+await tap(gd,'#reportReviewed');ok('«He revisado el informe» lo anota con la fecha',/Marcado como revisado el \d{4}-\d{2}-\d{2}/.test(await text(gd,'#reportReviewedNote')),null);
+await nav(gd,'Resumen');ok('guía completa: «6 de 6» y mensaje de guía completada',(await text(gd,'#guideCount'))==='6 de 6'&&/Guía completada/.test(await text(gd,'#guidePanel'))&&!(await seen(gd,'#guideGo')),null);
+await nav(gd,'Ficha');await gd.fill('#bNotes','Nota nueva');await tap(gd,'#businessForm button:has-text("Guardar ficha")');
+ok('guardar la ficha no borra la marca de informe revisado ni la de datos de ejemplo',(d=>d.business.reportReviewedAt&&d.business.isDemo)(await D(gd)),null);
+for(const [dev,w] of [[PHONE,390],[SMALL,360]]){const q=await mk(dev);await tap(q,'#wDemo');ok(`guía sin desbordamiento a ${w} px`,await noOverflow(q),await wide(q))}
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO guía: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message);process.exit(1)});

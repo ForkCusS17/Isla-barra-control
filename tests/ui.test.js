@@ -8,7 +8,7 @@ const mk=async()=>{const c=await b.newContext(PHONE);await c.addInitScript(()=>{
 // Toca un elemento visible; falla si no existe, no se ve o queda tapado (Playwright comprueba que el toque le llega).
 const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000});
 const visibleIn=async(p,sel)=>{const l=p.locator(sel).filter({visible:true}).first();if(!await l.count())return null;const r=await l.boundingBox();return r&&r.width>0&&r.height>0&&r.x>=0&&r.x+r.width<=390+1?r:null};
-const importByTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:4000}),tap(p,sel)]);await fc.setFiles(file);p.ask=await p.locator('#importConfirm').innerText({timeout:3000});await tap(p,'#importYes');await p.waitForTimeout(200)};
+const importByTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:4000}),tap(p,sel)]);await fc.setFiles(file);await p.locator('#importConfirm').waitFor({state:'visible',timeout:3000});p.ask=await p.locator('#importConfirm').innerText();await tap(p,'#importYes');await p.waitForTimeout(200)};
 const downloadByTap=async(p,sel)=>{const [dl]=await Promise.all([p.waitForEvent('download',{timeout:4000}),tap(p,sel)]);return{name:dl.suggestedFilename(),text:fs.readFileSync(await dl.path(),'utf8')}};
 // 1. Exportar copia en móvil
 let p=await mk();

@@ -1,6 +1,6 @@
 {
  "app": "Isla & Barra Control",
- "schema": 3,
+ "schema": 4,
  "sales": [
   {
    "id": "v-sem41",
@@ -107,11 +107,12 @@
    ]
   }
  ],
- "exportedAt": "2026-10-21T11:32:26Z",
+ "exportedAt": "2026-10-21T00:00:00Z",
  "settings": {
   "marginMin": 55
  },
  "business": {
+  "isDemo": true,
   "name": "Bar Atlántico (ejemplo ficticio)",
   "contact": "Responsable de barra (ficticio)",
   "location": "Arrecife",

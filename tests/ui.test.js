@@ -21,10 +21,10 @@ ok('Resumen: «Exportar copia» e «Importar» juntos y con altura cómoda (≥ 
 const before=canon(await p.evaluate(()=>data));
 const ex=await downloadByTap(p,'#page-dashboard button:has-text("Exportar copia")');
 let js=null;try{js=JSON.parse(ex.text)}catch(e){}
-ok('tocar «Exportar copia» descarga un JSON válido de la app',!!js&&js.app==='Isla & Barra Control'&&js.schema===3&&/^isla-barra-copia-\d{4}-\d{2}-\d{2}\.json$/.test(ex.name)&&js.drinks.length===11&&js.diagnostics.length===5,ex.name);
+ok('tocar «Exportar copia» descarga un JSON válido de la app',!!js&&js.app==='Isla & Barra Control'&&js.schema===4&&/^isla-barra-copia-\d{4}-\d{2}-\d{2}\.json$/.test(ex.name)&&js.drinks.length===11&&js.diagnostics.length===5,ex.name);
 fs.writeFileSync(TMP+'ui_copia.json',ex.text);
-let q=await mk();await importByTap(q,'#backupPanel label:has-text("Importar")',TMP+'ui_copia.json');
-ok('ese JSON se importa de nuevo por toque (Resumen › Importar) y restituye los mismos datos',canon(await q.evaluate(()=>data))===before,null);
+let q=await mk();await importByTap(q,'#welcome label:has-text("Recuperar una copia de seguridad")',TMP+'ui_copia.json');
+ok('ese JSON se importa de nuevo por toque (bienvenida › Recuperar una copia) y restituye los mismos datos',canon(await q.evaluate(()=>data))===before,null);
 const w=await p.evaluate(()=>[document.documentElement.scrollWidth,innerWidth]);ok('Resumen sin desbordamiento horizontal',w[0]<=w[1]+1,w);
 // 2. Recorrido completo por toques, desde datos vacíos
 let u=await mk();
@@ -62,7 +62,7 @@ ok('Resumen › «Exportar copia» de lo introducido por toques y «Importar» e
 // 3. Dentro de un visor que bloquea los diálogos del navegador (iframe con sandbox sin allow-modals): Importar debe funcionar igual
 fs.writeFileSync(TMP+'visor.html',`<iframe id="f" sandbox="allow-scripts allow-same-origin allow-forms" src="file://${F}" style="width:390px;height:800px;border:0"></iframe>`);
 {const c=await b.newContext(PHONE);const s=await c.newPage();const dl=[];s.on('dialog',d=>{dl.push(d.type());d.accept()});await s.goto('file://'+TMP+'visor.html');await s.waitForTimeout(400);const fr=s.frameLocator('#f');
-let fc=null;try{[fc]=await Promise.all([s.waitForEvent('filechooser',{timeout:4000}),fr.locator('#backupPanel label:has-text("Importar")').tap({timeout:4000})])}catch(e){}
+let fc=null;try{[fc]=await Promise.all([s.waitForEvent('filechooser',{timeout:4000}),fr.locator('#welcome label:has-text("Recuperar una copia")').tap({timeout:4000})])}catch(e){}
 if(fc){await fc.setFiles(J);await fr.locator('#importYes').tap({timeout:4000})}await s.waitForTimeout(300);
 const n=await s.frames().find(x=>x.url().startsWith('file://'+F)).evaluate(()=>data.drinks.length);
 ok('dentro de un visor sin diálogos: Importar abre el selector, confirma en la página e importa',!!fc&&n===11&&dl.length===0,{selector:!!fc,bebidas:n,dialogos:dl})}

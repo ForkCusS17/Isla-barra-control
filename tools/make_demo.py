@@ -56,10 +56,15 @@ EXTRA={'g1':dict(evidence='Control de ron blanco 7–13 oct (datos sin validar):
 for g in diag:g.update(EXTRA[g['id']])
 for s_ in stocks:s_['salesId']='v-sem42' if s_['id']=='s-ron2' else 'v-sem41'
 sales=[dict(id='v-sem41',label='Semana 7–13 octubre',start='2026-10-07',end='2026-10-13',lines=[dict(drinkId=i,qty=q) for i,q in SALES.items()]),dict(id='v-sem42',label='Semana 14–20 octubre',start='2026-10-14',end='2026-10-20',lines=[dict(drinkId=i,qty=q) for i,q in SALES2.items()])]
-data=dict(app=APP,schema=3,sales=sales,exportedAt=datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),settings=dict(marginMin=55),
-business=dict(name='Bar Atlántico (ejemplo ficticio)',contact='Responsable de barra (ficticio)',location='Arrecife',date='2026-10-14',type='Bar / coctelería',period='7–20 octubre 2026',notes='CASO DE EJEMPLO FICTICIO para validar la app. Objetivo: entender costes y márgenes de la carta de cócteles y revisar las desviaciones de stock de la semana. Precios, ventas, proveedores y el 7 % de impuesto son inventados: ajústalos antes de usar datos reales.'),
+data=dict(app=APP,schema=4,sales=sales,exportedAt='2026-10-21T00:00:00Z',settings=dict(marginMin=55),
+business=dict(isDemo=True,name='Bar Atlántico (ejemplo ficticio)',contact='Responsable de barra (ficticio)',location='Arrecife',date='2026-10-14',type='Bar / coctelería',period='7–20 octubre 2026',notes='CASO DE EJEMPLO FICTICIO para validar la app. Objetivo: entender costes y márgenes de la carta de cócteles y revisar las desviaciones de stock de la semana. Precios, ventas, proveedores y el 7 % de impuesto son inventados: ajústalos antes de usar datos reales.'),
 ingredients=ing,drinks=drinks,stocks=stocks,diagnostics=diag)
 json.dump(data,open(os.path.join(ROOT,'data','isla_barra_demo_bar_atlantico.json'),'w',encoding='utf-8'),ensure_ascii=False,indent=1)
+# El mismo bar ficticio va embebido en la app («Probar con un bar de ejemplo»).
+HTML=os.path.join(ROOT,'isla_barra_control_mvp.html');OPEN='<script type="application/json" id="demoData">';h=open(HTML,encoding='utf-8').read()
+a=h.index(OPEN)+len(OPEN);b=h.index('</script>',a)
+h=h[:a]+json.dumps(data,ensure_ascii=False,separators=(',',':')).replace('<','\\u003c')+h[b:]
+open(HTML,'w',encoding='utf-8').write(h)
 E['theo']=theo
 json.dump(E,open(os.path.join(ROOT,'data','expected.json'),'w',encoding='utf-8'),ensure_ascii=False)
 print(len(ing),'ingredientes',len(drinks),'bebidas',len(stocks),'controles',len(diag),'hallazgos');print({k:round(v,4) for k,v in E['avg'].items()});print({k:(round(v['m'],2)) for k,v in E['drinks'].items()});print(E['stockList'][0])

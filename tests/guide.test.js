@@ -174,6 +174,32 @@ await nav(n6,'Resumen');await tap(n6,'#dashSettings');await tap(n6,'label[for=mo
 ok('en vista completa se mantiene la vista previa detallada (precio sin impuestos, coste directo, margen bruto)',/Precio sin impuestos/.test(await live())&&/Margen bruto estimado/.test(await live()),await live());
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const q=await mk(dev);await tap(q,'#wDemo');await nav(q,'Bebidas');await q.locator('#dPrice').pressSequentially('12.5');ok(`bebida en vivo sin desbordamiento a ${wd} px`,await noOverflow(q),await wide(q))}
 
+// ── 7. Arranque rápido ───────────────────────────────────────────────────────
+let s7=await mk();await tap(s7,'#wStart');await nav(s7,'Ingredientes');
+await tap(s7,'button[aria-label="Formato rápido: Botella 70 cl"]');
+ok('formato rápido «Botella 70 cl»: 700 ml, formato escrito y el foco pasa al precio',(await s7.inputValue('#iUnit'))==='ml'&&(await s7.inputValue('#iPackQty'))==='700'&&(await s7.inputValue('#iFormat'))==='Botella 70 cl'&&(await s7.evaluate(()=>document.activeElement.id))==='iPackPrice'&&/700 ml/.test(await text(s7,'#ingredientPreview')),await text(s7,'#ingredientPreview'));
+await tap(s7,'button[aria-label="Formato rápido: Caja 24 × 33 cl"]');ok('formato rápido «Caja 24 × 33 cl»: 24 unidades',(await s7.inputValue('#iUnit'))==='unit'&&(await s7.inputValue('#iPackQty'))==='24',null);
+await tap(s7,'button[aria-label="Formato rápido: Bolsa 1 kg"]');ok('formato rápido «Bolsa 1 kg»: 1000 g en unidad base',(await s7.inputValue('#iUnit'))==='kg'&&/1000 g/.test(await text(s7,'#ingredientPreview')),await text(s7,'#ingredientPreview'));
+await s7.fill('#iName','Café');await s7.fill('#iPackPrice','14');await tap(s7,'#ingredientForm button:has-text("Guardar ingrediente")');
+ok('guardar tras un formato rápido: café 1 kg a 14 € = 0,014 €/g',(i=>i&&i.packQty===1000&&i.unit==='g'&&Math.abs(i.unitCost-0.014)<1e-12&&i.format==='Bolsa 1 kg')((await D(s7)).ingredients[0]),(await D(s7)).ingredients[0]);
+const qb=await s7.locator('#quickFormats button').evaluateAll(bs=>bs.map(b=>b.getBoundingClientRect().height));ok('botones de formato con altura ≥ 44 px',qb.length>=8&&qb.every(x=>x>=44),qb);
+await tap(s7,'#starterAdd');let d7=await D(s7);
+ok('catálogo inicial: añade 17 ingredientes habituales sin precio y editables',d7.ingredients.length===18&&d7.ingredients.slice(1).every(i=>i.packPrice===0&&i.packQty>0&&/Precio pendiente/.test(i.notes)),d7.ingredients.length);
+ok('el catálogo sin precios no cuenta como «ingredientes con precio» en la guía',(await D(s7)).ingredients.filter(i=>i.packPrice>0).length===1,null);
+await tap(s7,'#starterAdd');ok('volver a añadirlo no duplica nada',(await D(s7)).ingredients.length===18,null);
+await nav(s7,'Bebidas');
+ok('recetas sugeridas presentadas como sugerencias, no como recetas universales',/no recetas universales/.test(await text(s7,'#suggestNote'))&&(await s7.locator('#dSuggest option').allInnerTexts()).slice(1).every(t=>/\(sugerencia\)$/.test(t)),null);
+await s7.selectOption('#dSuggest',{label:'Mojito (sugerencia)'});
+const lines7=await s7.locator('#recipeLines .item').count();
+ok('elegir «Mojito (sugerencia)» rellena nombre y 6 ingredientes con cantidades, sin precio de venta y sin guardar',(await s7.inputValue('#dName'))==='Mojito'&&lines7===6&&(await s7.inputValue('#dPrice'))===''&&(await D(s7)).drinks.length===0&&/cantidades de partida/.test(await text(s7,'#suggestNote')),{lines7});
+let s8=await mk();await tap(s8,'#wStart');await nav(s8,'Ingredientes');await s8.fill('#iName','Ron blanco');await s8.fill('#iPackQty','700');await s8.fill('#iPackPrice','14');await tap(s8,'#ingredientForm button:has-text("Guardar ingrediente")');
+await nav(s8,'Bebidas');await s8.selectOption('#dSuggest',{label:'Cuba libre (sugerencia)'});
+ok('si faltan ingredientes, la sugerencia usa los que hay y dice cuáles faltan',(await s8.locator('#recipeLines .item').count())===1&&/No están en tu catálogo: Refresco de cola, Hielo/.test(await text(s8,'#suggestNote')),await text(s8,'#suggestNote'));
+await s8.fill('#dPrice','8');await tap(s8,'#drinkForm button:has-text("Guardar bebida")');
+ok('la bebida creada desde la sugerencia se guarda como cualquier otra (editable)',(d=>d&&d.name==='Cuba libre'&&d.recipeItems.length===1&&d.recipeItems[0].qty===50)((await D(s8)).drinks[0]),(await D(s8)).drinks[0]);
+ok('tras guardar vuelve la nota general de sugerencias',/no recetas universales/.test(await text(s8,'#suggestNote')),null);
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const q=await mk(dev);await tap(q,'#wStart');await nav(q,'Ingredientes');ok(`Ingredientes con formatos rápidos y arranque rápido sin desbordamiento a ${wd} px`,await noOverflow(q),await wide(q));await nav(q,'Bebidas');ok(`Bebidas con recetas sugeridas sin desbordamiento a ${wd} px`,await noOverflow(q),await wide(q))}
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO guía: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message);process.exit(1)});

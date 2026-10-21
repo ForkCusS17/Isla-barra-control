@@ -25,11 +25,12 @@ ok('tocar «Exportar copia» descarga un JSON válido de la app',!!js&&js.app===
 fs.writeFileSync(TMP+'ui_copia.json',ex.text);
 let q=await mk();await importByTap(q,'#welcome label:has-text("Recuperar una copia de seguridad")',TMP+'ui_copia.json');
 ok('ese JSON se importa de nuevo por toque (bienvenida › Recuperar una copia) y restituye los mismos datos',canon(await q.evaluate(()=>data))===before,null);
-const w=await p.evaluate(()=>[document.documentElement.scrollWidth,innerWidth]);ok('Resumen sin desbordamiento horizontal',w[0]<=w[1]+1,w);
+// innerWidth crece en emulación móvil si algo se sale: se compara con el ancho del dispositivo
+const w=[await p.evaluate(()=>document.documentElement.scrollWidth),p.viewportSize().width];ok('Resumen sin desbordamiento horizontal',w[0]<=w[1]+1,w);
 // 2. Recorrido completo por toques, desde datos vacíos
 let u=await mk();
 const nav=label=>tap(u,`.mobile-nav button:has-text("${label}")`);
-const shown=async(page)=>{const v=await u.evaluate(n=>!document.getElementById('page-'+n).classList.contains('hidden')&&[...document.querySelectorAll('.page')].filter(x=>!x.classList.contains('hidden')).length===1,page);const w=await u.evaluate(()=>[document.documentElement.scrollWidth,innerWidth]);return v&&w[0]<=w[1]+1};
+const shown=async(page)=>{const v=await u.evaluate(n=>!document.getElementById('page-'+n).classList.contains('hidden')&&[...document.querySelectorAll('.page')].filter(x=>!x.classList.contains('hidden')).length===1,page);const w=[await u.evaluate(()=>document.documentElement.scrollWidth),u.viewportSize().width];return v&&w[0]<=w[1]+1};
 const D=()=>u.evaluate(()=>JSON.parse(JSON.stringify(data)));
 ok('la barra inferior ofrece Resumen, Ficha, Bebidas, Ingredientes, Stock y Diagnóstico',(await u.locator('.mobile-nav button').filter({visible:true}).allInnerTexts()).map(x=>x.replace(/\W*\s*/,'').trim()).join()==='Resumen,Ficha,Bebidas,Ingredientes,Stock,Diagnóstico',await u.locator('.mobile-nav button').allInnerTexts());
 await nav('Ficha');ok('toque › Ficha: pantalla visible y sin desbordamiento',await shown('business'),null);

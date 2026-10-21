@@ -10,7 +10,8 @@ const seen=(p,sel)=>p.locator(sel).filter({visible:true}).count().then(n=>n>0);
 const text=(p,sel)=>p.locator(sel).first().innerText().then(t=>t.replace(/\s+/g,' ').trim());
 const D=p=>p.evaluate(()=>JSON.parse(JSON.stringify(data)));
 const stored=(p,k)=>p.evaluate(k=>localStorage.getItem(k),k);
-const wide=p=>p.evaluate(()=>[document.documentElement.scrollWidth,innerWidth]);
+// En emulación móvil, si algo se sale, el navegador agranda innerWidth: se compara con el ancho del dispositivo.
+const wide=async p=>[await p.evaluate(()=>document.documentElement.scrollWidth),p.viewportSize().width];
 const noOverflow=async p=>{const w=await wide(p);return w[0]<=w[1]+1};
 const nav=(p,label)=>tap(p,`.mobile-nav button:has-text("${label}")`);
 const importTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:4000}),tap(p,sel)]);await fc.setFiles(file);await p.locator('#importConfirm').waitFor({state:'visible',timeout:3000});await tap(p,'#importYes');await p.waitForTimeout(150)};
@@ -200,6 +201,39 @@ ok('la bebida creada desde la sugerencia se guarda como cualquier otra (editable
 ok('tras guardar vuelve la nota general de sugerencias',/no recetas universales/.test(await text(s8,'#suggestNote')),null);
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const q=await mk(dev);await tap(q,'#wStart');await nav(q,'Ingredientes');ok(`Ingredientes con formatos rápidos y arranque rápido sin desbordamiento a ${wd} px`,await noOverflow(q),await wide(q));await nav(q,'Bebidas');ok(`Bebidas con recetas sugeridas sin desbordamiento a ${wd} px`,await noOverflow(q),await wide(q))}
 
+// ── 8. Marca personalizable ──────────────────────────────────────────────────
+{const g=await (await b.newContext()).newPage();const png=await g.evaluate(()=>{const c=document.createElement('canvas');c.width=1200;c.height=900;const x=c.getContext('2d'),im=x.createImageData(1200,900);for(let i=0;i<im.data.length;i++)im.data[i]=(i%4===3)?255:Math.random()*255;x.putImageData(im,0,0);x.fillStyle='#7a1f3d';x.font='bold 300px sans-serif';x.fillText('BN',300,600);return c.toDataURL('image/png').split(',')[1]});fs.writeFileSync(TMP+'logo_grande.png',Buffer.from(png,'base64'));await g.context().close()}
+const logoKB=Math.round(fs.statSync(TMP+'logo_grande.png').size/1024);
+let k8=await mk();await tap(k8,'#wDemo');
+ok('marca por defecto: Isla & Barra en la cabecera y «Preparado por: Isla & Barra» en el informe',(await text(k8,'#brandTitle'))==='Isla & Barra Control'&&(await text(k8,'#brandLogo'))==='I&B'&&await (async()=>{await tap(k8,'#guideGo');const r=await text(k8,'#reportContent');return /Isla & Barra · Informe de trabajo/i.test(r)&&/Preparado por: Isla & Barra/.test(r)})(),null);
+await nav(k8,'Resumen');await tap(k8,'#dashSettings');
+await k8.fill('#brName','Barra Norte Consultoría');await k8.fill('#brFooter','Asesoría de barras · Lanzarote');
+await k8.fill('#brColor','#f2c94c');
+ok('color con poco contraste: avisa con la cifra y el mínimo 4,5:1',/Poco contraste: 1,\d+:1 \(mínimo 4,5:1\)/.test(await text(k8,'#brColorMsg')),await text(k8,'#brColorMsg'));
+await k8.fill('#brColor','#7a1f3d');
+ok('color con contraste suficiente: lo confirma',/suficiente/.test(await text(k8,'#brColorMsg')),await text(k8,'#brColorMsg'));
+const [fc8]=await Promise.all([k8.waitForEvent('filechooser'),tap(k8,'#brLogoPick')]);await fc8.setFiles(TMP+'logo_grande.png');await k8.waitForFunction(()=>/Logo listo/.test(document.getElementById('brLogoMsg').textContent),null,{timeout:8000});
+ok(`logo de ${logoKB} KB: se reduce a ≤ 100 KB antes de guardarlo`,logoKB>100&&/Logo listo \(\d+ KB\)/.test(await text(k8,'#brLogoMsg')),await text(k8,'#brLogoMsg'));
+await tap(k8,'#brandForm button:has-text("Guardar marca")');let br=(await D(k8)).settings.brand;const logoBytes=br.logo?Math.floor((br.logo.length-br.logo.indexOf(',')-1)*3/4):0;
+ok('«Guardar marca» guarda nombre, pie, color y logo (≤ 100 KB) en settings.brand',br.name==='Barra Norte Consultoría'&&br.footer==='Asesoría de barras · Lanzarote'&&br.color==='#7a1f3d'&&/^data:image\/(png|jpeg);base64,/.test(br.logo)&&logoBytes<=102400,{...br,logo:br.logo.slice(0,30),logoBytes});
+ok('cabecera: nombre, logo con texto alternativo y color principal',(await text(k8,'#brandTitle'))==='Barra Norte Consultoría'&&(await k8.locator('#brandLogo img').getAttribute('alt'))==='Logo de Barra Norte Consultoría'&&(await k8.evaluate(()=>getComputedStyle(document.querySelector('.topbar')).backgroundColor))==='rgb(122, 31, 61)',null);
+await nav(k8,'Resumen');await tap(k8,'#guideGo');const rep8=await text(k8,'#reportContent');
+ok('informe: logo, «Barra Norte Consultoría · Informe de trabajo», «Preparado por» y texto de pie',(await k8.locator('#reportContent img.report-logo').count())===1&&/Barra Norte Consultoría · Informe de trabajo/i.test(rep8)&&/Preparado por: Barra Norte Consultoría/.test(rep8)&&/Preparado por Barra Norte Consultoría · Asesoría de barras · Lanzarote/.test(rep8),rep8.slice(0,160));
+await nav(k8,'Resumen');await tap(k8,'#dashSettings');await k8.fill('#brColor','#f2c94c');await tap(k8,'#brandForm button:has-text("Guardar marca")');
+ok('guardar con un color sin contraste no lo aplica (se conserva el anterior) y lo explica',(await D(k8)).settings.brand.color==='#7a1f3d'&&/sin el color nuevo/.test(await text(k8,'#toast')),await text(k8,'#toast'));
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const q=dev===PHONE?k8:await mk(SMALL);if(q!==k8){await tap(q,'#wDemo');await tap(q,'#dashSettings');await q.fill('#brName','Asesoría Integral de Hostelería del Atlántico Norte S.L.');await tap(q,'#brandForm button:has-text("Guardar marca")')}ok(`Ajustes y cabecera con marca propia sin desbordamiento a ${wd} px`,await noOverflow(q),await wide(q))}
+{const cf8=await contrastFails(k8);ok('contraste ≥ 4,5:1 en Ajustes con la marca propia',cf8.length===0,cf8)}
+// la marca viaja en la copia
+await nav(k8,'Resumen');const [dl8]=await Promise.all([k8.waitForEvent('download'),tap(k8,'#dashExport')]);const ex8=JSON.parse(fs.readFileSync(await dl8.path(),'utf8'));fs.writeFileSync(TMP+'guide_marca.json',JSON.stringify(ex8));
+ok('la copia exportada incluye la marca con el logo',ex8.settings.brand.name==='Barra Norte Consultoría'&&ex8.settings.brand.logo===br.logo,ex8.settings.brand.name);
+let k9=await mk();await importTap(k9,'#wRestore',TMP+'guide_marca.json');
+ok('al importar la copia en otro navegador se aplica la marca',(await text(k9,'#brandTitle'))==='Barra Norte Consultoría'&&(await k9.locator('#brandLogo img').count())===1,null);
+fs.writeFileSync(TMP+'guide_marca_mala.json',JSON.stringify({...ex8,settings:{...ex8.settings,brand:{name:'X',color:'#ffff00',logo:'data:text/html;base64,PHNjcmlwdD4=',footer:'f'}}}));
+let k10=await mk();await importTap(k10,'#wRestore',TMP+'guide_marca_mala.json');br=(await D(k10)).settings.brand;
+ok('una copia con color sin contraste o logo no válido se corrige al importar (color por defecto, sin logo)',br.color==='#0E4A5A'&&br.logo===''&&br.name==='X',br);
+await tap(k9,'#dashSettings');await tap(k9,'#brReset');await tap(k9,'#appConfirmYes');
+ok('«Volver a Isla & Barra» restablece la marca (con confirmación)',(await text(k9,'#brandTitle'))==='Isla & Barra Control'&&(await D(k9)).settings.brand.logo==='',null);
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
-const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO guía: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message);process.exit(1)});
+const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO guía: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

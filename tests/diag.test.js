@@ -4,7 +4,7 @@ const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const canon=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort()):v);
 (async()=>{const b=await chromium.launch();
 const mk=async(init)=>{const c=await b.newContext({viewport:{width:390,height:800},acceptDownloads:true});if(init)await c.addInitScript(init);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,100)));p.on('dialog',d=>{p.dl.push(d.message().slice(0,80));d.accept()});await p.goto('file://'+F);return p};
-const imp=async(p,f)=>{await p.setInputFiles('#importFile',f);await p.waitForTimeout(350)};
+const imp=async(p,f)=>{await p.setInputFiles('#importFile',f);await p.click('#importYes');await p.waitForTimeout(150)};
 const toastTxt=p=>p.evaluate(()=>document.getElementById('toast').textContent);
 const fillDiag=async(p,o)=>{await p.evaluate(()=>{showPage('diagnosis');resetDiagForm()});for(const [k,x] of Object.entries(o)){if(['diagArea','diagStatus','diagPriority'].includes(k))await p.selectOption('#'+k,x);else await p.fill('#'+k,x)}await p.click('#diagForm button[type=submit]')};
 const wide=p=>p.evaluate(()=>[document.documentElement.scrollWidth,window.innerWidth]);

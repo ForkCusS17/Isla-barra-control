@@ -8,22 +8,22 @@ const mk=async()=>{const c=await b.newContext(PHONE);await c.addInitScript(()=>{
 // Toca un elemento visible; falla si no existe, no se ve o queda tapado (Playwright comprueba que el toque le llega).
 const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000});
 const visibleIn=async(p,sel)=>{const l=p.locator(sel).filter({visible:true}).first();if(!await l.count())return null;const r=await l.boundingBox();return r&&r.width>0&&r.height>0&&r.x>=0&&r.x+r.width<=390+1?r:null};
-const importByTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser'),tap(p,sel)]);await fc.setFiles(file);await p.waitForTimeout(400)};
+const importByTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:4000}),tap(p,sel)]);await fc.setFiles(file);p.ask=await p.locator('#importConfirm').innerText({timeout:3000});await tap(p,'#importYes');await p.waitForTimeout(200)};
 const downloadByTap=async(p,sel)=>{const [dl]=await Promise.all([p.waitForEvent('download',{timeout:4000}),tap(p,sel)]);return{name:dl.suggestedFilename(),text:fs.readFileSync(await dl.path(),'utf8')}};
 // 1. Exportar copia en móvil
 let p=await mk();
 ok('emulación móvil: 390 px de ancho y pantalla táctil',(await p.evaluate(()=>[innerWidth,matchMedia('(pointer:coarse)').matches,'ontouchstart' in window]))+''==='390,true,true',await p.evaluate(()=>[innerWidth,matchMedia('(pointer:coarse)').matches]));
-await importByTap(p,'.top-actions button:has-text("Importar")',J);
-ok('Importar (barra superior) por toque carga el bar ficticio',(await p.evaluate(()=>data.drinks.length))===11&&p.dl.some(m=>/sustituirá/.test(m)),p.dl);
+await importByTap(p,'.top-actions label:has-text("Importar")',J);
+ok('Importar (barra superior) por toque abre el selector, pide confirmación en la página y carga el bar ficticio',(await p.evaluate(()=>data.drinks.length))===11&&/sustituirá/.test(p.ask)&&p.dl.length===0,[p.ask,p.dl]);
 const box=await visibleIn(p,'#page-dashboard button:has-text("Exportar copia")');
 ok('Resumen: «Exportar copia» se ve dentro de los 390 px',!!box,box);
-ok('Resumen: «Exportar copia» e «Importar» juntos y con altura cómoda (≥ 40 px)',!!box&&box.height>=40&&!!(await visibleIn(p,'#backupPanel button:has-text("Importar")')),box);
+ok('Resumen: «Exportar copia» e «Importar» juntos y con altura cómoda (≥ 40 px)',!!box&&box.height>=40&&!!(await visibleIn(p,'#backupPanel label:has-text("Importar")')),box);
 const before=canon(await p.evaluate(()=>data));
 const ex=await downloadByTap(p,'#page-dashboard button:has-text("Exportar copia")');
 let js=null;try{js=JSON.parse(ex.text)}catch(e){}
 ok('tocar «Exportar copia» descarga un JSON válido de la app',!!js&&js.app==='Isla & Barra Control'&&js.schema===3&&/^isla-barra-copia-\d{4}-\d{2}-\d{2}\.json$/.test(ex.name)&&js.drinks.length===11&&js.diagnostics.length===5,ex.name);
 fs.writeFileSync(TMP+'ui_copia.json',ex.text);
-let q=await mk();await importByTap(q,'#backupPanel button:has-text("Importar")',TMP+'ui_copia.json');
+let q=await mk();await importByTap(q,'#backupPanel label:has-text("Importar")',TMP+'ui_copia.json');
 ok('ese JSON se importa de nuevo por toque (Resumen › Importar) y restituye los mismos datos',canon(await q.evaluate(()=>data))===before,null);
 const w=await p.evaluate(()=>[document.documentElement.scrollWidth,innerWidth]);ok('Resumen sin desbordamiento horizontal',w[0]<=w[1]+1,w);
 // 2. Recorrido completo por toques, desde datos vacíos
@@ -57,7 +57,14 @@ ok('Informe › «Imprimir / guardar PDF» invoca window.print',(await u.evaluat
 const tx=await downloadByTap(u,'#page-report button:has-text("Descargar informe TXT")');
 ok('Informe › «Descargar informe TXT» descarga un .txt con el informe',/^informe-isla-barra-\d{4}-\d{2}-\d{2}\.txt$/.test(tx.name)&&/Bar Toques/.test(tx.text)&&/Evidencia \(hecho\): Visita: sin medidor/.test(tx.text),tx.name);
 await nav('Resumen');const before2=canon(await D());const ex2=await downloadByTap(u,'#page-dashboard button:has-text("Exportar copia")');fs.writeFileSync(TMP+'ui_copia2.json',ex2.text);
-let v=await mk();await importByTap(v,'.top-actions button:has-text("Importar")',TMP+'ui_copia2.json');
+let v=await mk();await importByTap(v,'.top-actions label:has-text("Importar")',TMP+'ui_copia2.json');
 ok('Resumen › «Exportar copia» de lo introducido por toques y «Importar» en otro navegador: mismos datos',canon(await v.evaluate(()=>data))===before2,null);
+// 3. Dentro de un visor que bloquea los diálogos del navegador (iframe con sandbox sin allow-modals): Importar debe funcionar igual
+fs.writeFileSync(TMP+'visor.html',`<iframe id="f" sandbox="allow-scripts allow-same-origin allow-forms" src="file://${F}" style="width:390px;height:800px;border:0"></iframe>`);
+{const c=await b.newContext(PHONE);const s=await c.newPage();const dl=[];s.on('dialog',d=>{dl.push(d.type());d.accept()});await s.goto('file://'+TMP+'visor.html');await s.waitForTimeout(400);const fr=s.frameLocator('#f');
+let fc=null;try{[fc]=await Promise.all([s.waitForEvent('filechooser',{timeout:4000}),fr.locator('#backupPanel label:has-text("Importar")').tap({timeout:4000})])}catch(e){}
+if(fc){await fc.setFiles(J);await fr.locator('#importYes').tap({timeout:4000})}await s.waitForTimeout(300);
+const n=await s.frames().find(x=>x.url().startsWith('file://'+F)).evaluate(()=>data.drinks.length);
+ok('dentro de un visor sin diálogos: Importar abre el selector, confirma en la página e importa',!!fc&&n===11&&dl.length===0,{selector:!!fc,bebidas:n,dialogos:dl})}
 ok('sin errores de JavaScript',[p,q,u,v].every(x=>x.errs.length===0),[p.errs,q.errs,u.errs,v.errs]);
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO interfaz móvil: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message);process.exit(1)});

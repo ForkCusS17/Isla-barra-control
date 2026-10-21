@@ -48,7 +48,7 @@ Azul atlántico #0E4A5A (principal), turquesa #2A9D8F, arena #D9B382, crema #F6F
 - **Regla de pruebas por interfaz:** toda acción crítica debe poder hacerse en móvil (390 px) solo con toques, y `tests/ui.test.js` debe comprobarlo sin llamar a funciones de la app (`showPage`, `exportBackup`…): llegar a cada pantalla, Importar, Exportar copia, guardar ingrediente, bebida, control de stock y hallazgo, Ver informe (desde el Resumen), Imprimir / guardar PDF (se invoca `window.print`) y Descargar informe TXT. Si una acción nueva o existente no es alcanzable por toques, avisar al usuario en lugar de ocultarla o probarla llamando a la función.
 
 ## Pruebas
-`npm install`, `npx playwright install chromium` y `npm test`: 6 series (179 comprobaciones, Chromium a 390 px).
+`npm install`, `npx playwright install chromium` y `npm test`: 6 series (181 comprobaciones, Chromium a 390 px).
 - `base`: cálculos, ingredientes, recetas, stock, informe, copias y fallos de almacenamiento.
 - `demo`: importa el bar ficticio y lo compara con un cálculo independiente hecho en Python.
 - `sales`: consumo teórico automático desde ventas y recetas.
@@ -58,7 +58,7 @@ Azul atlántico #0E4A5A (principal), turquesa #2A9D8F, arena #D9B382, crema #F6F
 `python3 tools/make_demo.py` regenera `data/` (bar ficticio y valores esperados). Las pruebas fallidas devuelven código de salida distinto de 0.
 
 ## Estado y pendientes
-Hecho: ficha, ingredientes (conversión de unidades, archivar, buscar y filtrar), recetas con costes vivos, bebidas con impuesto incluido y avisos, ventas por periodo, control de stock con seguimiento y comparación, diagnóstico completo (evidencia, responsable, resultado de la revisión), informe con pendientes, copias con validación (Exportar e Importar también en el Resumen, visibles en móvil).
+Hecho: ficha, ingredientes (conversión de unidades, archivar, buscar y filtrar), recetas con costes vivos, bebidas con impuesto incluido y avisos, ventas por periodo, control de stock con seguimiento y comparación, diagnóstico completo (evidencia, responsable, resultado de la revisión), informe con pendientes, copias con validación (Exportar e Importar también en el Resumen, visibles en móvil; Importar es un `<label>` del campo de archivo y confirma dentro de la página, sin `confirm()`, para que funcione en navegadores integrados y visores que bloquean diálogos).
 No verificado: móvil real; guardado como PDF en iOS/Android; tipografías de marca.
 Límites conocidos: no hay registro de compras (se usan formatos de ingrediente y entradas de stock); las ventas se anotan a mano; un único umbral de margen.
 Orden propuesto: 1) umbral de margen por categoría, 2) móvil y marca (fuentes), 3) registro de compras y movimientos, 4) publicar como página privada con enlace (decisión de arquitectura pendiente: exponer alternativas y recomendar una).

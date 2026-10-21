@@ -152,6 +152,28 @@ let m7=await mk();await importTap(m7,'#wRestore',TMP+'guide_v3.json');ok('import
 let m8=await mk();await tap(m8,'#wDemo');ok('el bar de ejemplo cargado desde la bienvenida mantiene la vista sencilla',(await D(m8)).settings.mode==='simple',null);
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const q=await mk(dev);await tap(q,'#wDemo');for(const [lab,sel] of [['Bebidas','#drinkForm .more-toggle'],['Stock','#stockForm .more-toggle'],['Ingredientes','#ingredientForm .more-toggle']]){await nav(q,lab);await tap(q,sel)}await nav(q,'Resumen');await tap(q,'#dashSettings');ok(`modo sencillo con «Más opciones» abiertas y Ajustes sin desbordamiento a ${wd} px`,await noOverflow(q),await wide(q))}
 
+// ── 6. Nueva bebida en vivo (vista sencilla) ─────────────────────────────────
+let n6=await mk();await tap(n6,'#wStart');await nav(n6,'Ingredientes');
+await n6.fill('#iName','Ron blanco');await n6.selectOption('#iUnit','ml');await n6.fill('#iPackQty','700');await n6.fill('#iPackPrice','14');await tap(n6,'#ingredientForm button:has-text("Guardar ingrediente")');
+await nav(n6,'Bebidas');const live=()=>text(n6,'#drinkPreview');
+ok('en vivo sin precio: pide el precio para ver cuánto queda',/Preparar una copa te cuesta 0,00 €/.test(await live())&&/Añade el precio de venta/.test(await live()),await live());
+await n6.fill('#dName','Mojito');await tap(n6,'#drinkForm button:has-text("+ Añadir ingrediente")');await n6.locator('#recipeLines select').selectOption({index:1});await n6.locator('#recipeLines input[type=number]').pressSequentially('50');
+ok('al teclear la cantidad: «Preparar una copa te cuesta 1,00 €» y desglose ingredientes + extras',/Preparar una copa te cuesta 1,00 €/.test(await live())&&/Ingredientes 1,00 € \+ extras 0,00 €/.test(await live()),await live());
+await n6.locator('#dPrice').pressSequentially('9');
+ok('al teclear el precio: «Te quedan 8,00 € de cada 9,00 € sin impuestos (88,89 %)»',/Te quedan 8,00 € de cada 9,00 € sin impuestos \(88,89 %\)/.test(await live()),await live());
+ok('siempre aclara que es margen bruto, no beneficio',/Es margen bruto, no beneficio/.test(await live()),null);
+await tap(n6,'#drinkForm .more-toggle');await n6.fill('#dOtherCost','');await n6.locator('#dOtherCost').pressSequentially('1.10');
+ok('con 1,10 € de extras (ejemplo B): cuesta 2,10 € y te quedan 6,90 € de cada 9,00 € (76,67 %)',/Preparar una copa te cuesta 2,10 €/.test(await live())&&/Ingredientes 1,00 € \+ extras 1,10 €/.test(await live())&&/Te quedan 6,90 € de cada 9,00 € sin impuestos \(76,67 %\)/.test(await live()),await live());
+await n6.fill('#dTax','');await n6.locator('#dTax').pressSequentially('10');
+ok('con impuesto incluido del 10 %: «de cada 8,18 € sin impuestos»',/de cada 8,18 € sin impuestos/.test(await live()),await live());
+await n6.fill('#dTax','0');await n6.fill('#dPrice','');await n6.locator('#dPrice').pressSequentially('2');
+ok('si el coste supera el precio sin impuestos lo dice sin juicios («faltan 0,10 € para cubrir el coste»)',/Cobras 2,00 € sin impuestos y preparar la copa cuesta 2,10 €: faltan 0,10 € para cubrir el coste/.test(await live())&&!/\b(malo|mala|bueno|buena)\b/i.test(await live()),await live());
+await n6.fill('#dPrice','9');await tap(n6,'#drinkForm button:has-text("Guardar bebida")');const d6=(await D(n6)).drinks[0];
+ok('guardar desde la vista sencilla guarda lo mismo que se ve (coste 2,10 €, precio 9 €)',d6&&d6.name==='Mojito'&&d6.price===9&&Math.abs(d6.otherCost-1.1)<1e-9&&d6.recipeItems[0].qty===50,d6);
+await nav(n6,'Resumen');await tap(n6,'#dashSettings');await tap(n6,'label[for=modeFull]');await nav(n6,'Bebidas');
+ok('en vista completa se mantiene la vista previa detallada (precio sin impuestos, coste directo, margen bruto)',/Precio sin impuestos/.test(await live())&&/Margen bruto estimado/.test(await live()),await live());
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const q=await mk(dev);await tap(q,'#wDemo');await nav(q,'Bebidas');await q.locator('#dPrice').pressSequentially('12.5');ok(`bebida en vivo sin desbordamiento a ${wd} px`,await noOverflow(q),await wide(q))}
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO guía: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message);process.exit(1)});

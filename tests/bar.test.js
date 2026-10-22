@@ -13,7 +13,7 @@ const D=p=>p.evaluate(()=>JSON.parse(JSON.stringify(data)));
 const wide=async p=>[await p.evaluate(()=>document.documentElement.scrollWidth),p.viewportSize().width];
 const noOverflow=async p=>{const w=await wide(p);return w[0]<=w[1]+1};
 const MORE=['Ficha','Diagnóstico','Informe','Ajustes'];
-const nav=async(p,label)=>{if(MORE.includes(label)){await tap(p,'.mobile-nav button:has-text("Más")');await tap(p,`#page-more button:has-text("${label}")`)}else await tap(p,`.mobile-nav button:has-text("${label}")`)};
+const nav=async(p,label)=>{if(label==='Ingredientes'){await tap(p,'.mobile-nav button:has-text("Mi barra")');await tap(p,'#barFullList');return}/* la lista completa se abre desde «Mi barra» */if(MORE.includes(label)){await tap(p,'.mobile-nav button:has-text("Más")');await tap(p,`#page-more button:has-text("${label}")`)}else await tap(p,`.mobile-nav button:has-text("${label}")`)};
 const importTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:4000}),tap(p,sel)]);await fc.setFiles(file);await p.locator('#importConfirm').waitFor({state:'visible',timeout:3000});await tap(p,'#importYes');await p.waitForTimeout(150)};
 const ing=(d,name)=>d.ingredients.find(i=>i.name===name);
 
@@ -45,6 +45,40 @@ fs.writeFileSync(TMP+'bar_tax_mala.json',JSON.stringify({...ex1,settings:{...ex1
 let m3=await mk();await importTap(m3,'#wRestore',TMP+'bar_tax_mala.json');ok('una taxonomía dañada en la copia se sustituye por la de por defecto',(await D(m3)).settings.taxonomy.length===8,null);
 let m4=await mk();await tap(m4,'#wDemo');d=await D(m4);
 ok('bar de ejemplo: todos sus ingredientes tienen categoría y subcategoría de la taxonomía',d.ingredients.every(i=>{const c=d.settings.taxonomy.find(x=>x.name===i.category);return c&&c.subs.some(s=>s.name===i.subcategory)}),d.ingredients.filter(i=>!i.subcategory).map(i=>i.name));
+
+// ── 2. Pantalla «Mi barra» ───────────────────────────────────────────────────
+let q=await mk();await tap(q,'#wDemo');await nav(q,'Mi barra');
+const secs=async p=>p.locator('#barSections .shelf').evaluateAll(ds=>ds.map(d=>{const s=d.querySelector('summary');return{name:s.children[0].textContent,n:Number(s.querySelector('.sec-count').textContent),noPrice:(s.querySelector('.pill')||{}).textContent||''}}));
+ok('«Mi barra» en la barra inferior abre la pantalla con 8 chips de categoría (Destilados marcado)',(await seen(q,'#page-bar'))&&(await q.locator('#barCats .cat-chip').count())===8&&(await q.locator('#barCats .cat-chip[aria-pressed=true]').innerText()).startsWith('Destilados'),null);
+let S2=await secs(q);
+ok('Destilados: 7 secciones con recuento (Ginebras 1, Rones 2, Whiskys 0…)',S2.map(s=>s.name).join('|')==='Ginebras|Rones|Whiskys|Vodkas|Tequilas y mezcales|Brandis|Licores y amargos'&&S2.find(s=>s.name==='Rones').n===2&&S2.find(s=>s.name==='Ginebras').n===1&&S2.find(s=>s.name==='Whiskys').n===0,S2);
+ok('las secciones empiezan plegadas',(await q.locator('#barSections .shelf[open]').count())===0,null);
+await tap(q,'#barSections .shelf[data-sub="Whiskys"] summary');
+ok('sección vacía: invita a añadir el primero con «Añadir whisky»',/Todavía no hay nada en whiskys\. Añade el primero/.test(await text(q,'#barSections .shelf[data-sub="Whiskys"]'))&&(await text(q,'#barSections .shelf[data-sub="Whiskys"] .add-to-shelf'))==='Añadir whisky',null);
+await tap(q,'#barSections .shelf[data-sub="Rones"] summary');
+ok('sección con productos: nombre, formato, precio y coste por ml',/Ron blanco/.test(await text(q,'.shelf[data-sub="Rones"]'))&&/Botella · 700 ml · 14,00 € · 0,02 €\/ml/.test(await text(q,'.shelf[data-sub="Rones"]'))&&(await text(q,'.shelf[data-sub="Rones"] .add-to-shelf'))==='Añadir ron',await text(q,'.shelf[data-sub="Rones"]'));
+await tap(q,'#barCats .cat-chip:has-text("Otros")');S2=await secs(q);
+ok('chip «Otros»: Hielo 1, Lácteos 1, Guarniciones 1 con «1 sin precio», Varios 0',(await q.locator('#barCats .cat-chip[aria-pressed=true]').innerText()).startsWith('Otros')&&S2.map(s=>s.name+':'+s.n).join('|')==='Hielo:1|Lácteos:1|Guarniciones:1|Varios:0'&&S2.find(s=>s.name==='Guarniciones').noPrice==='1 sin precio',S2);
+const chipH=await q.locator('#barCats .cat-chip').evaluateAll(cs=>cs.map(c=>c.getBoundingClientRect().height));ok('chips con altura ≥ 44 px',chipH.every(h=>h>=44),chipH);
+// editar secciones: renombrar, ocultar, mostrar y añadir
+await tap(q,'#barManage summary');
+ok('«Editar las secciones de Otros» lista sus 4 secciones',(await text(q,'#barManageCat'))==='Otros'&&(await q.locator('#barManageBody input[data-old]').count())===4,null);
+await q.locator('#barManageBody input[data-old="Guarniciones"]').fill('Decoración');await tap(q,'#subNew');
+let d2=await D(q);ok('renombrar «Guarniciones» → «Decoración»: cambia la sección y sus productos',d2.settings.taxonomy.find(c=>c.name==='Otros').subs.some(s=>s.name==='Decoración')&&ing(d2,'Naranja deshidratada (guarnición)').subcategory==='Decoración'&&(await secs(q)).some(s=>s.name==='Decoración'&&s.n===1),null);
+await tap(q,'#barManageBody .manage-row:has(input[data-old="Lácteos"]) button:has-text("Ocultar")');
+ok('ocultar «Lácteos»: desaparece la sección y se avisa de que sus productos siguen en la lista completa',!(await secs(q)).some(s=>s.name==='Lácteos')&&/1 producto\(s\) en secciones ocultas/.test(await text(q,'#barManageBody')),null);
+await tap(q,'#barManageBody .manage-row:has(input[data-old="Lácteos"]) button:has-text("Mostrar")');ok('«Mostrar» la recupera',(await secs(q)).some(s=>s.name==='Lácteos'),null);
+await q.fill('#subNew','Hielo');await tap(q,'#subAdd');ok('no deja duplicar el nombre de una sección',/Ya hay una sección con ese nombre/.test(await text(q,'#toast'))&&(await secs(q)).filter(s=>s.name==='Hielo').length===1,null);
+await tap(q,'#barCats .cat-chip:has-text("Destilados")');await q.fill('#subNew','Ginebras premium');await tap(q,'#subAdd');
+ok('añadir la sección «Ginebras premium» en Destilados (vacía y abierta, con «Añadir ginebras premium»)',(await secs(q)).some(s=>s.name==='Ginebras premium'&&s.n===0)&&(await seen(q,'.shelf[data-sub="Ginebras premium"][open] .add-to-shelf')),null);
+await q.waitForTimeout(500);await q.reload();await nav(q,'Mi barra');ok('los cambios de secciones persisten tras recargar',(await secs(q)).some(s=>s.name==='Ginebras premium'),null);
+// lista completa y vuelta
+await tap(q,'#barFullList');ok('«Lista completa» abre buscar y filtrar, y «Mi barra» sigue marcada abajo',(await seen(q,'#page-ingredients'))&&(await seen(q,'#iSearch'))&&(await q.locator('.mobile-nav button:has-text("Mi barra")').getAttribute('aria-current'))==='page',null);
+await tap(q,'#backToBar');ok('«← Mi barra» vuelve a los estantes',await seen(q,'#page-bar'),null);
+// ingredientes sin clasificar (copia antigua)
+let u2=await mk();await importTap(u2,'#wRestore',TMP+'bar_v4.json');await nav(u2,'Mi barra');
+ok('copia antigua: los productos sin subcategoría salen en «Sin clasificar» dentro de su categoría',(await secs(u2)).some(s=>s.name==='Sin clasificar'&&s.n===1),await secs(u2));
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wDemo');await nav(z,'Mi barra');for(const sub of ['Ginebras','Rones','Licores y amargos'])await tap(z,`#barSections .shelf[data-sub="${sub}"] summary`);await tap(z,'#barManage summary');ok(`Mi barra con secciones abiertas sin desbordamiento a ${wd} px`,await noOverflow(z),await wide(z))}
 
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));

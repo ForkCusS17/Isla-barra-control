@@ -30,14 +30,15 @@ const w=[await p.evaluate(()=>document.documentElement.scrollWidth),p.viewportSi
 // 2. Recorrido completo por toques, desde datos vacíos
 let u=await mk();
 const MORE=['Ficha','Diagnóstico','Informe','Ajustes'];// en móvil se abren desde «Más»
-const nav=async label=>{if(MORE.includes(label)){await tap(u,'.mobile-nav button:has-text("Más")');await tap(u,`#page-more button:has-text("${label}")`)}else await tap(u,`.mobile-nav button:has-text("${label}")`)};
+const nav=async label=>{if(label==='Ingredientes'){await tap(u,'.mobile-nav button:has-text("Mi barra")');await tap(u,'#barFullList');return}/* la lista completa se abre desde «Mi barra» */if(MORE.includes(label)){await tap(u,'.mobile-nav button:has-text("Más")');await tap(u,`#page-more button:has-text("${label}")`)}else await tap(u,`.mobile-nav button:has-text("${label}")`)};
 const shown=async(page)=>{const v=await u.evaluate(n=>!document.getElementById('page-'+n).classList.contains('hidden')&&[...document.querySelectorAll('.page')].filter(x=>!x.classList.contains('hidden')).length===1,page);const w=[await u.evaluate(()=>document.documentElement.scrollWidth),u.viewportSize().width];return v&&w[0]<=w[1]+1};
 const D=()=>u.evaluate(()=>JSON.parse(JSON.stringify(data)));
-ok('la barra inferior ofrece Resumen, Bebidas, Ingredientes, Stock y Más',(await u.locator('.mobile-nav button').filter({visible:true}).allInnerTexts()).map(x=>x.replace(/\W*\s*/,'').trim()).join()==='Resumen,Bebidas,Ingredientes,Stock,Más',await u.locator('.mobile-nav button').allInnerTexts());
+ok('la barra inferior ofrece Resumen, Bebidas, Mi barra, Stock y Más',(await u.locator('.mobile-nav button').filter({visible:true}).allInnerTexts()).map(x=>x.replace(/\W*\s*/,'').trim()).join()==='Resumen,Bebidas,Mi barra,Stock,Más',await u.locator('.mobile-nav button').allInnerTexts());
 await nav('Ficha');ok('toque › Ficha: pantalla visible y sin desbordamiento',await shown('business'),null);
 await u.fill('#bName','Bar Toques');await u.fill('#bLocation','Arrecife');await tap(u,'#businessForm button:has-text("Guardar ficha")');
 ok('Ficha: «Guardar ficha» guarda el nombre',(await D()).business.name==='Bar Toques',null);
-await nav('Ingredientes');ok('toque › Ingredientes: pantalla visible y sin desbordamiento',await shown('ingredients'),null);
+await tap(u,'.mobile-nav button:has-text("Mi barra")');ok('toque › Mi barra: pantalla visible y sin desbordamiento',await shown('bar'),null);
+await tap(u,'#barFullList');ok('toque › Mi barra › Lista completa: pantalla visible y sin desbordamiento',await shown('ingredients'),null);
 await u.fill('#iName','Ron blanco');await u.selectOption('#iUnit','ml');await u.fill('#iPackQty','700');await u.fill('#iPackPrice','14');await tap(u,'#ingredientForm button:has-text("Guardar ingrediente")');
 ok('Ingredientes: «Guardar ingrediente» guarda ron 700 ml a 14 € (0,02 €/ml)',(i=>i.length===1&&i[0].name==='Ron blanco'&&i[0].unitCost===0.02)((await D()).ingredients),(await D()).ingredients);
 await nav('Bebidas');ok('toque › Bebidas: pantalla visible y sin desbordamiento',await shown('drinks'),null);

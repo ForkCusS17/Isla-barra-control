@@ -14,7 +14,7 @@ const stored=(p,k)=>p.evaluate(k=>localStorage.getItem(k),k);
 const wide=async p=>[await p.evaluate(()=>document.documentElement.scrollWidth),p.viewportSize().width];
 const noOverflow=async p=>{const w=await wide(p);return w[0]<=w[1]+1};
 const MORE=['Ficha','Diagnóstico','Informe','Ajustes'];// en móvil se abren desde «Más»
-const nav=async(p,label)=>{if(MORE.includes(label)){await tap(p,'.mobile-nav button:has-text("Más")');await tap(p,`#page-more button:has-text("${label}")`)}else await tap(p,`.mobile-nav button:has-text("${label}")`)};
+const nav=async(p,label)=>{if(label==='Ingredientes'){await tap(p,'.mobile-nav button:has-text("Mi barra")');await tap(p,'#barFullList');return}/* la lista completa se abre desde «Mi barra» */if(MORE.includes(label)){await tap(p,'.mobile-nav button:has-text("Más")');await tap(p,`#page-more button:has-text("${label}")`)}else await tap(p,`.mobile-nav button:has-text("${label}")`)};
 const importTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:4000}),tap(p,sel)]);await fc.setFiles(file);await p.locator('#importConfirm').waitFor({state:'visible',timeout:3000});await tap(p,'#importYes');await p.waitForTimeout(150)};
 const box=async(p,sel)=>(await p.locator(sel).filter({visible:true}).first().boundingBox())||{width:0,height:0};
 
@@ -238,7 +238,7 @@ ok('«Volver a Isla & Barra» restablece la marca (con confirmación)',(await te
 // ── 9. Navegación de 5 y recordatorio de copia ───────────────────────────────
 let n9=await mk();await tap(n9,'#wDemo');
 const navTexts=(await n9.locator('.mobile-nav button').filter({visible:true}).allInnerTexts()).map(x=>x.replace(/^\W*\s*/,'').trim());
-ok('barra inferior de 5: Resumen, Bebidas, Ingredientes, Stock y Más',navTexts.join()==='Resumen,Bebidas,Ingredientes,Stock,Más',navTexts);
+ok('barra inferior de 5: Resumen, Bebidas, Mi barra, Stock y Más',navTexts.join()==='Resumen,Bebidas,Mi barra,Stock,Más',navTexts);
 const navBoxes=await n9.locator('.mobile-nav button').evaluateAll(bs=>bs.map(b=>[b.getBoundingClientRect().width,b.getBoundingClientRect().height]));ok('botones de la barra inferior ≥ 44 × 44 px',navBoxes.every(([w,h])=>w>=44&&h>=44),navBoxes);
 await tap(n9,'.mobile-nav button:has-text("Más")');
 ok('«Más» abre Ficha, Diagnóstico, Informe y Ajustes',(await seen(n9,'#page-more'))&&(await n9.locator('#page-more .more-item').allInnerTexts()).map(t=>t.split('\n')[0]).join()==='Ficha del bar,Diagnóstico,Informe,Ajustes',null);
@@ -258,7 +258,7 @@ ok('copia de hace 3 días: «hace 3 días» sin aviso',/Última copia: hace 3 d�
 await tap(b10,'#dashExport');await b10.waitForTimeout(200);ok('tras exportar de nuevo: «Última copia: hoy»',/Última copia: hoy/.test(await text(b10,'#backupStatus')),null);
 // barrido final: todas las pantallas, 360 y 390 px, vista sencilla y completa
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]])for(const mode of ['simple','full']){const q=await mk(dev);await tap(q,'#wDemo');if(mode==='full'){await nav(q,'Ajustes');await tap(q,'label[for=modeFull]')}const over=[],small=[];
- for(const lab of ['Resumen','Bebidas','Ingredientes','Stock','Ficha','Diagnóstico','Informe','Ajustes']){await nav(q,lab);if(!(await noOverflow(q)))over.push(lab+' '+(await wide(q))[0]);
+ for(const lab of ['Resumen','Bebidas','Mi barra','Ingredientes','Stock','Ficha','Diagnóstico','Informe','Ajustes']){await nav(q,lab);if(!(await noOverflow(q)))over.push(lab+' '+(await wide(q))[0]);
   const sm=await q.evaluate(()=>[...document.querySelectorAll('button,label[role=button],.mobile-nav button')].filter(b=>b.offsetParent&&getComputedStyle(b).visibility!=='hidden').map(b=>{const r=b.getBoundingClientRect();return[b.textContent.trim().slice(0,20)||b.getAttribute('aria-label'),Math.round(r.width),Math.round(r.height)]}).filter(([,w,h])=>w<44||h<44));small.push(...sm.map(x=>lab+': '+x.join(' ')))}
  ok(`${wd} px, vista ${mode==='simple'?'sencilla':'completa'}: ninguna pantalla se desborda`,over.length===0,over);
  ok(`${wd} px, vista ${mode==='simple'?'sencilla':'completa'}: todos los botones visibles ≥ 44 × 44 px`,small.length===0,small.slice(0,6))}

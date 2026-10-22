@@ -1,7 +1,7 @@
 // App instalable y sin conexión: manifiesto, iconos, service worker, aviso de versión nueva sin perder datos
 // y guía «Añadir a pantalla de inicio» (iPhone y Android). Solo toques; sirve la app con su propio servidor
 // para simular versiones nuevas sin tocar el disco.
-const {chromium,devices,NAME}=require('./env');const {start}=require('./server');const {noOverflow,wide,smallTargets,contrastFails}=require('./helpers');
+const {chromium,devices,NAME}=require('./env');const {start}=require('./server');const {restamp}=require('../tools/stamp');const {noOverflow,wide,smallTargets,contrastFails}=require('./helpers');
 const fs=require('fs'),path=require('path');const T=[];const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const PHONE={...devices['iPhone 13'],reducedMotion:'reduce'},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}},ANDROID={...devices['Pixel 7'],reducedMotion:'reduce'};
 const HTML=fs.readFileSync(path.join(__dirname,'..','isla_barra_control_mvp.html'),'utf8'),SW=fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8');
@@ -34,7 +34,7 @@ await tap(p,'.mobile-nav button:has-text("Bebidas")');ok('sin conexión se naveg
 await p.context().setOffline(false);
 
 // ── 3. Versión nueva del HTML ────────────────────────────────────────────────
-srv.override['isla_barra_control_mvp.html']=HTML.replace("APP_VERSION='0.1.0'","APP_VERSION='0.1.1'");
+{const r=restamp(HTML.replace("APP_VERSION='0.1.0'","APP_VERSION='0.1.1'"));srv.override['isla_barra_control_mvp.html']={body:r.html,headers:{'Content-Security-Policy':r.csp}}}
 await p.reload();
 ok('al publicar una versión nueva se sigue abriendo la que hay en el dispositivo',(await p.evaluate(()=>APP_VERSION))==='0.1.0',null);
 await p.locator('#updateBar').waitFor({state:'visible',timeout:8000}).catch(()=>{});

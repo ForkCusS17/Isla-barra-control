@@ -9,11 +9,13 @@ function readHeaders(){const f=path.join(R,'_headers');if(!fs.existsSync(f))retu
  for(const line of fs.readFileSync(f,'utf8').split('\n')){if(!line.trim()||line.trim().startsWith('#'))continue;if(!/^\s/.test(line)){cur={pat:line.trim(),h:{}};rules.push(cur);continue}const i=line.indexOf(':');if(cur&&i>0)cur.h[line.slice(0,i).trim()]=line.slice(i+1).trim()}
  return rules}
 const matches=(pat,p)=>pat==='/*'||pat===p||(pat.endsWith('*')&&p.startsWith(pat.slice(0,-1)));
-function start(opts={}){const override=opts.override||{};const rules=readHeaders();
- const server=http.createServer((req,res)=>{const pth=decodeURIComponent(new URL(req.url,'http://x').pathname);const rel=pth==='/'?'/index.html':pth;const f=path.join(R,rel);
+function start(opts={}){const override=opts.override||{};
+ const server=http.createServer((req,res)=>{const u=new URL(req.url,'http://x'),pth=decodeURIComponent(u.pathname);
+  // ?sin-cabeceras simula abrir el archivo tal cual (por ejemplo, en un visor integrado): sin las cabeceras de _headers.
+  const bare=u.searchParams.has('sin-cabeceras');const rel=pth==='/'?'/index.html':pth;const f=path.join(R,rel);
   if(!f.startsWith(R+path.sep)){res.writeHead(404);res.end();return}
-  const h={'Content-Type':TYPES[path.extname(f)]||'application/octet-stream','Cache-Control':'no-cache'};for(const r of rules)if(matches(r.pat,rel))Object.assign(h,r.h);
-  const key=rel.slice(1);if(key in override){const body=typeof override[key]==='function'?override[key]():override[key];res.writeHead(200,h);res.end(body);return}
+  const h={'Content-Type':TYPES[path.extname(f)]||'application/octet-stream','Cache-Control':'no-cache'};if(!bare)for(const r of readHeaders())if(matches(r.pat,rel))Object.assign(h,r.h);
+  const key=rel.slice(1);if(key in override){const o=typeof override[key]==='function'?override[key]():override[key];const body=typeof o==='string'?o:o.body;if(o.headers)Object.assign(h,o.headers);res.writeHead(200,h);res.end(body);return}
   if(!fs.existsSync(f)||!fs.statSync(f).isFile()){res.writeHead(404);res.end();return}
   res.writeHead(200,h);fs.createReadStream(f).pipe(res)});
  return new Promise(ok=>server.listen(opts.port||0,'127.0.0.1',()=>ok({server,base:`http://127.0.0.1:${server.address().port}/`,override})))}

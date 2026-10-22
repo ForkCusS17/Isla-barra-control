@@ -65,8 +65,9 @@ await nav('Resumen');const ex2=await downloadByTap(u,'#page-dashboard button:has
 let v=await mk();await importByTap(v,'.top-actions label:has-text("Importar")',TMP+'ui_copia2.json');
 ok('Resumen › «Exportar copia» de lo introducido por toques y «Importar» en otro navegador: mismos datos',canon(await v.evaluate(()=>data))===before2,null);
 // 3. Dentro de un visor que bloquea los diálogos del navegador (iframe con sandbox sin allow-modals): Importar debe funcionar igual
-fs.writeFileSync(TMP+'visor.html',`<iframe id="f" sandbox="allow-scripts allow-same-origin allow-forms" src="${APP_URL}" style="width:390px;height:800px;border:0"></iframe>`);
-{const c=await b.newContext(PHONE);const s=await c.newPage();const dl=[];s.on('dialog',d=>{dl.push(d.type());d.accept()});await s.goto(/^https?:/.test(APP_URL)?new URL('tests/tmp/visor.html',APP_URL).href:'file://'+TMP+'visor.html');/* mismo origen que la app */await s.waitForTimeout(400);const fr=s.frameLocator('#f');
+// El archivo abierto en un visor no lleva las cabeceras del alojamiento (que prohíben incrustarlo): ?sin-cabeceras.
+fs.writeFileSync(TMP+'visor.html',`<iframe id="f" sandbox="allow-scripts allow-same-origin allow-forms" src="${/^https?:/.test(APP_URL)?APP_URL+'?sin-cabeceras':APP_URL}" style="width:390px;height:800px;border:0"></iframe>`);
+{const c=await b.newContext(PHONE);const s=await c.newPage();const dl=[];s.on('dialog',d=>{dl.push(d.type());d.accept()});await s.goto(/^https?:/.test(APP_URL)?new URL('tests/tmp/visor.html?sin-cabeceras',APP_URL).href:'file://'+TMP+'visor.html');/* mismo origen que la app */await s.waitForTimeout(400);const fr=s.frameLocator('#f');
 let fc=null;try{[fc]=await Promise.all([s.waitForEvent('filechooser',{timeout:4000}),fr.locator('#welcome label:has-text("Recuperar una copia")').tap({timeout:4000})])}catch(e){}
 if(fc){await fc.setFiles(J);await fr.locator('#importYes').tap({timeout:4000})}await s.waitForTimeout(300);
 const n=await s.frames().find(x=>x.url().startsWith(APP_URL)).evaluate(()=>data.drinks.length);

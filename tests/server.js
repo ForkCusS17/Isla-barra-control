@@ -16,5 +16,5 @@ function start(opts={}){const override=opts.override||{};const rules=readHeaders
   const key=rel.slice(1);if(key in override){const body=typeof override[key]==='function'?override[key]():override[key];res.writeHead(200,h);res.end(body);return}
   if(!fs.existsSync(f)||!fs.statSync(f).isFile()){res.writeHead(404);res.end();return}
   res.writeHead(200,h);fs.createReadStream(f).pipe(res)});
- return new Promise(ok=>server.listen(0,'127.0.0.1',()=>ok({server,base:`http://127.0.0.1:${server.address().port}/`,override})))}
+ return new Promise(ok=>server.listen(opts.port||0,'127.0.0.1',()=>ok({server,base:`http://127.0.0.1:${server.address().port}/`,override})))}
 module.exports={start,root:R,readHeaders};

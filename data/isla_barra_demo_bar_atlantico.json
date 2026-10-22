@@ -434,10 +434,10 @@
    "category": "Cóctel",
    "price": 9.0,
    "taxRate": 7,
-   "ingredientCost": 1.543,
+   "ingredientCost": 1.433,
    "otherCost": 0.1,
-   "recipe": "Macerar hierbabuena, añadir ron, lima y sirope; completar con agua con gas.",
-   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipe": "Machaca suavemente la hierbabuena con la lima y el sirope, añade el ron y hielo picado y termina con soda. Medidas orientativas: revísalas en tu barra.",
+   "notes": "De la biblioteca de cócteles (versión 1). Precio de carta con impuesto de ejemplo (7 %) incluido",
    "recipeItems": [
     {
      "ingredientId": "ron-blanco",
@@ -457,11 +457,132 @@
     },
     {
      "ingredientId": "soda",
-     "qty": 60
+     "qty": 100
+    }
+   ],
+   "templateId": "mojito",
+   "templateVersion": 1,
+   "templateSnapshot": [
+    {
+     "tipo": "ron-blanco",
+     "cantidad": 50,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
     },
     {
-     "ingredientId": "hielo",
-     "qty": 150
+     "tipo": "zumo-lima",
+     "cantidad": 20,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "sirope-simple",
+     "cantidad": 15,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "hierbabuena",
+     "cantidad": 8,
+     "unidad": "g",
+     "opcional": false,
+     "nota": "unas 10 hojas"
+    },
+    {
+     "tipo": "soda",
+     "cantidad": null,
+     "unidad": "rellenar",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "hielo",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": ""
+    },
+    {
+     "tipo": "guarnicion",
+     "cantidad": 1,
+     "unidad": "unidad",
+     "opcional": true,
+     "nota": "rama de hierbabuena"
+    }
+   ],
+   "components": [
+    {
+     "tipo": "ron-blanco",
+     "cantidad": 50,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": "",
+     "qty": 50,
+     "approx": false,
+     "ingredientId": "ron-blanco"
+    },
+    {
+     "tipo": "zumo-lima",
+     "cantidad": 20,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": "",
+     "qty": 20,
+     "approx": false,
+     "ingredientId": "lima-zumo"
+    },
+    {
+     "tipo": "sirope-simple",
+     "cantidad": 15,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": "",
+     "qty": 15,
+     "approx": false,
+     "ingredientId": "sirope"
+    },
+    {
+     "tipo": "hierbabuena",
+     "cantidad": 8,
+     "unidad": "g",
+     "opcional": false,
+     "nota": "unas 10 hojas",
+     "qty": 8,
+     "approx": false,
+     "ingredientId": "hierbabuena"
+    },
+    {
+     "tipo": "soda",
+     "cantidad": null,
+     "unidad": "rellenar",
+     "opcional": false,
+     "nota": "",
+     "qty": 100,
+     "approx": true,
+     "ingredientId": "soda"
+    },
+    {
+     "tipo": "hielo",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": "",
+     "qty": 0,
+     "approx": false,
+     "ingredientId": ""
+    },
+    {
+     "tipo": "guarnicion",
+     "cantidad": 1,
+     "unidad": "unidad",
+     "opcional": true,
+     "nota": "rama de hierbabuena",
+     "qty": 0,
+     "approx": false,
+     "ingredientId": ""
     }
    ]
   },
@@ -471,10 +592,10 @@
    "category": "Cóctel",
    "price": 8.0,
    "taxRate": 7,
-   "ingredientCost": 1.584375,
+   "ingredientCost": 1.2845833333333334,
    "otherCost": 0.1,
-   "recipe": "",
-   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipe": "Sirve el ron sobre hielo en vaso alto, añade la lima y completa con cola. Medidas orientativas: revísalas en tu barra.",
+   "notes": "De la biblioteca de cócteles (versión 1). Precio de carta con impuesto de ejemplo (7 %) incluido",
    "recipeItems": [
     {
      "ingredientId": "ron-blanco",
@@ -482,15 +603,102 @@
     },
     {
      "ingredientId": "cola",
-     "qty": 150
+     "qty": 100
     },
     {
      "ingredientId": "lima-zumo",
      "qty": 10
+    }
+   ],
+   "templateId": "cuba-libre",
+   "templateVersion": 1,
+   "templateSnapshot": [
+    {
+     "tipo": "ron-blanco",
+     "cantidad": 50,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
     },
     {
-     "ingredientId": "hielo",
-     "qty": 150
+     "tipo": "cola",
+     "cantidad": null,
+     "unidad": "rellenar",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "zumo-lima",
+     "cantidad": 10,
+     "unidad": "ml",
+     "opcional": true,
+     "nota": ""
+    },
+    {
+     "tipo": "hielo",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": ""
+    },
+    {
+     "tipo": "guarnicion",
+     "cantidad": 1,
+     "unidad": "unidad",
+     "opcional": true,
+     "nota": "gajo de lima"
+    }
+   ],
+   "components": [
+    {
+     "tipo": "ron-blanco",
+     "cantidad": 50,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": "",
+     "qty": 50,
+     "approx": false,
+     "ingredientId": "ron-blanco"
+    },
+    {
+     "tipo": "cola",
+     "cantidad": null,
+     "unidad": "rellenar",
+     "opcional": false,
+     "nota": "",
+     "qty": 100,
+     "approx": true,
+     "ingredientId": "cola"
+    },
+    {
+     "tipo": "zumo-lima",
+     "cantidad": 10,
+     "unidad": "ml",
+     "opcional": true,
+     "nota": "",
+     "qty": 10,
+     "approx": false,
+     "ingredientId": "lima-zumo"
+    },
+    {
+     "tipo": "hielo",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": "",
+     "qty": 0,
+     "approx": false,
+     "ingredientId": ""
+    },
+    {
+     "tipo": "guarnicion",
+     "cantidad": 1,
+     "unidad": "unidad",
+     "opcional": true,
+     "nota": "gajo de lima",
+     "qty": 0,
+     "approx": false,
+     "ingredientId": ""
     }
    ]
   },
@@ -500,26 +708,92 @@
    "category": "Cóctel",
    "price": 9.5,
    "taxRate": 7,
-   "ingredientCost": 2.0514285714285716,
+   "ingredientCost": 1.3928571428571428,
    "otherCost": 0.1,
-   "recipe": "",
-   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipe": "Sirve la ginebra sobre mucho hielo y añade la tónica despacio. Medidas orientativas: revísalas en tu barra.",
+   "notes": "De la biblioteca de cócteles (versión 1). Precio de carta con impuesto de ejemplo (7 %) incluido",
    "recipeItems": [
     {
      "ingredientId": "ginebra",
-     "qty": 60
+     "qty": 50
     },
     {
      "ingredientId": "tonica",
-     "qty": 200
+     "qty": 100
+    }
+   ],
+   "templateId": "gin-tonic",
+   "templateVersion": 1,
+   "templateSnapshot": [
+    {
+     "tipo": "ginebra",
+     "cantidad": 50,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
     },
     {
-     "ingredientId": "hielo",
-     "qty": 150
+     "tipo": "tonica",
+     "cantidad": null,
+     "unidad": "rellenar",
+     "opcional": false,
+     "nota": ""
     },
     {
-     "ingredientId": "naranja-deshid",
-     "qty": 1
+     "tipo": "hielo",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": ""
+    },
+    {
+     "tipo": "guarnicion",
+     "cantidad": 1,
+     "unidad": "unidad",
+     "opcional": true,
+     "nota": "piel de cítrico"
+    }
+   ],
+   "components": [
+    {
+     "tipo": "ginebra",
+     "cantidad": 50,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": "",
+     "qty": 50,
+     "approx": false,
+     "ingredientId": "ginebra"
+    },
+    {
+     "tipo": "tonica",
+     "cantidad": null,
+     "unidad": "rellenar",
+     "opcional": false,
+     "nota": "",
+     "qty": 100,
+     "approx": true,
+     "ingredientId": "tonica"
+    },
+    {
+     "tipo": "hielo",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": "",
+     "qty": 0,
+     "approx": false,
+     "ingredientId": ""
+    },
+    {
+     "tipo": "guarnicion",
+     "cantidad": 1,
+     "unidad": "unidad",
+     "opcional": true,
+     "nota": "piel de cítrico",
+     "qty": 0,
+     "approx": false,
+     "ingredientId": ""
     }
    ]
   },
@@ -529,10 +803,10 @@
    "category": "Cóctel",
    "price": 9.5,
    "taxRate": 7,
-   "ingredientCost": 1.9645000000000001,
+   "ingredientCost": 1.7525,
    "otherCost": 0.1,
-   "recipe": "",
-   "notes": "Precio de carta con impuesto de ejemplo (7 %) incluido",
+   "recipe": "Agita con hielo y sirve colado en copa con medio borde de sal. Medidas orientativas: revísalas en tu barra.",
+   "notes": "De la biblioteca de cócteles (versión 1). Precio de carta con impuesto de ejemplo (7 %) incluido",
    "recipeItems": [
     {
      "ingredientId": "tequila",
@@ -545,14 +819,97 @@
     {
      "ingredientId": "lima-zumo",
      "qty": 25
+    }
+   ],
+   "templateId": "margarita",
+   "templateVersion": 1,
+   "templateSnapshot": [
+    {
+     "tipo": "tequila",
+     "cantidad": 50,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
     },
     {
-     "ingredientId": "sirope",
-     "qty": 10
+     "tipo": "licor-naranja",
+     "cantidad": 20,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
     },
     {
-     "ingredientId": "hielo",
-     "qty": 150
+     "tipo": "zumo-lima",
+     "cantidad": 25,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "sal-pimienta",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": "borde de sal"
+    },
+    {
+     "tipo": "hielo",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": ""
+    }
+   ],
+   "components": [
+    {
+     "tipo": "tequila",
+     "cantidad": 50,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": "",
+     "qty": 50,
+     "approx": false,
+     "ingredientId": "tequila"
+    },
+    {
+     "tipo": "licor-naranja",
+     "cantidad": 20,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": "",
+     "qty": 20,
+     "approx": false,
+     "ingredientId": "triple-sec"
+    },
+    {
+     "tipo": "zumo-lima",
+     "cantidad": 25,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": "",
+     "qty": 25,
+     "approx": false,
+     "ingredientId": "lima-zumo"
+    },
+    {
+     "tipo": "sal-pimienta",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": "borde de sal",
+     "qty": 0,
+     "approx": false,
+     "ingredientId": ""
+    },
+    {
+     "tipo": "hielo",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": "",
+     "qty": 0,
+     "approx": false,
+     "ingredientId": ""
     }
    ]
   },
@@ -762,8 +1119,8 @@
    "unit": "ml",
    "opening": 3500,
    "purchases": 1400,
-   "closing": 2560,
-   "salesUse": 2280,
+   "closing": 2940,
+   "salesUse": 1900,
    "tastings": 0,
    "comps": 0,
    "waste": 0,
@@ -771,9 +1128,9 @@
    "legitUse": 0,
    "threshold": 150,
    "status": "Validados",
-   "notes": "Ventas: Gin-tonic 38 × 60 ml. Inventario contado dos veces.",
-   "actual": 2340,
-   "theoretical": 2280,
+   "notes": "Ventas: Gin-tonic 38 × 50 ml. Inventario contado dos veces.",
+   "actual": 1960,
+   "theoretical": 1900,
    "variance": 60,
    "salesId": "v-sem41"
   },
@@ -896,9 +1253,9 @@
    "status": "Pendiente",
    "priority": "Baja",
    "due": "2026-10-28",
-   "finding": "La naranja deshidratada de la guarnición del gin-tonic no tiene precio registrado: su coste está incompleto.",
-   "action": "Pedir el precio al proveedor y completarlo en Ingredientes.",
-   "check": "El gin-tonic deja de mostrar «Coste incompleto» y su margen se recalcula.",
+   "finding": "La naranja deshidratada de la guarnición del gin-tonic no tiene precio registrado: la guarnición no está incluida en su coste.",
+   "action": "Pedir el precio al proveedor, completarlo en Mi barra y sumar el coste por copa a «otros costes» del gin-tonic.",
+   "check": "El coste del gin-tonic incluye la guarnición y su margen se recalcula.",
    "evidence": "En el catálogo, «Naranja deshidratada (guarnición)» tiene precio 0,00 €.",
    "owner": "",
    "result": ""

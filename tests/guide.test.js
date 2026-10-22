@@ -84,9 +84,9 @@ const looks=async p=>p.locator('#lookNow .look-item').allInnerTexts().then(a=>a.
 let L3=await looks(w);
 ok('«Qué mirar ahora» con el ejemplo: 3 señales como máximo, cada una con botón',L3.length===3&&(await w.locator('#lookNow .look-item button').count())===3,L3);
 ok('incluye en lenguaje llano: «Chupito de tequila: te quedan 1,02 € de cada 2,06 € sin impuestos (49 %), por debajo de tu umbral de revisión (55 %)»',L3.some(t=>t.includes('«Chupito de tequila»: te quedan 1,02 € de cada 2,06 € sin impuestos (49 %), por debajo de tu umbral de revisión (55 %).')),L3);
-ok('prioriza datos que faltan (control sin fechas, coste incompleto) antes que el margen por debajo del umbral',/Cerveza/.test(L3[0])&&/Faltan las fechas/.test(L3[0])&&/Gin-tonic/.test(L3[1])&&/coste está incompleto/.test(L3[1])&&/Chupito/.test(L3[2]),L3);
+ok('prioriza datos que faltan (control sin fechas) antes que el margen por debajo del umbral',/Cerveza/.test(L3[0])&&/Faltan las fechas/.test(L3[0])&&/Chupito/.test(L3[1]),L3);
 ok('sin juicios de «bueno/malo» y con aviso de que son señales, no conclusiones',!L3.some(t=>/\b(bueno|buena|malo|mala)\b/i.test(t))&&/señales para revisar/.test(await text(w,'#page-dashboard [aria-labelledby=lookNowTitle]')),null);
-ok('acceso a los datos pendientes del informe (5)',/Datos pendientes de verificar: 5/.test(await text(w,'#lookNowPending')),null);
+ok('acceso a los datos pendientes del informe (4)',/Datos pendientes de verificar: 4/.test(await text(w,'#lookNowPending')),null);
 await tap(w,'#lookNow .look-item:has-text("Chupito") button');
 ok('«Ver bebida» abre la bebida en Bebidas',await seen(w,'#page-drinks')&&(await w.inputValue('#dName'))==='Chupito de tequila',await w.inputValue('#dName'));
 await nav(w,'Resumen');await tap(w,'#lookNow .look-item:has-text("Cerveza") button');

@@ -83,7 +83,7 @@ ok('informe: hallazgo en revisión con resultado parcial, sin dar la causa por c
 ok('informe: sin medición todavía → «Pendiente de revisar» (3 hallazgos)',R.blocks.filter(t=>/Pendiente de revisar: todavía no hay medición/.test(t)).length===3,null);
 ok('informe: la evidencia del chupito coincide con los cálculos de la app',await d.evaluate(()=>{const c=data.drinks.find(x=>x.id==='chupito-tequila'),t=data.diagnostics.find(x=>x.id==='g3').evidence;return t.includes(directCost(c).toFixed(2).replace('.',',')+' €')&&t.includes(netPrice(c).toFixed(2).replace('.',','))&&t.includes(margin(c).toFixed(1).replace('.',','))}),null);
 ok('informe: explica que no se estiman ahorros antes de medir y no los promete',/No se estiman ahorros antes de medir/.test(R.txt)&&!/ahorrarás|ahorro garantizado|ahorro de \d/i.test(R.txt),null);
-ok('informe: sin datos pendientes del diagnóstico en el bar ficticio (siguen 5 en total)',(await d.evaluate(()=>pendingData().filter(x=>/^Hallazgo/.test(x)).length))===0&&/Datos pendientes de verificar: 5/.test(R.txt),null);
+ok('informe: sin datos pendientes del diagnóstico en el bar ficticio (siguen 4 en total)',(await d.evaluate(()=>pendingData().filter(x=>/^Hallazgo/.test(x)).length))===0&&/Datos pendientes de verificar: 4/.test(R.txt),null);
 ok('informe: próximos pasos con responsable cuando lo hay',/Repetir el recuento de botellas abiertas[^\n]*— Encargado de barra/.test(R.txt),null);
 // 6. 390 px y textos largos o con HTML
 const long='X'.repeat(300),html='<img src=x onerror=window.__xss=1>';

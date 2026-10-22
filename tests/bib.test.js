@@ -129,6 +129,56 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap
  const small=await z.evaluate(()=>[...document.querySelectorAll('#page-library button,#page-library label.lib-opt,#page-library .lib-item')].filter(x=>x.offsetParent).map(x=>[x.textContent.trim().slice(0,20),Math.round(x.getBoundingClientRect().height)]).filter(([,h])=>h<44));ok(`[${wd}] biblioteca: objetivos táctiles ≥ 44 px`,small.length===0,small)}
 {const z=await mk();await tap(z,'#wDemo');await nav(z,'Bebidas');await tap(z,'#libOpen');const cf=await contrastFails(z);for(const c of ['negroni','spritz'])await tap(z,`label[for="lib_${c}"]`);await tap(z,'#libNext');cf.push(...await contrastFails(z));ok('biblioteca y revisión: contraste ≥ 4,5:1',cf.length===0,cf.slice(0,6))}
 
+// ── 5. Cambiar un ingrediente y restaurar medidas ────────────────────────────
+let s=await mk();await tap(s,'#wStart');await tap(s,'#tplSkip');
+await quick(s,'Destilados','Rones','Ron Carta Blanca','14');await quick(s,'Destilados','Rones','Ron Reserva 7 años','21');
+await nav(s,'Bebidas');await tap(s,'#libOpen');await tap(s,'label[for="lib_daiquiri"]');await tap(s,'#libNext');await tap(s,'#lg_ron-blanco .lib-opt:has-text("Ron Carta Blanca")');await tap(s,'#libCreate');await tap(s,'#libGoDrinks');
+await tap(s,'#drinkList tr:has-text("Daiquiri") button:has-text("Editar")');
+ok('al editar una bebida de la biblioteca se ofrece «Ver receta» en vez del editor de líneas',(await seen(s,'#rcFromForm'))&&!(await seen(s,'#recipeEditor')),null);
+await s.fill('#dPrice','9');await tap(s,'#drinkForm button:has-text("Guardar bebida")');
+let d5=await D(s);const dq=()=>d5.drinks.find(x=>x.name==='Daiquiri'),ron=()=>dq().components.findIndex(k=>k.tipo==='ron-blanco'),lima=()=>dq().components.findIndex(k=>k.tipo==='zumo-lima'),ing5=n=>d5.ingredients.find(i=>i.name===n).id;
+ok('guardar el precio conserva la receta de la biblioteca (componentes y plantilla)',dq().price===9&&dq().components.length===4&&dq().templateId==='daiquiri'&&dq().recipeItems.length===3,dq());
+ok('Bebidas: las bebidas de la biblioteca tienen el botón «Receta»',(await seen(s,'#drinkList tr:has-text("Daiquiri") button:has-text("Receta")')),null);
+await tap(s,'#drinkList tr:has-text("Daiquiri") button:has-text("Receta")');
+const R=ron(),Li=lima();
+ok('«Receta» abre la receta con coste y margen (1,20 € de coste; margen 7,80 €, 86,67 %; aclara que no es beneficio)',(await seen(s,'#page-recipe'))&&(await text(s,'#rcTitle'))==='Daiquiri'&&/Coste directo: 1,20 €/.test(await text(s,'#rcSummary'))&&/Margen bruto: 7,80 € \(86,67 ?%\)/.test(await text(s,'#rcSummary'))&&/no beneficio/.test(await text(s,'#rcSummary')),await text(s,'#rcSummary'));
+ok('la pestaña Bebidas sigue marcada en la receta',(await s.locator('.mobile-nav button[aria-current="page"]').innerText()).includes('Bebidas'),null);
+const optTexts=await s.locator(`#rcIng_${R} option`).allInnerTexts();
+ok('para el ron solo se ofrecen productos de la misma sección (Rones)',optTexts.length===2&&optTexts[0].startsWith('Ron Carta Blanca')&&optTexts[1].startsWith('Ron Reserva 7 años'),optTexts);
+ok('el zumo de lima no tiene alternativa y lo dice; muestra «Sin precio»',(await s.locator(`#rcIng_${Li} option`).count())===1&&/No hay otro producto en «Zumos»/.test(await text(s,`#rc_${Li}`))&&/Sin precio/.test(await text(s,`#rc_${Li}`)),await text(s,`#rc_${Li}`));
+await s.selectOption(`#rcIng_${R}`,{label:(optTexts[1])});d5=await D(s);
+ok('cambiar el ron: mantiene 60 ml, usa el Ron Reserva y recalcula al instante (1,80 €; margen 7,20 €, 80 %)',dq().components[R].ingredientId===ing5('Ron Reserva 7 años')&&dq().components[R].qty===60&&dq().recipeItems.find(l=>l.ingredientId===ing5('Ron Reserva 7 años')).qty===60&&!dq().recipeItems.some(l=>l.ingredientId===ing5('Ron Carta Blanca'))&&Math.abs(dq().ingredientCost-1.8)<1e-9&&/Coste directo: 1,80 €/.test(await text(s,'#rcSummary'))&&/Margen bruto: 7,20 € \(80 ?%\)/.test(await text(s,'#rcSummary'))&&/1,80 €/.test(await text(s,`#rcCost_${R}`)),[dq().components[R],await text(s,'#rcSummary')]);
+ok('la plantilla guardada no cambia al cambiar el producto',dq().templateSnapshot[R].cantidad===60&&!('ingredientId' in dq().templateSnapshot[R]),dq().templateSnapshot[R]);
+await s.fill(`#rcQty_${R}`,'45');await tap(s,'#rcTitle');d5=await D(s);
+ok('cambiar la medida a 45 ml: 1,35 € y aviso «Medida cambiada (estándar: 60 ml)»',dq().components[R].qty===45&&Math.abs(dq().ingredientCost-1.35)<1e-9&&/Medida cambiada \(estándar: 60 ml\)/.test(await text(s,`#rc_${R}`))&&/Coste directo: 1,35 €/.test(await text(s,'#rcSummary')),[dq().components[R],await text(s,`#rc_${R}`)]);
+await s.fill(`#rcQty_${R}`,'0');await tap(s,'#rcTitle');d5=await D(s);
+ok('una cantidad 0 se rechaza y no se guarda',/mayor que 0/.test(await text(s,'#toast'))&&dq().components[R].qty===45&&(await s.inputValue(`#rcQty_${R}`))==='45',dq().components[R]);
+await s.fill(`#rcQty_${R}`,'52,5');await tap(s,'#rcTitle');d5=await D(s);ok('acepta coma decimal (52,5 ml)',dq().components[R].qty===52.5,dq().components[R]);
+await nav(s,'Bebidas');ok('la lista de Bebidas refleja el nuevo coste',/1,58 €/.test(await text(s,'#drinkList tr:has-text("Daiquiri")')),await text(s,'#drinkList tr:has-text("Daiquiri")'));
+await tap(s,'#drinkList tr:has-text("Daiquiri") button:has-text("Receta")');await tap(s,'#rcRestore');
+ok('«Restaurar medidas estándar» pide confirmación dentro de la página',(await seen(s,'#appConfirm'))&&/versión 1/.test(await text(s,'#appConfirmText')),null);
+await tap(s,'#appConfirmYes');d5=await D(s);
+ok('restaurar: vuelve a 60 ml y mantiene el producto elegido (1,80 €)',dq().components[R].qty===60&&dq().components[R].ingredientId===ing5('Ron Reserva 7 años')&&Math.abs(dq().ingredientCost-1.8)<1e-9&&/Tiene las medidas estándar/.test(await text(s,'#rcBody'))&&!/Medida cambiada/.test(await text(s,'#rcBody')),dq().components[R]);
+{const backup=JSON.parse(JSON.stringify(await D(s)));backup.exportedAt='2026-10-21T10:00:00.000Z';
+ const daq=backup.drinks.find(x=>x.name==='Daiquiri');daq.components[R].qty=55;fs.writeFileSync(TMP+'bib_v6.json',JSON.stringify(backup));
+ const c=await b.newContext(PHONE);await c.clock.setFixedTime(new Date('2026-10-21T10:00:00Z'));
+ await c.route(/isla_barra_control_mvp\.html/,async r=>{const resp=await r.fetch();let h=await resp.text();h=h.replace('"id":"daiquiri","nombre":"Daiquiri","base":"ron","componentes":[{"tipo":"ron-blanco","cantidad":60','"id":"daiquiri","nombre":"Daiquiri","base":"ron","componentes":[{"tipo":"ron-blanco","cantidad":70');h=h.replace(/("id":"daiquiri"[^\]]*\][^}]*"version":)1/,'$12');await r.fulfill({response:resp,body:h})});
+ const u=await c.newPage();u.errs=[];u.dl=[];u.on('pageerror',e=>u.errs.push(String(e).slice(0,120)));u.on('dialog',d=>{u.dl.push(d.type());d.dismiss()});await u.goto(APP_URL);pages.push(u);
+ const lib=await libOf(u),ld=lib.cocteles.find(x=>x.id==='daiquiri');
+ ok('(simulación) la biblioteca actualizada trae el Daiquiri v2 con 70 ml de ron',ld.version===2&&ld.componentes[0].cantidad===70,[ld.version,ld.componentes[0]]);
+ await importTap(u,'#wRestore',TMP+'bib_v6.json');let du=await D(u),q=du.drinks.find(x=>x.name==='Daiquiri');
+ ok('una actualización de la biblioteca no toca la receta guardada (sigue 55 ml, versión 1)',q.components[R].qty===55&&q.templateVersion===1&&q.templateSnapshot[R].cantidad===60,[q.components[R],q.templateVersion]);
+ await nav(u,'Bebidas');await tap(u,'#drinkList tr:has-text("Daiquiri") button:has-text("Receta")');await tap(u,'#rcRestore');await tap(u,'#appConfirmYes');du=await D(u);q=du.drinks.find(x=>x.name==='Daiquiri');
+ ok('restaurar usa la receta original guardada (60 ml, versión 1), no la nueva de la biblioteca',q.components[R].qty===60&&q.templateVersion===1,q.components[R])}
+{const v5={schema:5,app:'Isla & Barra Control',settings:{marginMin:65,mode:'full'},business:{name:'Bar v5'},sales:[],stocks:[],diagnostics:[],ingredients:[{id:'r1',name:'Ron',category:'Destilados',subcategory:'Rones',unit:'ml',packQty:700,packPrice:14,unitCost:0.02,active:true}],drinks:[{id:'d1',name:'Ron con hielo',category:'Cóctel',price:6,taxRate:0,otherCost:0,ingredientCost:1,recipeItems:[{ingredientId:'r1',qty:50}]}]};
+ fs.writeFileSync(TMP+'bib_v5.json',JSON.stringify(v5));const m=await mk();await importTap(m,'#wRestore',TMP+'bib_v5.json');const dm=await D(m);
+ ok('migración desde el esquema 5: esquema 6, la bebida conserva su receta y no tiene plantilla',dm.schema===6&&dm.drinks[0].recipeItems[0].qty===50&&!('templateId' in dm.drinks[0])&&!('components' in dm.drinks[0]),dm.drinks[0]);
+ await nav(m,'Bebidas');ok('migración: sin botón «Receta» y con el editor de líneas de siempre',!(await seen(m,'#drinkList button:has-text("Receta")'))&&(await tap(m,'#drinkList button:has-text("Editar")'),await seen(m,'#recipeEditor')),null)}
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wStart');await tap(z,'#tplSkip');await quick(z,'Destilados','Rones','Ron Carta Blanca','14');await nav(z,'Bebidas');await tap(z,'#libOpen');for(const c of ['old-fashioned','mojito','margarita'])await tap(z,`label[for="lib_${c}"]`);await tap(z,'#libNext');await tap(z,'#libCreate');await tap(z,'#libGoDrinks');
+ for(const n of ['Old fashioned','Mojito','Margarita']){await tap(z,`#drinkList tr:has-text("${n}") button:has-text("Receta")`);ok(`[${wd}] receta de ${n} sin desbordamiento`,await noOverflow(z),await wide(z));
+  const small=await z.evaluate(()=>[...document.querySelectorAll('#page-recipe button,#page-recipe select,#page-recipe input')].filter(x=>x.offsetParent).map(x=>[x.id||x.textContent.trim().slice(0,20),Math.round(x.getBoundingClientRect().height)]).filter(([,h])=>h<44));ok(`[${wd}] receta de ${n}: objetivos táctiles ≥ 44 px`,small.length===0,small);await tap(z,'#rcBack')}
+ if(wd===390){await tap(z,'#drinkList tr:has-text("Old fashioned") button:has-text("Receta")');ok('Old fashioned: los golpes y la cucharada se marcan «aprox.»; el hielo, al gusto',(await z.locator('#page-recipe h4:has-text("aprox.")').count())===2&&/al gusto \(0 €\)/.test(await text(z,'#rcBody')),await text(z,'#rcBody'));const cf=await contrastFails(z);ok('receta: contraste ≥ 4,5:1',cf.length===0,cf.slice(0,6))}}
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO biblioteca: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

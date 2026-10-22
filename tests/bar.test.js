@@ -129,6 +129,42 @@ ok(`[${wd}] Mi barra con el alta rápida abierta sin desbordamiento`,await noOve
 {const n=await a.evaluate(()=>[...document.querySelectorAll('#page-bar button,#page-bar label[role=button],#page-bar summary')].filter(x=>x.offsetParent).map(x=>[x.textContent.trim().slice(0,20),Math.round(x.getBoundingClientRect().height)]).filter(([,h])=>h<44));ok(`[${wd}] Mi barra: botones y cabeceras de sección ≥ 44 px`,n.length===0,n)}
 }
 
+// ── 4. Pegar una lista ───────────────────────────────────────────────────────
+const LISTA=['nombre;formato;precio','Tanqueray;70cl;15,90','Ron Bacardí, 1 L, 14.5 €','','Vodka Absolut\t0,7 L\t13,50','Cerveza Estrella Galicia 24x33cl 21,60€','Tónica Schweppes caja 24 x 20 cl 12','Licor misterioso botella 9,90','Hierbabuena 100 g','   ','Tanqueray;70cl;15,90','Ron Havana;70cl;doce'].join('\n');
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){
+let c=await mk(dev);await tap(c,'#wStart');await nav(c,'Mi barra');await tap(c,'#barPaste');
+ok(`[${wd}] «Pegar una lista» abre el panel con el foco en el texto`,(await seen(c,'#pastePanel'))&&(await c.evaluate(()=>document.activeElement.id))==='pasteText'&&(await c.getAttribute('#barPaste','aria-expanded'))==='true',null);
+await c.fill('#pasteText',LISTA);await tap(c,'#pasteReview');
+const rows=()=>c.locator('.paste-row').evaluateAll(rs=>rs.map(r=>({name:r.querySelector('[id$=name]').value,fmt:r.querySelector('[id$=fmt]').value,price:r.querySelector('[id$=price]').value,sub:r.querySelector('select').value,add:r.querySelector('input[type=checkbox]').checked,dis:r.querySelector('input[type=checkbox]').disabled,warn:r.querySelector('.row-warn').innerText.replace(/\s+/g,' ')})));
+let R=await rows();
+ok(`[${wd}] vista previa: 9 filas (se omiten la cabecera y las líneas vacías)`,R.length===9,R.map(r=>r.name));
+ok(`[${wd}] separadores «;», coma y tabulador, y texto libre`,R[0].name==='Tanqueray'&&R[0].fmt==='70cl'&&R[1].name==='Ron Bacardí'&&R[1].fmt==='1 L'&&R[2].name==='Vodka Absolut'&&R[2].fmt==='0,7 L'&&R[3].name==='Cerveza Estrella Galicia'&&R[3].fmt==='24x33cl',R.slice(0,4));
+ok(`[${wd}] precios con coma, punto y €`,R[0].price==='15,90'&&R[1].price==='14.5'&&R[2].price==='13,50'&&R[3].price==='21,60'&&R[4].price==='12',R.map(r=>r.price));
+ok(`[${wd}] conversión en la vista previa: 70cl = 700 ml, 1 L = 1000 ml, 0,7 L = 700 ml, 24x33cl = 7920 ml, 24 x 20 cl = 4800 ml`,/70cl = 700 ml/.test(R[0].warn)&&/1 L = 1000 ml/.test(R[1].warn)&&/0,7 L = 700 ml/.test(R[2].warn)&&/24x33cl = 7920 ml/.test(R[3].warn)&&/24 x 20 cl = 4800 ml/.test(R[4].warn),R.map(r=>r.warn).slice(0,5));
+ok(`[${wd}] subcategoría sugerida por palabras clave (Ginebras, Rones, Vodkas, Botellín y lata, Tónicas, Licores y amargos, Hierbas)`,['Destilados|Ginebras','Destilados|Rones','Destilados|Vodkas','Cervezas|Botellín y lata','Refrescos y mixers|Tónicas','Destilados|Licores y amargos','Frutas, hierbas y zumos|Hierbas'].every((s,i)=>R[i].sub===s),R.map(r=>r.sub));
+ok(`[${wd}] fila con formato no reconocido: error y no se puede marcar`,/Falta el formato/.test(R[5].warn)&&R[5].dis&&!R[5].add,R[5]);
+ok(`[${wd}] fila sin precio: aviso y se añadirá «Sin precio»`,/Sin precio: se añadirá marcado «Sin precio»/.test(R[6].warn)&&R[6].add,R[6]);
+ok(`[${wd}] posible duplicado (repetido en la lista): aviso y desmarcado`,/Posible duplicado: está repetido más arriba/.test(R[7].warn)&&!R[7].add&&!R[7].dis,R[7]);
+ok(`[${wd}] precio no válido («doce»): error`,/Precio no válido \(«doce»\)/.test(R[8].warn)&&R[8].dis,R[8]);
+ok(`[${wd}] «Añadir 6 productos» y resumen; todavía no se ha guardado nada`,(await text(c,'#pasteAdd'))==='Añadir 6 productos'&&/9 líneas leídas · 6 para añadir · 2 con error/.test(await text(c,'#pasteSummary'))&&(await D(c)).ingredients.length===0,await text(c,'#pasteSummary'));
+// corregir en la vista previa
+await c.locator('#pr5fmt').pressSequentially('70 cl');R=await rows();
+ok(`[${wd}] corregir el formato de una fila con error la marca para añadir (7)`,R[5].add&&!R[5].dis&&(await text(c,'#pasteAdd'))==='Añadir 7 productos',R[5]);
+await c.fill('#pr8price','');await c.locator('#pr8price').pressSequentially('16,40');await c.selectOption('#pr4sub','Refrescos y mixers|Refrescos');
+ok(`[${wd}] corregir el precio la añade (8) y se puede cambiar la subcategoría sugerida`,(await text(c,'#pasteAdd'))==='Añadir 8 productos',null);
+ok(`[${wd}] la vista previa sigue sin guardar nada`,(await D(c)).ingredients.length===0,null);
+ok(`[${wd}] vista previa sin desbordamiento`,await noOverflow(c),await wide(c));
+await tap(c,'#pasteAdd');let d4=await D(c);
+const g=n=>ing(d4,n);
+ok(`[${wd}] «Añadir 8 productos» guarda 8 (sin el duplicado desmarcado)`,d4.ingredients.length===8&&d4.ingredients.filter(i=>i.name==='Tanqueray').length===1,d4.ingredients.map(i=>i.name));
+ok(`[${wd}] guardados con cantidades y precios correctos`,g('Tanqueray').packQty===700&&g('Tanqueray').packPrice===15.9&&g('Ron Bacardí').packQty===1000&&g('Ron Bacardí').packPrice===14.5&&g('Vodka Absolut').packQty===700&&g('Cerveza Estrella Galicia').packQty===7920&&g('Cerveza Estrella Galicia').packPrice===21.6&&g('Licor misterioso botella').packQty===700&&g('Ron Havana').packPrice===16.4,null);
+ok(`[${wd}] guardados con la subcategoría elegida y «Sin precio» donde faltaba`,g('Tanqueray').subcategory==='Ginebras'&&g('Tónica Schweppes caja').subcategory==='Refrescos'&&g('Hierbabuena').category==='Frutas, hierbas y zumos'&&g('Hierbabuena').packPrice===0,null);
+ok(`[${wd}] tras añadir: el panel se cierra y los estantes se actualizan`,!(await seen(c,'#pastePanel'))&&/Ginebras 1/.test(await text(c,'.shelf[data-sub="Ginebras"] summary'))&&/Rones 2/.test(await text(c,'.shelf[data-sub="Rones"] summary')),null);
+await tap(c,'#barPaste');await c.fill('#pasteText','Tanqueray 70 cl 15\nsolo texto');await tap(c,'#pasteReview');R=await rows();
+ok(`[${wd}] duplicado de algo que ya está en tu barra: aviso y desmarcado; sin filas válidas el botón queda desactivado`,/ya tienes «Tanqueray» en tu barra/.test(R[0].warn)&&!R[0].add&&R[1].dis&&(await c.locator('#pasteAdd').isDisabled())&&(await text(c,'#pasteAdd'))==='Añadir 0 productos',R);
+await tap(c,'#pastePreview button:has-text("Cancelar")');ok(`[${wd}] «Cancelar» cierra sin guardar`,(await D(c)).ingredients.length===8&&!(await seen(c,'#pastePanel')),null);
+}
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO barra: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

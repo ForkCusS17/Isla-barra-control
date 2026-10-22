@@ -2,13 +2,13 @@
 // y guía «Añadir a pantalla de inicio» (iPhone y Android). Solo toques; sirve la app con su propio servidor
 // para simular versiones nuevas sin tocar el disco.
 const {chromium,devices,NAME}=require('./env');const {start}=require('./server');const {restamp}=require('../tools/stamp');const {noOverflow,wide,smallTargets,contrastFails}=require('./helpers');
-const fs=require('fs'),path=require('path');const T=[];const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
+const fs=require('fs'),path=require('path');const T=[];const ok=(n,c,x)=>{T.push([!!c,n,c?'':JSON.stringify(x)]);console.log('· '+(c?'ok ':'MAL ')+n)};/* progreso visible si la serie se corta */
 const PHONE={...devices['iPhone 13'],reducedMotion:'reduce'},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}},ANDROID={...devices['Pixel 7'],reducedMotion:'reduce'};
 const HTML=fs.readFileSync(path.join(__dirname,'..','isla_barra_control_mvp.html'),'utf8'),SW=fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8');
 const pngSize=b=>[b.readUInt32BE(16),b.readUInt32BE(20)];
 (async()=>{const srv=await start();const APP=srv.base+'isla_barra_control_mvp.html';const b=await chromium.launch();const pages=[];
 const mk=async(dev=PHONE,init)=>{const c=await b.newContext(dev);if(init)await c.addInitScript(init);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type());d.dismiss()});await p.goto(APP);pages.push(p);return p};
-const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:8000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0]+' | '+e.message.split('\n').filter(l=>/intercepts|not visible|not stable|outside of the viewport|not enabled|detached/.test(l)).slice(-2).join(' / ').slice(0,400))});
+const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:8000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0]+' | '+e.message.split('\n').slice(-6).join(' / ').slice(0,700))});
 const seen=(p,sel)=>p.locator(sel).filter({visible:true}).count().then(n=>n>0);
 const text=(p,sel)=>p.locator(sel).filter({visible:true}).first().innerText().then(t=>t.replace(/\s+/g,' ').trim());
 const D=p=>p.evaluate(()=>({i:data.ingredients.length,d:data.drinks.length,demo:!!data.business.isDemo}));

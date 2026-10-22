@@ -20,26 +20,32 @@ jobs:
   series:
     name: Series (${{ matrix.browser }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    # Imagen oficial de Playwright (misma versión que package.json): trae los navegadores y sus dependencias,
-    # así no hay que instalarlas con apt en cada ejecución (a veces tardaba más de 10 minutos).
-    container:
-      image: mcr.microsoft.com/playwright:v1.56.1-noble
-      options: --ipc=host
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: Dependencias
         run: npm install
+      - name: Dependencias del navegador (sistema)
+        # Con apt: suele tardar menos de un minuto, pero el servidor de paquetes a veces va muy lento.
+        timeout-minutes: 20
+        run: npx playwright install-deps ${{ matrix.browser }}
+      - name: Navegador
+        timeout-minutes: 10
+        # La descarga a veces se queda colgada: hasta 3 intentos de 3 minutos (solo descarga, sin apt).
+        run: |
+          for i in 1 2 3; do timeout 180 npx playwright install ${{ matrix.browser }} && exit 0; echo "Intento $i fallido"; done; exit 1
       - name: CSP al día
         run: node tools/stamp.js --check
       - name: Pruebas
         run: node tests/run_all.js --parallel
         env:
-          HOME: /root
           BROWSER: ${{ matrix.browser }}
           JOBS: 3
           PERF_LIMIT_MS: 5000

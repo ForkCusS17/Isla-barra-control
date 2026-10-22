@@ -3,7 +3,9 @@
 // anidamiento profundo, demasiados elementos). Emulación de iPhone a 390 px; solo toques.
 const {chromium,devices,NAME}=require('./env');const {start}=require('./server');const {hashes}=require('../tools/stamp');
 const path=require('path'),fs=require('fs');const ROOT=path.join(__dirname,'..'),TMP=path.join(__dirname,'tmp')+path.sep;fs.mkdirSync(TMP,{recursive:true});
-const [,,F,J]=process.argv;const T=[];const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
+const [,,F,J]=process.argv;const T=[];const ok=(n,c,x)=>{T.push([!!c,n,c?'':JSON.stringify(x)]);console.log('· '+(c?'ok ':'MAL ')+n)};/* progreso: si la serie se cuelga, se ve hasta dónde llegó */
+// Espera con límite: en Firefox, evaluar en un marco bloqueado o esperar a algo que no llega puede no terminar nunca.
+const within=(pr,ms,alt)=>Promise.race([pr,new Promise(r=>setTimeout(()=>r(alt),ms))]);
 const PHONE={...devices['iPhone 13'],acceptDownloads:true,reducedMotion:'reduce'};
 (async()=>{const srv=await start();const APP=srv.base+'isla_barra_control_mvp.html';const b=await chromium.launch();const pages=[];
 const mk=async(init)=>{const c=await b.newContext(PHONE);await c.addInitScript(()=>{window.__csp=[];document.addEventListener('securitypolicyviolation',e=>window.__csp.push(e.violatedDirective+' '+e.blockedURI));window.print=()=>{}});if(init)await c.addInitScript(init);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type()+': '+d.message().slice(0,60));d.dismiss()});await p.goto(APP);pages.push(p);return p};
@@ -26,13 +28,14 @@ ok('el <meta> CSP va antes de cualquier estilo o script',/<meta charset="utf-8">
 await tap(p,'#wDemo');await tour(p);await nav(p,'Bebidas');await tap(p,'#libOpen');await tap(p,'#libBack');await tap(p,'#drinkList tr:has-text("Mojito") button:has-text("Receta")');
 await nav(p,'Informe');await tap(p,'button:has-text("Imprimir / guardar PDF")');await Promise.all([p.waitForEvent('download'),tap(p,'button:has-text("Descargar informe TXT")')]);await nav(p,'Resumen');await Promise.all([p.waitForEvent('download'),tap(p,'#dashExport')]);
 ok('recorrer toda la app (bar de ejemplo, biblioteca, receta, informe, descargas) sin ninguna violación de la CSP',(await p.evaluate(()=>window.__csp)).length===0,await p.evaluate(()=>window.__csp));
-ok('…y el service worker se registra con la CSP',await p.evaluate(()=>navigator.serviceWorker.ready.then(()=>true)),null);
+ok('…y el service worker se registra con la CSP',await within(p.evaluate(()=>navigator.serviceWorker.ready.then(()=>true)),8000,false),null);
 const inj=await p.evaluate(()=>{const s=document.createElement('script');s.textContent='window.__inyectado=1';document.body.appendChild(s);return window.__inyectado===1});
-ok('un <script> inyectado en la página no se ejecuta (solo el de la app tiene permiso)',!inj&&(await p.evaluate(()=>window.__csp.some(x=>/script-src/.test(x)))),null);
+const viol=await p.waitForFunction(()=>window.__csp.some(x=>/script-src/.test(x)),null,{timeout:5000}).then(()=>true,()=>false);/* el aviso de la CSP llega de forma asíncrona */
+ok('un <script> inyectado en la página no se ejecuta (solo el de la app tiene permiso)',!inj&&viol,[inj,viol]);
 
 // ── 2. No se puede incrustar en otra web ─────────────────────────────────────
 {const other=await start({override:{'otra.html':`<iframe id="f" src="${APP}" style="width:390px;height:600px"></iframe><iframe id="g" src="${APP}?sin-cabeceras" style="width:390px;height:600px"></iframe>`}});/* otro puerto = otro origen */const c=await b.newContext(PHONE);const q=await c.newPage();await q.goto(other.base+'otra.html?sin-cabeceras');await q.waitForTimeout(1500);
- const st=async id=>{const fr=await (await q.$(id)).contentFrame();try{return await fr.evaluate(()=>document.getElementById('page-dashboard')?'app':'vacío')}catch(e){return 'bloqueado'}};const a=await st('#f'),g=await st('#g');
+ const st=async id=>{const fr=await (await q.$(id)).contentFrame();if(!fr)return 'bloqueado';try{return await within(fr.evaluate(()=>document.getElementById('page-dashboard')?'app':'vacío'),5000,'bloqueado')}catch(e){return 'bloqueado'}};const a=await st('#f'),g=await st('#g');
  ok('otra web no puede mostrar la app dentro de un marco (frame-ancestors)',a!=='app',[a,g]);ok('(control: el mismo marco sin las cabeceras sí cargaría)',g==='app',g);other.server.close()}
 
 // ── 3. El texto de los datos nunca se ejecuta ───────────────────────────────

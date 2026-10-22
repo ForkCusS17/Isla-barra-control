@@ -32,11 +32,14 @@ jobs:
           node-version: 20
       - name: Dependencias
         run: npm install
+      - name: Dependencias del navegador (sistema)
+        timeout-minutes: 10
+        run: npx playwright install-deps ${{ matrix.browser }}
       - name: Navegador
-        timeout-minutes: 12
-        # La descarga a veces se queda colgada en el ejecutor: hasta 3 intentos de 4 minutos.
+        timeout-minutes: 10
+        # La descarga a veces se queda colgada en el ejecutor: hasta 3 intentos de 3 minutos (solo descarga, sin apt).
         run: |
-          for i in 1 2 3; do timeout 240 npx playwright install --with-deps ${{ matrix.browser }} && exit 0; echo "Intento $i fallido"; done; exit 1
+          for i in 1 2 3; do timeout 180 npx playwright install ${{ matrix.browser }} && exit 0; echo "Intento $i fallido"; done; exit 1
       - name: CSP al día
         run: node tools/stamp.js --check
       - name: Pruebas

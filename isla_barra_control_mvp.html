@@ -21,6 +21,9 @@
 @media(min-width:900px){.update-bar{left:auto;right:24px;bottom:24px;max-width:440px}}
 .backup-nag,#storageNag{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}.backup-nag span,#storageNag span{flex:1 1 220px}
 #tabWarn,#tabConflict{position:sticky;top:0;z-index:40}.copy-item{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}.copy-item>div:first-child{flex:1 1 200px;min-width:0}.copy-item small{display:block}
+.faq details,.legal details{border-top:1px solid var(--line);padding:2px 0}.faq summary,.legal summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:700;color:var(--blue)}.faq p,.legal p{margin:0 0 12px;line-height:1.5;font-size:14px}.legal .draft{display:inline-block;background:#fff4df;color:#765017;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700}
+.news-list{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px;line-height:1.45}.linkbtn{background:none;border:0;padding:10px 4px;min-height:44px;color:var(--blue);text-decoration:underline;font:inherit;cursor:pointer}
+a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#203f44;color:white;padding:11px 16px;border-radius:10px;z-index:10;font-size:13px;box-shadow:0 8px 30px #0002}.tagline{font-size:12px;color:var(--muted)}@media(max-width:800px){.layout{display:block}.sidebar{display:none}.main{padding:17px 14px 92px}.topbar{padding:13px 14px}.brand h1{font-size:18px}.logo{width:38px;height:38px}.top-actions .hide-mobile{display:none}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat{padding:13px}.stat strong{font-size:22px}.two{grid-template-columns:1fr}.page-title{font-size:27px}.mobile-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--line);padding:6px 5px calc(6px + env(safe-area-inset-bottom));z-index:6}.mobile-nav button{border:0;background:transparent;border-radius:9px;padding:7px 1px;color:#607175;font-size:10px;display:grid;justify-items:center;gap:3px}.mobile-nav button.active{background:#e3efed;color:var(--blue);font-weight:750}.mobile-nav .ico{font-size:17px}.fieldgrid{grid-template-columns:1fr}.field.full{grid-column:auto}.sectionhead{align-items:flex-start;flex-wrap:wrap}.item{align-items:flex-start}.item-actions{flex-direction:column}.tablewrap table{font-size:12px}.tablewrap th,.tablewrap td{padding:9px}.report{padding:16px}}@media(max-width:800px){.btn{min-height:44px}.btn.small{min-height:44px;min-width:44px;padding:9px 12px}.field input,.field select{min-height:44px}}@media print{#page-report>.eyebrow,#page-report>.page-title,#page-report>.sub{display:none}th,td{white-space:normal}.tablewrap{overflow:visible;border:0}.topbar,.sidebar,.mobile-nav,.no-print,.top-actions{display:none!important}.layout{display:block}.main{padding:0}.app{max-width:none}.report{border:0}.page-title{margin-top:0}body{background:white}}
 </style>
 </head>
@@ -41,6 +44,8 @@
 <button data-page="diagnosis"><span class="ico">⌕</span> Diagnóstico</button>
 <button data-page="report"><span class="ico">▧</span> Informe</button>
 <button data-page="settings"><span class="ico">⚙</span> Ajustes</button>
+<button data-page="install"><span class="ico">⇩</span> Instalar la app</button>
+<button data-page="about"><span class="ico">ⓘ</span> Acerca de</button>
 </nav></aside>
 <main class="main">
 <div id="tabWarn" class="notice warn hidden" role="status"></div>
@@ -65,7 +70,7 @@
   <div class="panel"><h3>Ficha del proyecto</h3><div id="dashboardBusiness"></div><div class="form-actions"><button class="btn" onclick="showPage('business')">Completar ficha</button><button class="btn ghost" onclick="showPage('report')">Ver informe</button><button class="btn ghost" id="dashSettings" type="button" onclick="showPage('settings')">Ajustes</button></div></div>
  </div>
  <div class="panel" id="backupPanel" style="margin-top:14px"><h3>Copia de seguridad</h3><p class="smalltext muted">Los datos solo están en este navegador. Exporta una copia (archivo JSON) al terminar cada visita; para recuperarla aquí o en otro dispositivo, usa «Importar».</p><div class="backup-status" id="backupStatus" role="status"></div><div class="form-actions"><button class="btn" id="dashExport" type="button" onclick="exportBackup()">Exportar copia</button><label class="btn ghost" id="dashImport" for="importFile" role="button" tabindex="0">Importar</label><button class="btn ghost" id="dashDemo" type="button" onclick="loadDemo()">Ver el bar de ejemplo</button></div></div>
- <p class="footer-note">MVP local: los datos se guardan en este navegador. Exporta una copia de seguridad regularmente. No introduzcas datos personales innecesarios.</p>
+ <p class="footer-note">Versión beta: los datos se guardan en este dispositivo. Exporta una copia de seguridad con regularidad. No introduzcas datos personales innecesarios. <button class="linkbtn" id="footAbout" type="button" onclick="showPage('about')">Acerca de · <span class="appVersion"></span></button></p>
  </div>
 </section>
 <section id="page-business" class="page hidden">
@@ -197,6 +202,23 @@
  <p class="sub">Instalada, se abre a pantalla completa desde su icono, funciona sin conexión y el navegador protege mejor sus datos. No hace falta tienda de aplicaciones ni cuenta.</p>
  <div id="installBody"></div>
 </section>
+<section id="page-about" class="page hidden">
+ <div class="eyebrow">Acerca de</div><h2 class="page-title">Isla & Barra Control</h2>
+ <p class="sub" id="aboutVersion"></p>
+ <div class="panel" style="margin-bottom:14px"><h3>Comentarios</h3><p class="smalltext">¿Algo no funciona o echas algo en falta? Se abre tu correo con la versión y el navegador ya escritos. <b>No se envía ningún dato de tus bares</b>: escribe solo lo que quieras contar.</p><div class="form-actions"><a class="btn" id="feedbackBtn" href="mailto:">Enviar comentario</a></div><p class="smalltext muted" id="feedbackTo"></p></div>
+ <div class="panel" style="margin-bottom:14px"><h3>Novedades</h3><div id="aboutNews"></div></div>
+ <div class="panel faq" style="margin-bottom:14px"><h3>Preguntas frecuentes</h3>
+  <details id="faqData"><summary>¿Dónde están mis datos?</summary><p>Solo en este dispositivo, dentro del navegador (o de la app instalada). No hay cuentas ni servidor: nadie más los ve y no se sincronizan con otros dispositivos. Si borras los datos del navegador, desinstalas la app o, en iPhone, Safari los borra tras 7 días sin abrirla, se pierden: por eso conviene instalarla y exportar copias.</p></details>
+  <details id="faqBackup"><summary>¿Cómo hago una copia?</summary><p>En el Resumen o en Ajustes, toca «Exportar copia». Se descarga un archivo JSON con todos tus datos: guárdalo fuera del móvil (correo, nube o un ordenador). Hazlo al terminar cada visita. Para recuperarla, «Importar» y elige ese archivo.</p></details>
+  <details id="faqMove"><summary>¿Cómo paso los datos a otro móvil?</summary><p>En el móvil antiguo, «Exportar copia» y envíate el archivo. En el nuevo, abre la app (mejor ya instalada), toca «Importar» y elige el archivo. Lo que hubiera en el nuevo se sustituye, y antes se guarda una copia interna por si quieres deshacerlo.</p></details>
+  <details id="faqOffline"><summary>¿Funciona sin conexión?</summary><p>Sí, después de abrirla una vez con conexión. Cuando haya una versión nueva verás «Hay una versión nueva»: al actualizar, tus datos se conservan.</p></details>
+ </div>
+ <div class="panel legal" id="legalPanel"><h3>Avisos legales</h3><p class="smalltext muted" style="margin-top:0">Textos provisionales de la beta, pendientes de revisión. Los datos entre corchetes están por completar.</p>
+  <details id="legalNotice"><summary>Aviso legal</summary><p class="draft">Texto provisional · pendiente de revisión</p><p>Titular: [nombre o razón social]. NIF: [pendiente]. Domicilio: [pendiente]. Contacto: [correo de contacto]. Isla & Barra Control es una herramienta de apoyo para la consultoría de hostelería que se ofrece en versión beta, de forma gratuita y sin registro.</p></details>
+  <details id="legalPrivacy"><summary>Privacidad</summary><p class="draft">Texto provisional · pendiente de revisión</p><p>La app no tiene cuentas, ni servidor propio, ni cookies, ni analítica, ni publicidad. Todo lo que introduces se guarda solo en tu dispositivo y no lo recibimos. El servicio de alojamiento de la página ([proveedor pendiente]) puede registrar datos técnicos de la visita, como la dirección IP y la fecha, según su propia política. Si nos escribes con «Enviar comentario», usaremos tu correo y lo que cuentes solo para responderte. Responsable y ejercicio de derechos: [nombre y correo de contacto].</p></details>
+  <details id="legalTerms"><summary>Condiciones de uso</summary><p class="draft">Texto provisional · pendiente de revisión</p><p>Es una versión beta gratuita, sin garantía de funcionamiento continuo ni de ausencia de errores, que puede cambiar o retirarse. Es una ayuda para el análisis: no sustituye el criterio profesional. Las cifras son estimaciones con los datos que introduces; los márgenes son brutos (no son beneficio) y una desviación de stock no demuestra pérdidas, robos ni malas prácticas. Las recetas de la biblioteca tienen medidas orientativas. Tú eres responsable de tus datos y de hacer copias de seguridad.</p></details>
+ </div>
+</section>
 <section id="page-more" class="page hidden">
  <div class="eyebrow">Más pantallas</div><h2 class="page-title">Más</h2>
  <div class="more-list">
@@ -205,6 +227,7 @@
   <button class="more-item" data-page="report" type="button"><b>Informe</b><small>Resumen para revisar, imprimir o descargar.</small></button>
   <button class="more-item" data-page="settings" type="button"><b>Ajustes</b><small>Vista sencilla o completa, marca y copias de seguridad.</small></button>
   <button class="more-item" data-page="install" type="button"><b>Instalar la app</b><small>Añadirla a la pantalla de inicio del móvil.</small></button>
+  <button class="more-item" data-page="about" type="button"><b>Acerca de</b><small>Versión, novedades, preguntas, comentarios y avisos legales.</small></button>
  </div>
 </section>
 <section id="page-settings" class="page hidden">
@@ -242,7 +265,7 @@
 <button data-page="drinks" data-group="library recipe"><span class="ico" aria-hidden="true">◉</span>Bebidas</button>
 <button data-page="bar" data-group="ingredients"><span class="ico" aria-hidden="true">⚗</span>Mi barra</button>
 <button data-page="stock"><span class="ico" aria-hidden="true">▤</span>Stock</button>
-<button data-page="more" data-group="business diagnosis report settings install"><span class="ico" aria-hidden="true">⋯</span>Más</button>
+<button data-page="more" data-group="business diagnosis report settings install about"><span class="ico" aria-hidden="true">⋯</span>Más</button>
 </nav>
 <div id="importConfirm" class="import-confirm hidden" role="dialog" aria-modal="true" aria-labelledby="importConfirmTitle"><div class="panel"><h3 id="importConfirmTitle">¿Sustituir los datos actuales?</h3><p id="importConfirmText" class="smalltext"></p><div class="form-actions"><button class="btn" id="importYes" type="button" onclick="confirmImport()">Sustituir mis datos</button><button class="btn ghost" id="importNo" type="button" onclick="cancelImport()">Cancelar</button></div></div></div>
 <div id="appConfirm" class="import-confirm hidden" role="dialog" aria-modal="true" aria-labelledby="appConfirmTitle"><div class="panel"><h3 id="appConfirmTitle"></h3><p id="appConfirmText" class="smalltext"></p><div class="form-actions"><button class="btn" id="appConfirmYes" type="button"></button><button class="btn ghost" id="appConfirmNo" type="button" onclick="closeConfirm()">Cancelar</button></div></div></div>
@@ -333,7 +356,7 @@ function avg(a){a=a.filter(x=>x!==null&&isFinite(x));return a.length?a.reduce((s
 const eu=x=>x===null?'—':euro(x),pc=x=>x===null?'—':fmt(x)+'%';
 function recipeIssues(d){const p=[],L=d.recipeItems||[];if(!L.length&&!num(d.ingredientCost))p.push('sin ingredientes');L.forEach(l=>{if(!l.ingredientId)return;const i=ingOf(l.ingredientId);if(!i)p.push('ingrediente eliminado');else if(!validIng(i))p.push(i.name+' sin precio válido')});return p}
 function drinkFlag(d){const m=margin(d);if(m===null)return{cls:'warn',txt:'Falta el precio'};if(gross(d)<0)return{cls:'bad',txt:'Margen negativo'};if(recipeIssues(d).length)return{cls:'warn',txt:'Coste incompleto'};if(m<data.settings.marginMin)return{cls:'warn',txt:'Revisar'};return{cls:'',txt:''}}
-function renderAll(){applyBrand();renderInstallCard();renderInstallPage();renderBackupNag();renderStorage();renderCategoryOptions();renderBar();renderTemplates();renderHelpEditor();refreshHelpNotes();renderUnitsForm();renderBackupStatus();applyMode();renderFirstUse();renderGuide();renderReviewedNote();renderLookNow();renderBusiness();renderSales();renderTrend();renderIngredients();renderDrinks();renderStock();renderDiagnostics();renderDashboard();renderReport()}
+function renderAll(){applyBrand();renderAbout();renderInstallCard();renderInstallPage();renderBackupNag();renderStorage();renderCategoryOptions();renderBar();renderTemplates();renderHelpEditor();refreshHelpNotes();renderUnitsForm();renderBackupStatus();applyMode();renderFirstUse();renderGuide();renderReviewedNote();renderLookNow();renderBusiness();renderSales();renderTrend();renderIngredients();renderDrinks();renderStock();renderDiagnostics();renderDashboard();renderReport()}
 function renderBusiness(){const b=data.business;for(const [id,key] of Object.entries({bName:'name',bContact:'contact',bLocation:'location',bDate:'date',bType:'type',bPeriod:'period',bNotes:'notes'})){const el=document.getElementById(id);if(el&&document.activeElement!==el)el.value=b[key]||''}}
 document.getElementById('businessForm').addEventListener('submit',e=>{e.preventDefault();data.business={...data.business,name:v('bName'),contact:v('bContact'),location:v('bLocation'),date:v('bDate'),type:v('bType'),period:v('bPeriod'),notes:v('bNotes')};save();toast('Ficha guardada')});
 function v(id){return document.getElementById(id).value}
@@ -824,6 +847,17 @@ try{bc=new BroadcastChannel('islaBarraControl');bc.onmessage=e=>{const m=e.data|
  window.addEventListener('pagehide',()=>{try{bc.postMessage({t:'adios',id:TAB_ID})}catch(e){}});window.addEventListener('pageshow',ev=>{if(ev.persisted)bc.postMessage({t:'hola',id:TAB_ID})})}catch(e){}
 window.addEventListener('storage',e=>{if(e.key===KEY&&e.newValue!==null&&e.newValue!==lastStored)showTabConflict(false)});
 refreshPersist();
+// ── Acerca de ──
+// Correo para «Enviar comentario». Vacío: se abre el correo sin destinatario (pendiente de decidir la dirección).
+const FEEDBACK_EMAIL='';
+const NEWS=[['0.1.0','2026-10-22',['Primera beta pública: sin cuentas, sin servidor y sin pagos.','Se instala en la pantalla de inicio y funciona sin conexión; avisa cuando hay una versión nueva sin tocar tus datos.','Datos en el dispositivo: recordatorio de copia, espacio usado, almacenamiento persistente, copias internas y aviso con la app abierta en dos pestañas.','Biblioteca de 35 cócteles clásicos con medidas orientativas.','Mi barra: alta estante a estante, pegar una lista y clasificación automática.']]];
+const longDate=d=>new Date(d+'T12:00:00Z').toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
+function feedbackHref(){const body=['Escribe aquí tu comentario:','','','---','Versión: '+APP_VERSION+' ('+APP_DATE+')','Navegador: '+navigator.userAgent,'Pantalla: '+screen.width+'×'+screen.height,'Instalada: '+(isStandalone()?'sí':'no'),'Idioma: '+(navigator.language||'')].join('\n');
+return 'mailto:'+encodeURIComponent(FEEDBACK_EMAIL)+'?subject='+encodeURIComponent('Isla & Barra Control '+APP_VERSION+' · comentario')+'&body='+encodeURIComponent(body)}
+function renderAbout(){document.querySelectorAll('.appVersion').forEach(x=>x.textContent='versión '+APP_VERSION+' (beta)');const v=document.getElementById('aboutVersion');if(!v)return;
+v.innerHTML=`Versión <b>${APP_VERSION}</b> (beta) · ${longDate(APP_DATE)}. Ideas digitales para hostelería.`;
+document.getElementById('feedbackBtn').href=feedbackHref();document.getElementById('feedbackTo').textContent=FEEDBACK_EMAIL?'Se enviará a '+FEEDBACK_EMAIL+'.':'Escribe la dirección de destino en tu correo.';
+document.getElementById('aboutNews').innerHTML=NEWS.map(([ver,date,items])=>`<h4 style="margin:0 0 6px">${ver} · ${longDate(date)}</h4><ul class="news-list">${items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`).join('')}
 renderAll();renderRecipeLines();updateDrinkPreview();updateIngredientPreview();if(window.__loadError)alert('No se han podido leer los datos guardados. Se ha conservado una copia del contenido dañado y se ha iniciado una ficha vacía. Si tienes una copia de seguridad, impórtala.');
 </script>
 </body>

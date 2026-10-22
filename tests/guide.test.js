@@ -234,7 +234,7 @@ const navTexts=(await n9.locator('.mobile-nav button').filter({visible:true}).al
 ok('barra inferior de 5: Resumen, Bebidas, Mi barra, Stock y Más',navTexts.join()==='Resumen,Bebidas,Mi barra,Stock,Más',navTexts);
 const navBoxes=await n9.locator('.mobile-nav button').evaluateAll(bs=>bs.map(b=>[b.getBoundingClientRect().width,b.getBoundingClientRect().height]));ok('botones de la barra inferior ≥ 44 × 44 px',navBoxes.every(([w,h])=>w>=44&&h>=44),navBoxes);
 await tap(n9,'.mobile-nav button:has-text("Más")');
-ok('«Más» abre Ficha, Diagnóstico, Informe, Ajustes e Instalar la app',(await seen(n9,'#page-more'))&&(await n9.locator('#page-more .more-item').allInnerTexts()).map(t=>t.split('\n')[0]).join()==='Ficha del bar,Diagnóstico,Informe,Ajustes,Instalar la app',null);
+ok('«Más» abre Ficha, Diagnóstico, Informe, Ajustes, Instalar la app y Acerca de',(await seen(n9,'#page-more'))&&(await n9.locator('#page-more .more-item').allInnerTexts()).map(t=>t.split('\n')[0]).join()==='Ficha del bar,Diagnóstico,Informe,Ajustes,Instalar la app,Acerca de',null);
 for(const [lab,pg] of [['Ficha','business'],['Diagnóstico','diagnosis'],['Informe','report'],['Ajustes','settings']]){await nav(n9,lab);ok(`Más › ${lab}: abre la pantalla y «Más» queda marcado (aria-current)`,(await seen(n9,'#page-'+pg))&&(await n9.locator('.mobile-nav button:has-text("Más")').getAttribute('aria-current'))==='page',null)}
 await nav(n9,'Bebidas');ok('en Bebidas, la marca pasa a «Bebidas»',(await n9.locator('.mobile-nav button:has-text("Bebidas")').getAttribute('aria-current'))==='page'&&!(await n9.locator('.mobile-nav button:has-text("Más")').getAttribute('aria-current')),null);
 await nav(n9,'Resumen');

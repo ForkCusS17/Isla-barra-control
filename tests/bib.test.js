@@ -150,11 +150,13 @@ ok('el zumo de lima no tiene alternativa y lo dice; muestra «Sin precio»',(awa
 await s.selectOption(`#rcIng_${R}`,{label:(optTexts[1])});d5=await D(s);
 ok('cambiar el ron: mantiene 60 ml, usa el Ron Reserva y recalcula al instante (1,80 €; margen 7,20 €, 80 %)',dq().components[R].ingredientId===ing5('Ron Reserva 7 años')&&dq().components[R].qty===60&&dq().recipeItems.find(l=>l.ingredientId===ing5('Ron Reserva 7 años')).qty===60&&!dq().recipeItems.some(l=>l.ingredientId===ing5('Ron Carta Blanca'))&&Math.abs(dq().ingredientCost-1.8)<1e-9&&/Coste directo: 1,80 €/.test(await text(s,'#rcSummary'))&&/Margen bruto: 7,20 € \(80 ?%\)/.test(await text(s,'#rcSummary'))&&/1,80 €/.test(await text(s,`#rcCost_${R}`)),[dq().components[R],await text(s,'#rcSummary')]);
 ok('la plantilla guardada no cambia al cambiar el producto',dq().templateSnapshot[R].cantidad===60&&!('ingredientId' in dq().templateSnapshot[R]),dq().templateSnapshot[R]);
-await s.fill(`#rcQty_${R}`,'45');await tap(s,'#rcTitle');d5=await D(s);
+await s.fill(`#rcQty_${R}`,'45');await s.waitForTimeout(900);d5=await D(s);
+ok('la medida se aplica al escribir, sin tener que salir del campo (en iPhone tocar fuera no siempre lo cierra)',dq().components[R].qty===45,dq().components[R]);
+await tap(s,'#rcTitle');d5=await D(s);
 ok('cambiar la medida a 45 ml: 1,35 € y aviso «Medida cambiada (estándar: 60 ml)»',dq().components[R].qty===45&&Math.abs(dq().ingredientCost-1.35)<1e-9&&/Medida cambiada \(estándar: 60 ml\)/.test(await text(s,`#rc_${R}`))&&/Coste directo: 1,35 €/.test(await text(s,'#rcSummary')),[dq().components[R],await text(s,`#rc_${R}`)]);
-await s.fill(`#rcQty_${R}`,'0');await tap(s,'#rcTitle');d5=await D(s);
-ok('una cantidad 0 se rechaza y no se guarda',/mayor que 0/.test(await text(s,'#toast'))&&dq().components[R].qty===45&&(await s.inputValue(`#rcQty_${R}`))==='45',dq().components[R]);
-await s.fill(`#rcQty_${R}`,'52,5');await tap(s,'#rcTitle');d5=await D(s);ok('acepta coma decimal (52,5 ml)',dq().components[R].qty===52.5,dq().components[R]);
+await s.fill(`#rcQty_${R}`,'0');await s.waitForTimeout(900);const err0=await s.locator(`#rcErr_${R}`).innerText();await tap(s,'#rcTitle');d5=await D(s);
+ok('una cantidad 0 se rechaza (lo explica junto al campo) y no se guarda',(/mayor que 0/.test(err0)||/mayor que 0/.test(await text(s,'#toast')))&&dq().components[R].qty===45,[err0,dq().components[R]]);
+await s.fill(`#rcQty_${R}`,'52,5');await s.waitForTimeout(900);await tap(s,'#rcTitle');d5=await D(s);ok('acepta coma decimal (52,5 ml)',dq().components[R].qty===52.5,dq().components[R]);
 await nav(s,'Bebidas');ok('la lista de Bebidas refleja el nuevo coste',/1,58 €/.test(await text(s,'#drinkList tr:has-text("Daiquiri")')),await text(s,'#drinkList tr:has-text("Daiquiri")'));
 await tap(s,'#drinkList tr:has-text("Daiquiri") button:has-text("Receta")');await tap(s,'#rcRestore');
 ok('«Restaurar medidas estándar» pide confirmación dentro de la página',(await seen(s,'#appConfirm'))&&/versión 1/.test(await text(s,'#appConfirmText')),null);

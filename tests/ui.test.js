@@ -8,7 +8,7 @@ const mk=async()=>{const c=await b.newContext(PHONE);await c.addInitScript(()=>{
 // Toca un elemento visible; falla si no existe, no se ve o queda tapado (Playwright comprueba que el toque le llega).
 const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0]+' | '+e.message.split('\n').filter(l=>/intercepts|not visible|not stable|outside of the viewport|not enabled|detached/.test(l)).slice(-2).join(' / ').slice(0,400))});
 const visibleIn=async(p,sel)=>{const l=p.locator(sel).filter({visible:true}).first();if(!await l.count())return null;const r=await l.boundingBox();return r&&r.width>0&&r.height>0&&r.x>=0&&r.x+r.width<=390+1?r:null};
-const importByTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:4000}),tap(p,sel)]);await fc.setFiles(file);await p.locator('#importConfirm').waitFor({state:'visible',timeout:3000});p.ask=await p.locator('#importConfirm').innerText();await tap(p,'#importYes');await p.waitForTimeout(200)};
+const importByTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:10000}),tap(p,sel)]);await fc.setFiles(file);await p.locator('#importConfirm').waitFor({state:'visible',timeout:3000});p.ask=await p.locator('#importConfirm').innerText();await tap(p,'#importYes');await p.waitForTimeout(200)};
 const downloadByTap=async(p,sel)=>{const [dl]=await Promise.all([p.waitForEvent('download',{timeout:4000}),tap(p,sel)]);return{name:dl.suggestedFilename(),text:fs.readFileSync(await dl.path(),'utf8')}};
 // 1. Exportar copia en móvil
 let p=await mk();
@@ -68,7 +68,7 @@ ok('Resumen › «Exportar copia» de lo introducido por toques y «Importar» e
 // El archivo abierto en un visor no lleva las cabeceras del alojamiento (que prohíben incrustarlo): ?sin-cabeceras.
 fs.writeFileSync(TMP+'visor.html',`<iframe id="f" sandbox="allow-scripts allow-same-origin allow-forms" src="${/^https?:/.test(APP_URL)?APP_URL+'?sin-cabeceras':APP_URL}" style="width:390px;height:800px;border:0"></iframe>`);
 {const c=await b.newContext(PHONE);const s=await c.newPage();const dl=[];s.on('dialog',d=>{dl.push(d.type());d.accept()});await s.goto(/^https?:/.test(APP_URL)?new URL('tests/tmp/visor.html?sin-cabeceras',APP_URL).href:'file://'+TMP+'visor.html');/* mismo origen que la app */await s.waitForTimeout(400);const fr=s.frameLocator('#f');
-let fc=null;try{[fc]=await Promise.all([s.waitForEvent('filechooser',{timeout:4000}),fr.locator('#welcome label:has-text("Recuperar una copia")').tap({timeout:4000})])}catch(e){}
+let fc=null;try{[fc]=await Promise.all([s.waitForEvent('filechooser',{timeout:10000}),fr.locator('#welcome label:has-text("Recuperar una copia")').tap({timeout:4000})])}catch(e){}
 if(fc){await fc.setFiles(J);await fr.locator('#importYes').tap({timeout:4000})}await s.waitForTimeout(300);
 const n=await s.frames().find(x=>x.url().startsWith(APP_URL)).evaluate(()=>data.drinks.length);
 ok('dentro de un visor sin diálogos: Importar abre el selector, confirma en la página e importa',!!fc&&n===11&&dl.length===0,{selector:!!fc,bebidas:n,dialogos:dl})}

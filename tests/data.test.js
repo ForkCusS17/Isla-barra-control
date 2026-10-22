@@ -18,7 +18,8 @@ const ficha=async(p,name)=>{await nav(p,'Ficha');await p.fill('#bName',name);awa
 const stored=p=>p.evaluate(k=>{try{return JSON.parse(localStorage.getItem(k)).business.name}catch(e){return null}},KEY);
 const importTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:4000}),tap(p,sel)]);await fc.setFiles(file);await p.locator('#importConfirm').waitFor({state:'visible',timeout:3000});await tap(p,'#importYes');await p.waitForTimeout(150)};
 // Simula el navegador: persist() y persisted() con un resultado fijo y cuenta las peticiones.
-const fakePersist=(granted)=>{if(!navigator.storage)return;window.__persistCalls=0;navigator.storage.persist=()=>{window.__persistCalls++;return Promise.resolve(granted)};navigator.storage.persisted=()=>Promise.resolve(granted)};
+// (El contador va en sessionStorage: sobrevive si el navegador vuelve a ejecutar el script de inicio en la misma pestaña.)
+const fakePersist=(granted)=>{if(!navigator.storage)return;const n=()=>+(sessionStorage.getItem('__pc')||0);Object.defineProperty(window,'__persistCalls',{get:n,configurable:true});navigator.storage.persist=()=>{sessionStorage.setItem('__pc',n()+1);return Promise.resolve(granted)};navigator.storage.persisted=()=>Promise.resolve(granted)};
 
 // ── 1. Recordatorio de copia ─────────────────────────────────────────────────
 let p=await mk(PHONE,fakePersist,false);await tap(p,'#wStart');await tap(p,'#tplSkip');

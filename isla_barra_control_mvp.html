@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ksekG6uemsPLR8OaBd2IDoQp/7cLTP9R1rTSP+w/S8k='; script-src-attr 'unsafe-inline'; style-src 'sha256-TEjZ4t4/iiJGbIXYFHRZJPPN28VF0zAiNYcYex3qSnU='; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self'; worker-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-AjSqd90PRJO0cV+ojnDFQlcH/VK/40cmXAaazCClHqs='; script-src-attr 'unsafe-inline'; style-src 'sha256-TEjZ4t4/iiJGbIXYFHRZJPPN28VF0zAiNYcYex3qSnU='; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self'; worker-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0E4A5A" id="themeColor">
 <title>Isla & Barra Control</title>
@@ -833,7 +833,10 @@ function applyUpdate(){const w=swReg&&swReg.waiting;if(w){swUpdating=true;w.post
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
  navigator.serviceWorker.onmessage=e=>{if(e.data&&e.data.type==='update-available')showUpdate()};
  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(swUpdating)location.reload()});
- window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').then(reg=>{swReg=reg;const c=navigator.serviceWorker.controller;if(c)c.postMessage({type:'check'});if(reg.waiting&&navigator.serviceWorker.controller)showUpdate();reg.addEventListener('updatefound',()=>{const w=reg.installing;if(w)w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)showUpdate()})})}).catch(()=>{})})}
+ // Solo es «versión nueva» si la página ya tenía un service worker al abrirse: en la primera instalación, WebKit
+// (Safari) ya da la página por controlada cuando llega «installed» y avisaba sin haber nada nuevo.
+ const hadSW=!!navigator.serviceWorker.controller;
+ window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').then(reg=>{swReg=reg;const c=navigator.serviceWorker.controller;if(c)c.postMessage({type:'check'});if(reg.waiting&&hadSW)showUpdate();reg.addEventListener('updatefound',()=>{const w=reg.installing;if(w&&hadSW)w.addEventListener('statechange',()=>{if(w.state==='installed')showUpdate()})})}).catch(()=>{})})}
 // ── Datos en este dispositivo ──
 // Copias internas: claves con sufijo; la fecha se anota en los datos del dispositivo.
 const COPIES=[['_antes_de_importar','Antes de la última importación'],['_antes_del_ejemplo','Tus datos antes de ver el bar de ejemplo'],['_antes_de_restaurar','Antes de la última restauración'],['_corrupta','Datos dañados que no se pudieron leer']];

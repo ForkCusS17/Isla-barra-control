@@ -6,7 +6,7 @@ const PHONE={...devices['iPhone 13'],acceptDownloads:true,reducedMotion:'reduce'
 (async()=>{const b=await chromium.launch();
 const mk=async()=>{const c=await b.newContext(PHONE);await c.addInitScript(()=>{window.__prints=0;window.print=()=>{window.__prints++}});const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,100)));p.on('dialog',d=>{p.dl.push(d.message().slice(0,80));d.accept()});await p.goto(APP_URL);return p};
 // Toca un elemento visible; falla si no existe, no se ve o queda tapado (Playwright comprueba que el toque le llega).
-const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000});
+const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0]+' | '+e.message.split('\n').filter(l=>/intercepts|not visible|not stable|outside of the viewport|not enabled|detached/.test(l)).slice(-2).join(' / ').slice(0,400))});
 const visibleIn=async(p,sel)=>{const l=p.locator(sel).filter({visible:true}).first();if(!await l.count())return null;const r=await l.boundingBox();return r&&r.width>0&&r.height>0&&r.x>=0&&r.x+r.width<=390+1?r:null};
 const importByTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:4000}),tap(p,sel)]);await fc.setFiles(file);await p.locator('#importConfirm').waitFor({state:'visible',timeout:3000});p.ask=await p.locator('#importConfirm').innerText();await tap(p,'#importYes');await p.waitForTimeout(200)};
 const downloadByTap=async(p,sel)=>{const [dl]=await Promise.all([p.waitForEvent('download',{timeout:4000}),tap(p,sel)]);return{name:dl.suggestedFilename(),text:fs.readFileSync(await dl.path(),'utf8')}};

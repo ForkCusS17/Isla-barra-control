@@ -26,6 +26,7 @@ ok('iconos 192, 512, «maskable» 512, iPhone 180 y favicon 32: existen, son PNG
 
 // ── 2. Sin conexión ──────────────────────────────────────────────────────────
 ok('se registra el service worker',await swReady(p),null);
+await p.waitForTimeout(500);ok('primera visita: no aparece «Hay una versión nueva» (no hay nada nuevo)',!(await seen(p,'#updateBar')),null);
 await tap(p,'#wDemo');const before=await D(p);
 await p.reload();ok('tras recargar, la página la controla el service worker',await p.evaluate(()=>!!navigator.serviceWorker.controller),null);
 await p.context().setOffline(true);await p.reload();

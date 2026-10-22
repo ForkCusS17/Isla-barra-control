@@ -7,7 +7,7 @@ const PHONE={...devices['iPhone 13'],reducedMotion:'reduce'},SMALL={...PHONE,vie
 const PKG=JSON.parse(fs.readFileSync(path.join(ROOT,'package.json'),'utf8')).version,SWV=(fs.readFileSync(path.join(ROOT,'sw.js'),'utf8').match(/const VERSION='([^']+)'/)||[])[1];
 (async()=>{const b=await chromium.launch();const pages=[];
 const mk=async(dev=PHONE)=>{const c=await b.newContext(dev);await c.clock.setFixedTime(new Date('2026-10-21T10:00:00Z'));const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type());d.dismiss()});await p.goto(APP_URL);pages.push(p);return p};
-const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0])});
+const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0]+' | '+e.message.split('\n').filter(l=>/intercepts|not visible|not stable|outside of the viewport|not enabled|detached/.test(l)).slice(-2).join(' / ').slice(0,400))});
 const seen=(p,sel)=>p.locator(sel).filter({visible:true}).count().then(n=>n>0);
 const text=(p,sel)=>p.locator(sel).filter({visible:true}).first().innerText().then(t=>t.replace(/\s+/g,' ').trim());
 const openD=async(p,id)=>{if(await p.locator(id).getAttribute('open')===null)await tap(p,id+' summary')};

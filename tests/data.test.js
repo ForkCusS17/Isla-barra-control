@@ -9,7 +9,7 @@ const PHONE={...devices['iPhone 13'],acceptDownloads:true,reducedMotion:'reduce'
 (async()=>{const b=await chromium.launch();const pages=[];
 const watch=p=>{p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type()+': '+d.message().slice(0,60));d.dismiss()});pages.push(p);return p};
 const mk=async(dev=PHONE,init,arg)=>{const c=await b.newContext(dev);await c.clock.setFixedTime(new Date('2026-10-21T10:00:00Z'));if(init)await c.addInitScript(init,arg);const p=watch(await c.newPage());await p.goto(APP_URL);return p};
-const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0])});
+const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0]+' | '+e.message.split('\n').filter(l=>/intercepts|not visible|not stable|outside of the viewport|not enabled|detached/.test(l)).slice(-2).join(' / ').slice(0,400))});
 const seen=(p,sel)=>p.locator(sel).filter({visible:true}).count().then(n=>n>0);
 const text=(p,sel)=>p.locator(sel).filter({visible:true}).first().innerText().then(t=>t.replace(/\s+/g,' ').trim());
 const MORE=['Ficha','Diagnóstico','Informe','Ajustes','Instalar la app'];
@@ -35,7 +35,7 @@ await ficha(p,'Bar Real 2');ok('…y no se vuelve a pedir en cada guardado',(awa
 await nav(p,'Ajustes');
 ok('Ajustes › Datos: «no concedido», explicado, con «Pedir almacenamiento persistente»',/no concedido/.test(await text(p,'#persistLine'))&&(await seen(p,'#persistAsk')),await text(p,'#persistLine'));
 await tap(p,'#persistAsk');await p.waitForTimeout(100);
-ok('el botón lo vuelve a pedir y explica la respuesta',(await p.evaluate(()=>window.__persistCalls))===2&&/no lo ha concedido/.test(await text(p,'#toast')),await text(p,'#toast'));
+ok('el botón lo vuelve a pedir y explica la respuesta',(await p.evaluate(()=>window.__persistCalls))===2&&/no lo ha concedido/.test(await text(p,'#toast')),[await p.evaluate(()=>window.__persistCalls),await text(p,'#toast')]);
 ok('iPhone sin instalar: Ajustes recuerda instalar la app (7 días de Safari)',/En iPhone, instala la app/.test(await text(p,'#persistLine'))&&/7 días/.test(await text(p,'#persistLine')),null);
 {const q=await mk(PHONE,fakePersist,true);await tap(q,'#wStart');await tap(q,'#tplSkip');await nav(q,'Ajustes');ok('concedido: «Almacenamiento persistente: concedido» y sin botón',/concedido\./.test(await text(q,'#persistLine'))&&!/no concedido/.test(await text(q,'#persistLine'))&&!(await seen(q,'#persistAsk')),await text(q,'#persistLine'))}
 {const q=await mk(PHONE,()=>{Object.defineProperty(Navigator.prototype,'storage',{get:()=>undefined})});await tap(q,'#wStart');await tap(q,'#tplSkip');await ficha(q,'X');await nav(q,'Ajustes');ok('navegador sin la función: lo dice y no falla',/no permite pedir almacenamiento persistente/.test(await text(q,'#persistLine'))&&!(await seen(q,'#persistAsk')),await text(q,'#persistLine'))}

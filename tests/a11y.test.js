@@ -5,7 +5,7 @@ const [,,F]=process.argv;const APP_URL=/^https?:/.test(F)?F:'file://'+F;const T=
 const AXE=require.resolve('axe-core/axe.min.js');
 const PHONE={...devices['iPhone 13'],reducedMotion:'reduce',bypassCSP:true},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}};
 (async()=>{const b=await chromium.launch();
-const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0])});
+const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0]+' | '+e.message.split('\n').filter(l=>/intercepts|not visible|not stable|outside of the viewport|not enabled|detached/.test(l)).slice(-2).join(' / ').slice(0,400))});
 const MORE=['Ficha','Diagnóstico','Informe','Ajustes','Instalar la app','Acerca de'];
 const nav=async(p,label)=>{if(label==='Ingredientes'){await tap(p,'.mobile-nav button:has-text("Mi barra")');await tap(p,'#barFullList');return}if(MORE.includes(label)){await tap(p,'.mobile-nav button:has-text("Más")');await tap(p,`#page-more button:has-text("${label}")`)}else await tap(p,`.mobile-nav button:has-text("${label}")`)};
 const audit=async p=>{if(!(await p.evaluate(()=>!!window.axe)))await p.addScriptTag({path:AXE});

@@ -7,7 +7,7 @@ const [,,F,J]=process.argv;const T=[];const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.
 const PHONE={...devices['iPhone 13'],acceptDownloads:true,reducedMotion:'reduce'};
 (async()=>{const srv=await start();const APP=srv.base+'isla_barra_control_mvp.html';const b=await chromium.launch();const pages=[];
 const mk=async(init)=>{const c=await b.newContext(PHONE);await c.addInitScript(()=>{window.__csp=[];document.addEventListener('securitypolicyviolation',e=>window.__csp.push(e.violatedDirective+' '+e.blockedURI));window.print=()=>{}});if(init)await c.addInitScript(init);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type()+': '+d.message().slice(0,60));d.dismiss()});await p.goto(APP);pages.push(p);return p};
-const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0])});
+const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0]+' | '+e.message.split('\n').filter(l=>/intercepts|not visible|not stable|outside of the viewport|not enabled|detached/.test(l)).slice(-2).join(' / ').slice(0,400))});
 const seen=(p,sel)=>p.locator(sel).filter({visible:true}).count().then(n=>n>0);
 const text=(p,sel)=>p.locator(sel).filter({visible:true}).first().innerText().then(t=>t.replace(/\s+/g,' ').trim());
 const MORE=['Ficha','Diagnóstico','Informe','Ajustes','Instalar la app','Acerca de'];

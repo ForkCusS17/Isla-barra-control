@@ -7,9 +7,12 @@ D=[('mojito','Mojito','Cóctel',9.00,0.10,[('ron-blanco',50),('lima-zumo',20),('
 TAX=7
 SALES={'mojito':54,'cuba-libre':46,'gin-tonic':38,'margarita':30,'vodka-limon':22,'chupito-tequila':25,'ron-anejo-copa':12,'cana':120,'vino-blanco-copa':41,'cafe-solo':85,'cafe-leche':64}
 ing=[];unitc={};base={}
+# Categoría y subcategoría de cada ingrediente (taxonomía por defecto de la app, esquema 5)
+SUB={'ron-blanco':('Destilados','Rones'),'ron-anejo':('Destilados','Rones'),'ginebra':('Destilados','Ginebras'),'vodka':('Destilados','Vodkas'),'tequila':('Destilados','Tequilas y mezcales'),'triple-sec':('Destilados','Licores y amargos'),'vermut':('Vinos','Vermuts y generosos'),'vino-blanco':('Vinos','Blancos'),'cerveza':('Cervezas','Botellín y lata'),'lima-zumo':('Frutas, hierbas y zumos','Zumos'),'sirope':('Siropes y azúcares','Siropes'),'hierbabuena':('Frutas, hierbas y zumos','Hierbas'),'soda':('Refrescos y mixers','Aguas'),'tonica':('Refrescos y mixers','Tónicas'),'cola':('Refrescos y mixers','Refrescos'),'hielo':('Otros','Hielo'),'cafe':('Café e infusiones','Café'),'leche':('Otros','Lácteos'),'naranja-deshid':('Otros','Guarniciones')}
+assert set(SUB)==set(x[0] for x in I)
 for i,n,c,f,q,u,p in I:
     pq=round(q*FACT[u],6);unitc[i]=p/pq if pq>0 else 0;base[i]=BASE[u]
-    ing.append(dict(id=i,name=n,category=c,supplier=S,format=f,unit=BASE[u],packUnit=u,packInput=q,packQty=pq,packPrice=p,unitCost=unitc[i],notes='Precio de ejemplo sin impuestos' if p>0 else 'Precio pendiente de pedir al proveedor',active=True))
+    ing.append(dict(id=i,name=n,category=SUB[i][0],subcategory=SUB[i][1],supplier=S,format=f,unit=BASE[u],packUnit=u,packInput=q,packQty=pq,packPrice=p,unitCost=unitc[i],notes='Precio de ejemplo sin impuestos' if p>0 else 'Precio pendiente de pedir al proveedor',active=True))
 theo={}
 for i,n,c,pvp,o,rec,t in D:
     for g,q in rec:theo[g]=theo.get(g,0)+q*SALES[i]
@@ -56,7 +59,7 @@ EXTRA={'g1':dict(evidence='Control de ron blanco 7–13 oct (datos sin validar):
 for g in diag:g.update(EXTRA[g['id']])
 for s_ in stocks:s_['salesId']='v-sem42' if s_['id']=='s-ron2' else 'v-sem41'
 sales=[dict(id='v-sem41',label='Semana 7–13 octubre',start='2026-10-07',end='2026-10-13',lines=[dict(drinkId=i,qty=q) for i,q in SALES.items()]),dict(id='v-sem42',label='Semana 14–20 octubre',start='2026-10-14',end='2026-10-20',lines=[dict(drinkId=i,qty=q) for i,q in SALES2.items()])]
-data=dict(app=APP,schema=4,sales=sales,exportedAt='2026-10-21T00:00:00Z',settings=dict(marginMin=55),
+data=dict(app=APP,schema=5,sales=sales,exportedAt='2026-10-21T00:00:00Z',settings=dict(marginMin=55),
 business=dict(isDemo=True,name='Bar Atlántico (ejemplo ficticio)',contact='Responsable de barra (ficticio)',location='Arrecife',date='2026-10-14',type='Bar / coctelería',period='7–20 octubre 2026',notes='CASO DE EJEMPLO FICTICIO para validar la app. Objetivo: entender costes y márgenes de la carta de cócteles y revisar las desviaciones de stock de la semana. Precios, ventas, proveedores y el 7 % de impuesto son inventados: ajústalos antes de usar datos reales.'),
 ingredients=ing,drinks=drinks,stocks=stocks,diagnostics=diag)
 json.dump(data,open(os.path.join(ROOT,'data','isla_barra_demo_bar_atlantico.json'),'w',encoding='utf-8'),ensure_ascii=False,indent=1)

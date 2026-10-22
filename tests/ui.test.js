@@ -21,7 +21,7 @@ ok('Resumen: «Exportar copia» e «Importar» juntos y con altura cómoda (≥ 
 const ex=await downloadByTap(p,'#page-dashboard button:has-text("Exportar copia")');
 const before=canon(await p.evaluate(()=>data));
 let js=null;try{js=JSON.parse(ex.text)}catch(e){}
-ok('tocar «Exportar copia» descarga un JSON válido de la app',!!js&&js.app==='Isla & Barra Control'&&js.schema===4&&/^isla-barra-copia-\d{4}-\d{2}-\d{2}\.json$/.test(ex.name)&&js.drinks.length===11&&js.diagnostics.length===5,ex.name);
+ok('tocar «Exportar copia» descarga un JSON válido de la app',!!js&&js.app==='Isla & Barra Control'&&js.schema===5&&/^isla-barra-copia-\d{4}-\d{2}-\d{2}\.json$/.test(ex.name)&&js.drinks.length===11&&js.diagnostics.length===5,ex.name);
 fs.writeFileSync(TMP+'ui_copia.json',ex.text);
 let q=await mk();await importByTap(q,'#welcome label:has-text("Recuperar una copia de seguridad")',TMP+'ui_copia.json');
 ok('ese JSON se importa de nuevo por toque (bienvenida › Recuperar una copia) y restituye los mismos datos',canon(await q.evaluate(()=>data))===before,null);

@@ -1,6 +1,6 @@
 {
  "app": "Isla & Barra Control",
- "schema": 4,
+ "schema": 5,
  "sales": [
   {
    "id": "v-sem41",
@@ -125,7 +125,8 @@
   {
    "id": "ron-blanco",
    "name": "Ron blanco",
-   "category": "Destilado",
+   "category": "Destilados",
+   "subcategory": "Rones",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Botella",
    "unit": "ml",
@@ -140,7 +141,8 @@
   {
    "id": "ron-anejo",
    "name": "Ron añejo",
-   "category": "Destilado",
+   "category": "Destilados",
+   "subcategory": "Rones",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Botella",
    "unit": "ml",
@@ -155,7 +157,8 @@
   {
    "id": "ginebra",
    "name": "Ginebra",
-   "category": "Destilado",
+   "category": "Destilados",
+   "subcategory": "Ginebras",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Botella",
    "unit": "ml",
@@ -170,7 +173,8 @@
   {
    "id": "vodka",
    "name": "Vodka",
-   "category": "Destilado",
+   "category": "Destilados",
+   "subcategory": "Vodkas",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Botella",
    "unit": "ml",
@@ -185,7 +189,8 @@
   {
    "id": "tequila",
    "name": "Tequila",
-   "category": "Destilado",
+   "category": "Destilados",
+   "subcategory": "Tequilas y mezcales",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Botella",
    "unit": "ml",
@@ -200,7 +205,8 @@
   {
    "id": "triple-sec",
    "name": "Licor de naranja (triple sec)",
-   "category": "Destilado",
+   "category": "Destilados",
+   "subcategory": "Licores y amargos",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Botella",
    "unit": "ml",
@@ -215,7 +221,8 @@
   {
    "id": "vermut",
    "name": "Vermut rojo",
-   "category": "Vino / cerveza",
+   "category": "Vinos",
+   "subcategory": "Vermuts y generosos",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Botella",
    "unit": "ml",
@@ -230,7 +237,8 @@
   {
    "id": "vino-blanco",
    "name": "Vino blanco",
-   "category": "Vino / cerveza",
+   "category": "Vinos",
+   "subcategory": "Blancos",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Botella",
    "unit": "ml",
@@ -245,7 +253,8 @@
   {
    "id": "cerveza",
    "name": "Cerveza (botellín 330 ml)",
-   "category": "Vino / cerveza",
+   "category": "Cervezas",
+   "subcategory": "Botellín y lata",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Caja",
    "unit": "unit",
@@ -260,7 +269,8 @@
   {
    "id": "lima-zumo",
    "name": "Zumo de lima",
-   "category": "Fruta / verdura",
+   "category": "Frutas, hierbas y zumos",
+   "subcategory": "Zumos",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Envase",
    "unit": "ml",
@@ -275,7 +285,8 @@
   {
    "id": "sirope",
    "name": "Sirope de azúcar",
-   "category": "Sirope / azúcar",
+   "category": "Siropes y azúcares",
+   "subcategory": "Siropes",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Garrafa",
    "unit": "ml",
@@ -290,7 +301,8 @@
   {
    "id": "hierbabuena",
    "name": "Hierbabuena",
-   "category": "Fruta / verdura",
+   "category": "Frutas, hierbas y zumos",
+   "subcategory": "Hierbas",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Manojo",
    "unit": "g",
@@ -305,7 +317,8 @@
   {
    "id": "soda",
    "name": "Agua con gas",
-   "category": "Refresco / mixer",
+   "category": "Refrescos y mixers",
+   "subcategory": "Aguas",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Caja 24 × 200 ml",
    "unit": "ml",
@@ -320,7 +333,8 @@
   {
    "id": "tonica",
    "name": "Tónica",
-   "category": "Refresco / mixer",
+   "category": "Refrescos y mixers",
+   "subcategory": "Tónicas",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Caja 24 × 200 ml",
    "unit": "ml",
@@ -335,7 +349,8 @@
   {
    "id": "cola",
    "name": "Refresco de cola",
-   "category": "Refresco / mixer",
+   "category": "Refrescos y mixers",
+   "subcategory": "Refrescos",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Caja 24 × 200 ml",
    "unit": "ml",
@@ -350,7 +365,8 @@
   {
    "id": "hielo",
    "name": "Hielo",
-   "category": "Otro",
+   "category": "Otros",
+   "subcategory": "Hielo",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Bolsa",
    "unit": "g",
@@ -365,7 +381,8 @@
   {
    "id": "cafe",
    "name": "Café en grano",
-   "category": "Café / infusión",
+   "category": "Café e infusiones",
+   "subcategory": "Café",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Bolsa",
    "unit": "g",
@@ -380,7 +397,8 @@
   {
    "id": "leche",
    "name": "Leche",
-   "category": "Lácteo",
+   "category": "Otros",
+   "subcategory": "Lácteos",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Brik",
    "unit": "ml",
@@ -395,7 +413,8 @@
   {
    "id": "naranja-deshid",
    "name": "Naranja deshidratada (guarnición)",
-   "category": "Fruta / verdura",
+   "category": "Otros",
+   "subcategory": "Guarniciones",
    "supplier": "Distribuciones Isla (ficticio)",
    "format": "Bolsa",
    "unit": "unit",

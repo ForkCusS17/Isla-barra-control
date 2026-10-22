@@ -52,7 +52,7 @@ const legacy={business:{name:'Bar Legacy'},ingredients:[],drinks:[],stocks:[],di
 fs.writeFileSync(TMP+'diag_legacy.json',JSON.stringify(legacy));
 let q=await mk();await imp(q,TMP+'diag_legacy.json');
 const L=await q.evaluate(()=>({d:data.diagnostics,schema:data.schema,pend:pendingData()}));
-ok('copia antigua: se importa con los 3 hallazgos y pasa al esquema 4',L.d.length===3&&L.schema===4&&q.errs.length===0,[L.d.length,L.schema,q.errs]);
+ok('copia antigua: se importa con los 3 hallazgos y pasa al esquema 5',L.d.length===3&&L.schema===5&&q.errs.length===0,[L.d.length,L.schema,q.errs]);
 ok('copia antigua: campos nuevos vacíos (evidencia, responsable, resultado) y los antiguos intactos',L.d.every(x=>x.evidence===''&&x.owner===''&&x.result==='')&&L.d[0].finding==='f1'&&L.d[0].check==='c1'&&L.d[0].due==='2026-10-20'&&L.d[0].priority==='Alta',L.d[0]);
 ok('copia antigua: estado y prioridad desconocidos pasan a Pendiente / Media; fecha no ISO se descarta',L.d[1].status==='Verificado'&&L.d[1].priority==='Media'&&L.d[1].due===''&&L.d[2].status==='Pendiente'&&L.d[2].area===''&&L.d[2].check==='c3',L.d.slice(1));
 {const dates={x1:'2026-13-45',x2:'2026-02-30',x3:'2026-00-10',x4:'2024-02-29',x5:'2026-10-20',x6:'2026-1-5'};fs.writeFileSync(TMP+'diag_dates.json',JSON.stringify({...legacy,diagnostics:Object.entries(dates).map(([id,due])=>({id,finding:'f',evidence:'e',action:'a',due}))}));
@@ -70,7 +70,7 @@ ok('datos guardados con esquema 2 en el navegador: se leen y muestran sin errore
 // 4. Ida y vuelta de la copia con los campos nuevos
 
 const [dl]=await Promise.all([p.waitForEvent('download'),p.evaluate(()=>exportBackup())]);const before=canon(await p.evaluate(()=>data));const exp=JSON.parse(fs.readFileSync(await dl.path(),'utf8'));
-ok('exportar: incluye evidencia, responsable y resultado',exp.schema===4&&'evidence' in exp.diagnostics[0]&&'owner' in exp.diagnostics[0]&&'result' in exp.diagnostics[0],exp.diagnostics[0]);
+ok('exportar: incluye evidencia, responsable y resultado',exp.schema===5&&'evidence' in exp.diagnostics[0]&&'owner' in exp.diagnostics[0]&&'result' in exp.diagnostics[0],exp.diagnostics[0]);
 let r=await mk();await imp(r,await dl.path());
 ok('importar la copia exportada restituye exactamente el diagnóstico',canon(await r.evaluate(()=>data))===before,null);
 // 5. Informe con el bar ficticio

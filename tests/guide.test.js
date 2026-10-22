@@ -180,7 +180,7 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const q=await mk(dev);await tap
 let s7=await mk();await tap(s7,'#wStart');await nav(s7,'Ingredientes');
 await tap(s7,'button[aria-label="Formato rápido: Botella 70 cl"]');
 ok('formato rápido «Botella 70 cl»: 700 ml, formato escrito y el foco pasa al precio',(await s7.inputValue('#iUnit'))==='ml'&&(await s7.inputValue('#iPackQty'))==='700'&&(await s7.inputValue('#iFormat'))==='Botella 70 cl'&&(await s7.evaluate(()=>document.activeElement.id))==='iPackPrice'&&/700 ml/.test(await text(s7,'#ingredientPreview')),await text(s7,'#ingredientPreview'));
-await tap(s7,'button[aria-label="Formato rápido: Caja 24 × 33 cl"]');ok('formato rápido «Caja 24 × 33 cl»: 24 unidades',(await s7.inputValue('#iUnit'))==='unit'&&(await s7.inputValue('#iPackQty'))==='24',null);
+await tap(s7,'button[aria-label="Formato rápido: Caja 24 × 33 cl"]');ok('formato rápido «Caja 24 × 33 cl»: 7920 ml (24 × 330 ml)',(await s7.inputValue('#iUnit'))==='ml'&&(await s7.inputValue('#iPackQty'))==='7920'&&/7920 ml/.test(await text(s7,'#ingredientPreview')),await text(s7,'#ingredientPreview'));
 await tap(s7,'button[aria-label="Formato rápido: Bolsa 1 kg"]');ok('formato rápido «Bolsa 1 kg»: 1000 g en unidad base',(await s7.inputValue('#iUnit'))==='kg'&&/1000 g/.test(await text(s7,'#ingredientPreview')),await text(s7,'#ingredientPreview'));
 await s7.fill('#iName','Café');await s7.fill('#iPackPrice','14');await tap(s7,'#ingredientForm button:has-text("Guardar ingrediente")');
 ok('guardar tras un formato rápido: café 1 kg a 14 € = 0,014 €/g',(i=>i&&i.packQty===1000&&i.unit==='g'&&Math.abs(i.unitCost-0.014)<1e-12&&i.format==='Bolsa 1 kg')((await D(s7)).ingredients[0]),(await D(s7)).ingredients[0]);

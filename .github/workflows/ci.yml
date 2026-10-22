@@ -1,0 +1,65 @@
+# Integración continua: ejecuta todas las series de pruebas en Chromium, Firefox y WebKit (en paralelo: un
+# trabajo por navegador y varias series a la vez dentro de cada uno) en cada cambio. Si todo pasa en main,
+# etiqueta la versión de package.json (v0.x) si esa etiqueta aún no existe.
+name: Pruebas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  series:
+    name: Series (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Dependencias
+        run: npm install
+      - name: Navegador
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: CSP al día
+        run: node tools/stamp.js --check
+      - name: Pruebas
+        run: node tests/run_all.js --parallel
+        env:
+          BROWSER: ${{ matrix.browser }}
+          JOBS: 3
+          PERF_LIMIT_MS: 5000
+
+  etiqueta:
+    name: Etiquetar la versión
+    needs: series
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Crear la etiqueta v0.x si no existe
+        run: |
+          V=$(node -p "require('./package.json').version")
+          case "$V" in 0.*) ;; *) echo "La versión $V no es 0.x: no se etiqueta"; exit 1;; esac
+          if git rev-parse -q --verify "refs/tags/v$V" >/dev/null; then echo "v$V ya existe"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$V" -m "Isla & Barra Control $V"
+          git push origin "v$V"

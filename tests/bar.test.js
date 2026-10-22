@@ -80,6 +80,55 @@ let u2=await mk();await importTap(u2,'#wRestore',TMP+'bar_v4.json');await nav(u2
 ok('copia antigua: los productos sin subcategoría salen en «Sin clasificar» dentro de su categoría',(await secs(u2)).some(s=>s.name==='Sin clasificar'&&s.n===1),await secs(u2));
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wDemo');await nav(z,'Mi barra');for(const sub of ['Ginebras','Rones','Licores y amargos'])await tap(z,`#barSections .shelf[data-sub="${sub}"] summary`);await tap(z,'#barManage summary');ok(`Mi barra con secciones abiertas sin desbordamiento a ${wd} px`,await noOverflow(z),await wide(z))}
 
+// ── 3. Alta rápida dentro de cada sección ────────────────────────────────────
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){
+let a=await mk(dev);await tap(a,'#wStart');await nav(a,'Mi barra');
+await tap(a,'#barSections .shelf[data-sub="Ginebras"] summary');await tap(a,'.shelf[data-sub="Ginebras"] .add-to-shelf');
+const fmts=await a.locator('#qaForm .qa-fmt').allInnerTexts();
+ok(`[${wd}] «Añadir ginebra» abre el alta rápida en la sección, con el foco en «Marca o nombre»`,(await seen(a,'.shelf[data-sub="Ginebras"] #qaForm'))&&(await a.evaluate(()=>document.activeElement.id))==='qaName'&&(await text(a,'#qaForm .qa-title'))==='Añadir ginebra',null);
+ok(`[${wd}] formatos de destilados: 70 cl, 1 L, 50 cl, 3 L y Otro (70 cl marcado)`,fmts.join('|')==='70 cl|1 L|50 cl|3 L|Otro'&&(await a.locator('#qaForm .qa-fmt[aria-pressed=true]').innerText())==='70 cl',fmts);
+const fh=await a.locator('#qaForm .qa-fmt').evaluateAll(bs=>bs.map(x=>x.getBoundingClientRect().height));ok(`[${wd}] botones de formato ≥ 44 px`,fh.every(h=>h>=44),fh);
+await a.locator('#qaName').pressSequentially('Tanqueray');await a.locator('#qaPrice').pressSequentially('15,90');
+ok(`[${wd}] 70 cl → 700 ml y coste por ml con precio con coma (15,90 € → 0,0227 €/ml)`,/70 cl = 700 ml · 15,90 € → 0,0227 €\/ml/.test(await text(a,'#qaPreview')),await text(a,'#qaPreview'));
+await tap(a,'#qaSaveMore');let d3=await D(a);let t=ing(d3,'Tanqueray');
+ok(`[${wd}] «Guardar y añadir otra»: guarda Tanqueray (Destilados › Ginebras, 700 ml, 15,90 €) y deja el formulario vacío con el foco en el primer campo`,t&&t.category==='Destilados'&&t.subcategory==='Ginebras'&&t.packQty===700&&t.unit==='ml'&&t.packPrice===15.9&&Math.abs(t.unitCost-15.9/700)<1e-12&&t.format==='70 cl'&&(await a.inputValue('#qaName'))===''&&(await a.inputValue('#qaPrice'))===''&&(await a.evaluate(()=>document.activeElement.id))==='qaName',t);
+await a.locator('#qaName').pressSequentially('Beefeater');await tap(a,'#qaForm .qa-fmt:has-text("1 L")');await a.locator('#qaPrice').pressSequentially('18');
+ok(`[${wd}] 1 L → 1000 ml (0,018 €/ml)`,/1 L = 1000 ml · 18,00 € → 0,018 €\/ml/.test(await text(a,'#qaPreview')),await text(a,'#qaPreview'));
+await tap(a,'#qaSave');d3=await D(a);
+ok(`[${wd}] «Guardar» guarda y cierra el formulario; la sección cuenta 2`,ing(d3,'Beefeater').packQty===1000&&!(await seen(a,'#qaForm'))&&/Ginebras 2/.test(await text(a,'.shelf[data-sub="Ginebras"] summary')),await text(a,'.shelf[data-sub="Ginebras"] summary'));
+await tap(a,'.shelf[data-sub="Ginebras"] .add-to-shelf');await tap(a,'#qaSave');ok(`[${wd}] sin nombre no se guarda y lo explica`,/Escribe la marca o el nombre/.test(await text(a,'#toast'))&&(await D(a)).ingredients.length===2,null);
+await a.locator('#qaName').pressSequentially('Tanqueray');ok(`[${wd}] avisa si el nombre ya está en tu barra`,/Ya tienes «Tanqueray» en tu barra/.test(await text(a,'#qaPreview')),null);
+await a.fill('#qaName','');await a.locator('#qaName').pressSequentially('Gin Mare');await a.locator('#qaPrice').pressSequentially('doce');await tap(a,'#qaSave');
+ok(`[${wd}] precio no válido: no se guarda y lo explica`,/Revisa el precio/.test(await text(a,'#toast'))&&(await D(a)).ingredients.length===2,null);
+await tap(a,'#qaCancel');
+// sin precio
+await tap(a,'#barSections .shelf[data-sub="Rones"] summary');await tap(a,'.shelf[data-sub="Rones"] .add-to-shelf');await a.locator('#qaName').pressSequentially('Bacardí Carta Blanca');
+ok(`[${wd}] sin precio: la vista previa avisa de que se guardará «Sin precio»`,/Sin precio: se guardará marcado «Sin precio»/.test(await text(a,'#qaPreview')),null);
+await tap(a,'#qaSave');d3=await D(a);
+ok(`[${wd}] se puede guardar sin precio: queda marcado «Sin precio» y la sección dice «1 sin precio»`,ing(d3,'Bacardí Carta Blanca').packPrice===0&&/Sin precio/.test(await text(a,'.shelf[data-sub="Rones"]'))&&/1 sin precio/.test(await text(a,'.shelf[data-sub="Rones"] summary')),null);
+// otro formato
+await tap(a,'#barSections .shelf[data-sub="Vodkas"] summary');await tap(a,'.shelf[data-sub="Vodkas"] .add-to-shelf');await a.locator('#qaName').pressSequentially('Absolut');await tap(a,'#qaForm .qa-fmt:has-text("Otro")');
+ok(`[${wd}] «Otro» muestra el campo de formato libre con el foco`,(await seen(a,'#qaOther'))&&(await a.evaluate(()=>document.activeElement.id))==='qaOther',null);
+await a.locator('#qaOther').pressSequentially('botella');ok(`[${wd}] formato libre no reconocido: lo dice`,/No reconozco el formato/.test(await text(a,'#qaPreview')),null);
+await tap(a,'#qaSave');ok(`[${wd}] con formato no reconocido no se guarda`,/Revisa el formato/.test(await text(a,'#toast'))&&!ing(await D(a),'Absolut'),null);
+await a.fill('#qaOther','');await a.locator('#qaOther').pressSequentially('0,7 L');await a.locator('#qaPrice').pressSequentially('13.5');
+ok(`[${wd}] «0,7 L» → 700 ml (precio con punto)`,/0,7 L = 700 ml · 13,50 €/.test(await text(a,'#qaPreview')),await text(a,'#qaPreview'));
+await tap(a,'#qaSave');ok(`[${wd}] guardado con formato libre: Absolut 700 ml a 13,50 €`,(i=>i&&i.packQty===700&&i.packPrice===13.5&&i.format==='0,7 L')(ing(await D(a),'Absolut')),ing(await D(a),'Absolut'));
+// cervezas: 24 × 33 cl
+await tap(a,'#barCats .cat-chip:has-text("Cervezas")');await tap(a,'#barSections .shelf[data-sub="Botellín y lata"] summary');await tap(a,'.shelf[data-sub="Botellín y lata"] .add-to-shelf');
+ok(`[${wd}] cervezas: «Añadir cerveza» con formatos de caja (Caja 24 × 33 cl primero)`,(await text(a,'#qaForm .qa-title'))==='Añadir cerveza'&&(await a.locator('#qaForm .qa-fmt').first().innerText())==='Caja 24 × 33 cl',null);
+await a.locator('#qaName').pressSequentially('Estrella Galicia');await a.locator('#qaPrice').pressSequentially('21,60 €');
+ok(`[${wd}] 24 × 33 cl → 7920 ml`,/Caja 24 × 33 cl = 7920 ml · 21,60 €/.test(await text(a,'#qaPreview')),await text(a,'#qaPreview'));
+await tap(a,'#qaSave');ok(`[${wd}] guardada: 7920 ml, Cervezas › Botellín y lata`,(i=>i&&i.packQty===7920&&i.unit==='ml'&&i.category==='Cervezas'&&i.subcategory==='Botellín y lata')(ing(await D(a),'Estrella Galicia')),ing(await D(a),'Estrella Galicia'));
+// editar los botones de formato
+await tap(a,'#barCats .cat-chip:has-text("Destilados")');await tap(a,'.shelf[data-sub="Whiskys"] summary');await tap(a,'.shelf[data-sub="Whiskys"] .add-to-shelf');await tap(a,'#qaForm .qa-formats-edit summary');
+await a.fill('#qaFormatsText','70 cl; botella grande');await tap(a,'#qaFormatsSave');ok(`[${wd}] formatos editables: rechaza los que no reconoce`,/No reconozco: botella grande/.test(await text(a,'#toast'))&&(await D(a)).settings.taxonomy[0].formats.length===4,null);
+await a.fill('#qaFormatsText','70 cl; 1 L; 20 cl');await tap(a,'#qaFormatsSave');
+ok(`[${wd}] formatos editables: «70 cl; 1 L; 20 cl» cambia los botones de los destilados`,(await a.locator('#qaForm .qa-fmt').allInnerTexts()).join('|')==='70 cl|1 L|20 cl|Otro'&&(await D(a)).settings.taxonomy[0].formats.join('|')==='70 cl|1 L|20 cl',null);
+ok(`[${wd}] Mi barra con el alta rápida abierta sin desbordamiento`,await noOverflow(a),await wide(a));
+{const n=await a.evaluate(()=>[...document.querySelectorAll('#page-bar button,#page-bar label[role=button],#page-bar summary')].filter(x=>x.offsetParent).map(x=>[x.textContent.trim().slice(0,20),Math.round(x.getBoundingClientRect().height)]).filter(([,h])=>h<44));ok(`[${wd}] Mi barra: botones y cabeceras de sección ≥ 44 px`,n.length===0,n)}
+}
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO barra: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

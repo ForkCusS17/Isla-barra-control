@@ -205,8 +205,8 @@ o.drinks=o.drinks.map(x=>({...x,id:cleanId(x.id),name:String(x.name||''),price:n
 o.stocks=o.stocks.map(s=>stockCalc({...s,id:cleanId(s.id),salesId:s.salesId?cleanId(s.salesId):'',unit:['ml','g','unit'].includes(s.unit)?s.unit:'ml',product:String(s.product||''),hypothesis:String(s.hypothesis||''),cause:String(s.cause||''),action:String(s.action||''),result:String(s.result||''),causeState:['Sin analizar','Hipótesis sin comprobar','Causa comprobada'].includes(s.causeState)?s.causeState:'Sin analizar',opening:num(s.opening),purchases:num(s.purchases),closing:num(s.closing),salesUse:num(s.salesUse),threshold:num(s.threshold)}));
 o.diagnostics=o.diagnostics.map(normDiag);o.sales=(Array.isArray(d.sales)?d.sales:[]).filter(x=>x&&typeof x==='object').map(x=>({id:cleanId(x.id),label:String(x.label||''),start:String(x.start||''),end:String(x.end||''),lines:(Array.isArray(x.lines)?x.lines:[]).filter(l=>l&&typeof l==='object'&&num(l.qty)>0).map(l=>({drinkId:cleanId(l.drinkId),qty:num(l.qty)}))}));o.settings.mode=['simple','full'].includes(o.settings.mode)?o.settings.mode:(hasContent(o)?'full':'simple');delete o.app;delete o.exportedAt;o.schema=SCHEMA;return o}
 let data=loadData();
-function loadData(){let raw=null;try{raw=localStorage.getItem(KEY);return normalize(JSON.parse(raw||'{}'))}catch(e){window.__loadError=!!raw;try{if(raw)localStorage.setItem(KEY+'_corrupta',raw)}catch(_){}return blank()}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){alert('No se ha podido guardar en este navegador ('+((e&&e.name)||'error')+'). Los cambios siguen en pantalla: exporta una copia de seguridad ahora.')}renderAll()}
+function loadData(){let raw=null;try{raw=localStorage.getItem(KEY);window.__loadedEmpty=raw===null;return normalize(JSON.parse(raw||'{}'))}catch(e){window.__loadError=!!raw;try{if(raw)localStorage.setItem(KEY+'_corrupta',raw)}catch(_){}return blank()}}
+function save(){if(recoverStored(true))return;try{localStorage.setItem(KEY,JSON.stringify(data));window.__loadedEmpty=false}catch(e){alert('No se ha podido guardar en este navegador ('+((e&&e.name)||'error')+'). Los cambios siguen en pantalla: exporta una copia de seguridad ahora.')}renderAll()}
 function euro(n){return new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(Number(n)||0)}
 function num(n){return Number(n)||0}
 function fmt(n,unit=''){return new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(Number(n)||0)+(unit?' '+unit:'')}
@@ -433,6 +433,11 @@ function resetBrand(){askConfirm('¿Volver a la marca Isla & Barra?','Se quitar�
 function backupAge(){const t=data.settings.lastBackupAt;return t?Math.max(0,Math.floor((Date.now()-Date.parse(t))/DAY)):null}
 function renderBackupStatus(){const n=backupAge(),has=hasContent(data),warn=has&&(n===null||n>7),txt=n===null?'Todavía no has exportado ninguna copia desde este navegador.':'Última copia: '+(n===0?'hoy':n===1?'ayer':`hace ${n} días`)+'.',more=warn?(n===null?' Si el navegador borra sus datos, perderías todo lo introducido. Exporta una copia ahora.':` Han pasado ${n} días: si el navegador borra sus datos, perderías lo hecho desde entonces. Exporta una copia ahora.`):'';
 document.querySelectorAll('.backup-status').forEach(el=>{el.className='backup-status notice'+(warn?' warn':'');el.textContent=txt+more})}
+// Si al abrir la página el navegador devolvió el almacenamiento vacío (puede pasar un instante al recargar
+// justo después de guardar) y luego aparecen datos, se recuperan en vez de sobrescribirlos.
+function recoverStored(onSave){if(!window.__loadedEmpty)return false;let cur=null;try{cur=localStorage.getItem(KEY)}catch(e){return false}if(cur===null)return false;let next;try{next=normalize(JSON.parse(cur))}catch(e){return false}
+window.__loadedEmpty=false;data=next;recipeDraft=[];renderAll();renderRecipeLines();if(onSave)toast('Se han recuperado los datos guardados en este navegador. Repite el último cambio.');return true}
+if(window.__loadedEmpty){setTimeout(()=>recoverStored(false),250);setTimeout(()=>recoverStored(false),1000)}
 renderAll();renderRecipeLines();updateDrinkPreview();updateIngredientPreview();if(window.__loadError)alert('No se han podido leer los datos guardados. Se ha conservado una copia del contenido dañado y se ha iniciado una ficha vacía. Si tienes una copia de seguridad, impórtala.');
 </script>
 </body>

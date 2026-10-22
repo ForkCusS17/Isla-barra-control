@@ -167,7 +167,7 @@ await tap(c,'#pastePreview button:has-text("Cancelar")');ok(`[${wd}] «Cancelar�
 }
 
 // ── 5. Plantillas por tipo de negocio y asistente de clasificación ───────────
-const chips=p=>p.locator('#barCats .cat-chip').allInnerTexts().then(a=>a.map(x=>x.replace(/\s*\d+$/,'').trim()));
+const chips=p=>p.locator('#barCats .cat-chip').allInnerTexts().then(a=>a.map(x=>x.trim().replace(/\s*\d+$/,'').trim()));
 const secNames=p=>p.locator('#barSections .shelf summary span:first-child').allInnerTexts();
 let t5=await mk();await tap(t5,'#wStart');
 ok('«Empezar con mi bar» pregunta el tipo de negocio: coctelería, bar, cafetería, restaurante y hotel, más «Ahora no»',(await seen(t5,'#page-template'))&&(await t5.locator('#tplList .tpl-opt b').allInnerTexts()).join('|')==='Coctelería|Bar|Cafetería|Restaurante|Hotel'&&(await seen(t5,'#tplSkip')),null);

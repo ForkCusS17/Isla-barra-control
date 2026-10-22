@@ -49,6 +49,7 @@ jobs:
           BROWSER: ${{ matrix.browser }}
           # Firefox y WebKit dan tiempos de carga irregulares con varias series a la vez en el ejecutor: de una en una.
           JOBS: ${{ matrix.browser == 'chromium' && 3 || 1 }}
+          RETRY_FAILED: ${{ matrix.browser == 'chromium' && '0' || '1' }}
           PERF_LIMIT_MS: 5000
 
   etiqueta:

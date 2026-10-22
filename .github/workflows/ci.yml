@@ -32,10 +32,28 @@ jobs:
           node-version: 20
       - name: Dependencias
         run: npm install
+      # Los paquetes del sistema que necesita cada navegador se guardan en la caché de GitHub: el servidor de
+      # paquetes de Ubuntu a veces va tan lento que instalarlos superaba los 20 minutos (sobre todo WebKit).
+      - name: Caché de paquetes del sistema
+        id: aptcache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/apt-cache
+          key: apt-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('package.json') }}
+          restore-keys: apt-${{ runner.os }}-${{ matrix.browser }}-
       - name: Dependencias del navegador (sistema)
-        # Con apt: suele tardar menos de un minuto, pero el servidor de paquetes a veces va muy lento.
-        timeout-minutes: 20
-        run: npx playwright install-deps ${{ matrix.browser }}
+        timeout-minutes: 25
+        run: |
+          mkdir -p ~/apt-cache/partial
+          echo "Dir::Cache::Archives \"$HOME/apt-cache\";" | sudo tee /etc/apt/apt.conf.d/99cache-ci
+          npx playwright install-deps ${{ matrix.browser }}
+          sudo chown -R "$(id -u)" ~/apt-cache && rm -rf ~/apt-cache/partial ~/apt-cache/lock
+      - name: Guardar la caché de paquetes (aunque luego fallen las pruebas)
+        if: steps.aptcache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/apt-cache
+          key: apt-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('package.json') }}
       - name: Navegador
         timeout-minutes: 10
         # La descarga a veces se queda colgada: hasta 3 intentos de 3 minutos (solo descarga, sin apt).

@@ -1,4 +1,4 @@
-const {chromium}=require('playwright');const path=require('path');const TMP=path.join(__dirname,'tmp')+path.sep,FIX=path.join(__dirname,'fixtures')+path.sep;require('fs').mkdirSync(TMP,{recursive:true});const fs=require('fs');const [,,F,J]=process.argv;const APP_URL=/^https?:/.test(F)?F:'file://'+F;const T=[];
+const {chromium}=require('./env');const path=require('path');const TMP=path.join(__dirname,'tmp')+path.sep,FIX=path.join(__dirname,'fixtures')+path.sep;require('fs').mkdirSync(TMP,{recursive:true});const fs=require('fs');const [,,F,J]=process.argv;const APP_URL=/^https?:/.test(F)?F:'file://'+F;const T=[];
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const canon=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort()):v);
 (async()=>{const b=await chromium.launch();

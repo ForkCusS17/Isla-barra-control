@@ -1,4 +1,4 @@
-const {chromium}=require('playwright');const path=require('path');const TMP=path.join(__dirname,'tmp')+path.sep,FIX=path.join(__dirname,'fixtures')+path.sep;require('fs').mkdirSync(TMP,{recursive:true});const fs=require('fs');
+const {chromium}=require('./env');const path=require('path');const TMP=path.join(__dirname,'tmp')+path.sep,FIX=path.join(__dirname,'fixtures')+path.sep;require('fs').mkdirSync(TMP,{recursive:true});const fs=require('fs');
 const [,,F,J,EX,OUTPDF]=process.argv;const APP_URL=/^https?:/.test(F)?F:'file://'+F;const E=JSON.parse(fs.readFileSync(EX));const T=[];
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);const n2=s=>String(s).replace(/\s/g,'');
 const eur=n=>n2(new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(n)),f2=n=>new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(n);
@@ -39,6 +39,6 @@ await p.evaluate(()=>showPage('drinks'));await p.fill('#marginMin','55');await p
 await p.evaluate(()=>showPage('report'));const [dl]=await Promise.all([p.waitForEvent('download'),p.evaluate(()=>downloadReport())]);const txt=fs.readFileSync(await dl.path(),'utf8');
 ok('informe TXT descargable con ficha, tabla y datos pendientes',/Bar Atlántico/.test(txt)&&/Chupito de tequila/.test(txt)&&/Datos pendientes de verificar/.test(txt),txt.slice(0,80));
 // PDF
-await p.emulateMedia({media:'print'});await p.pdf({path:OUTPDF,format:'A4',printBackground:true,margin:{top:'14mm',bottom:'14mm',left:'12mm',right:'12mm'}});
+/* page.pdf solo existe en Chromium */if(require('./env').NAME==='chromium'){await p.emulateMedia({media:'print'});await p.pdf({path:OUTPDF,format:'A4',printBackground:true,margin:{top:'14mm',bottom:'14mm',left:'12mm',right:'12mm'}});}
 ok('sin errores de JavaScript en todo el recorrido',p.errs.length===0,p.errs);
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message);process.exit(1)});

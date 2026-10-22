@@ -1,5 +1,5 @@
 // Interfaz en móvil: emulación de teléfono (390 px, táctil) y solo toques; sin llamar a funciones de la app.
-const {chromium,devices}=require('playwright');const path=require('path');const TMP=path.join(__dirname,'tmp')+path.sep;require('fs').mkdirSync(TMP,{recursive:true});const fs=require('fs');const [,,F,J]=process.argv;const APP_URL=/^https?:/.test(F)?F:'file://'+F;const T=[];
+const {chromium,devices}=require('./env');const path=require('path');const TMP=path.join(__dirname,'tmp')+path.sep;require('fs').mkdirSync(TMP,{recursive:true});const fs=require('fs');const [,,F,J]=process.argv;const APP_URL=/^https?:/.test(F)?F:'file://'+F;const T=[];
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const canon=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort()):v);
 const PHONE={...devices['iPhone 13'],acceptDownloads:true,reducedMotion:'reduce'};

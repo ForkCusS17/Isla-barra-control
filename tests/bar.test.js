@@ -1,6 +1,6 @@
 // «Mi barra»: taxonomía, secciones, alta rápida, pegar una lista, plantillas y migración.
 // Emulación de móvil (390 y 360 px) y solo toques; no se llaman funciones de la app.
-const {chromium,devices}=require('playwright');const path=require('path');const fs=require('fs');const TMP=path.join(__dirname,'tmp')+path.sep;fs.mkdirSync(TMP,{recursive:true});const [,,F,J]=process.argv;const APP_URL=/^https?:/.test(F)?F:'file://'+F;const T=[];
+const {chromium,devices}=require('./env');const path=require('path');const fs=require('fs');const TMP=path.join(__dirname,'tmp')+path.sep;fs.mkdirSync(TMP,{recursive:true});const [,,F,J]=process.argv;const APP_URL=/^https?:/.test(F)?F:'file://'+F;const T=[];
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const PHONE={...devices['iPhone 13'],acceptDownloads:true,reducedMotion:'reduce'},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}};
 (async()=>{const b=await chromium.launch();const pages=[];

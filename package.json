@@ -5,8 +5,14 @@
   "description": "Isla & Barra Control: herramienta privada de consultoría para hostelería (un único HTML)",
   "scripts": {
     "test": "node tools/stamp.js --check && node tests/run_all.js",
+    "test:parallel": "node tools/stamp.js --check && node tests/run_all.js --parallel",
+    "test:firefox": "BROWSER=firefox node tests/run_all.js",
+    "test:webkit": "BROWSER=webkit node tests/run_all.js",
     "stamp": "node tools/stamp.js",
     "demo": "python3 tools/make_demo.py"
   },
-  "devDependencies": { "playwright": "^1.56.0" }
+  "devDependencies": {
+    "axe-core": "4.10.2",
+    "playwright": "^1.56.0"
+  }
 }

@@ -15,22 +15,56 @@ VERSION = 1
 UNITS = ['ml', 'g', 'unidad', 'dash', 'gota', 'cucharada', 'rellenar', 'al_gusto']
 NO_QTY = {'rellenar', 'al_gusto'}  # sin cantidad fija: la pone el ajuste o no tiene coste
 
-# Tipos de ingrediente: id → nombre
+# Tipos de ingrediente: id, nombre, categoría y subcategoría de «Mi barra», unidad base, formato por defecto
+# (para crear el producto si no está en la barra) y palabras clave para proponer los productos del usuario.
+D, V, R, F, S, CI, O = 'Destilados', 'Vinos', 'Refrescos y mixers', 'Frutas, hierbas y zumos', 'Siropes y azúcares', 'Café e infusiones', 'Otros'
 TYPES = [
-    ('ron-blanco', 'Ron blanco'), ('ron-anejo', 'Ron añejo'), ('cachaca', 'Cachaça'), ('ginebra', 'Ginebra'),
-    ('vodka', 'Vodka'), ('tequila', 'Tequila'), ('whisky', 'Whisky'), ('brandy', 'Brandy'), ('pisco', 'Pisco'),
-    ('vermut-rojo', 'Vermut rojo'), ('vermut-seco', 'Vermut seco'), ('licor-naranja', 'Licor de naranja'),
-    ('bitter-rojo', 'Bitter rojo'), ('aperitivo-naranja', 'Aperitivo de naranja'), ('licor-cafe', 'Licor de café'),
-    ('amargo-aromatico', 'Amargo aromático'), ('zumo-lima', 'Zumo de lima'), ('zumo-limon', 'Zumo de limón'),
-    ('zumo-naranja', 'Zumo de naranja'), ('zumo-pina', 'Zumo de piña'), ('zumo-tomate', 'Zumo de tomate'),
-    ('zumo-arandano', 'Zumo de arándano'), ('pure-melocoton', 'Puré de melocotón'), ('lima', 'Lima'),
-    ('sirope-simple', 'Sirope simple'), ('sirope-almendra', 'Sirope de almendra'), ('granadina', 'Granadina'),
-    ('crema-coco', 'Crema de coco'), ('azucar', 'Azúcar'), ('soda', 'Soda'), ('tonica', 'Tónica'),
-    ('ginger-beer', 'Ginger beer'), ('cola', 'Refresco de cola'), ('refresco-pomelo', 'Refresco de pomelo'),
-    ('espumoso', 'Vino espumoso'), ('cafe', 'Café'), ('nata', 'Nata'), ('huevo', 'Huevo (clara)'),
-    ('hierbabuena', 'Hierbabuena'), ('salsa-inglesa', 'Salsa inglesa'), ('salsa-picante', 'Salsa picante'),
-    ('sal-pimienta', 'Sal y pimienta'), ('hielo', 'Hielo'), ('guarnicion', 'Guarnición'),
+    ('ron-blanco', 'Ron blanco', D, 'Rones', 'ml', '70 cl', 'ron blanco, blanco, carta blanca, plata, silver'),
+    ('ron-anejo', 'Ron añejo', D, 'Rones', 'ml', '70 cl', 'añejo, anejo, oscuro, dorado, reserva, años, gold'),
+    ('cachaca', 'Cachaça', D, 'Rones', 'ml', '70 cl', 'cachaça, cachaca'),
+    ('ginebra', 'Ginebra', D, 'Ginebras', 'ml', '70 cl', 'ginebra, gin'),
+    ('vodka', 'Vodka', D, 'Vodkas', 'ml', '70 cl', 'vodka'),
+    ('tequila', 'Tequila', D, 'Tequilas y mezcales', 'ml', '70 cl', 'tequila, blanco'),
+    ('whisky', 'Whisky', D, 'Whiskys', 'ml', '70 cl', 'whisky, whiskey, bourbon, rye, centeno'),
+    ('brandy', 'Brandy', D, 'Brandis', 'ml', '70 cl', 'brandy, brandi, coñac, cognac'),
+    ('pisco', 'Pisco', D, 'Brandis', 'ml', '70 cl', 'pisco'),
+    ('vermut-rojo', 'Vermut rojo', V, 'Vermuts y generosos', 'ml', '1 L', 'vermut rojo, rojo, rosso, dulce'),
+    ('vermut-seco', 'Vermut seco', V, 'Vermuts y generosos', 'ml', '1 L', 'vermut seco, seco, dry, extra dry'),
+    ('licor-naranja', 'Licor de naranja', D, 'Licores y amargos', 'ml', '70 cl', 'naranja, triple seco, triple sec, curaçao, curacao'),
+    ('bitter-rojo', 'Bitter rojo', D, 'Licores y amargos', 'ml', '70 cl', 'bitter, aperitivo rojo'),
+    ('aperitivo-naranja', 'Aperitivo de naranja', D, 'Licores y amargos', 'ml', '70 cl', 'aperitivo, spritz, naranja amarga'),
+    ('licor-cafe', 'Licor de café', D, 'Licores y amargos', 'ml', '70 cl', 'licor de café, café, cafe'),
+    ('amargo-aromatico', 'Amargo aromático', D, 'Licores y amargos', 'ml', '20 cl', 'amargo, aromático, aromatico, bitters'),
+    ('zumo-lima', 'Zumo de lima', F, 'Zumos', 'ml', '1 L', 'lima'),
+    ('zumo-limon', 'Zumo de limón', F, 'Zumos', 'ml', '1 L', 'limón, limon'),
+    ('zumo-naranja', 'Zumo de naranja', F, 'Zumos', 'ml', '1 L', 'naranja'),
+    ('zumo-pina', 'Zumo de piña', F, 'Zumos', 'ml', '1 L', 'piña, pina'),
+    ('zumo-tomate', 'Zumo de tomate', F, 'Zumos', 'ml', '1 L', 'tomate'),
+    ('zumo-arandano', 'Zumo de arándano', F, 'Zumos', 'ml', '1 L', 'arándano, arandano, cranberry'),
+    ('pure-melocoton', 'Puré de melocotón', F, 'Zumos', 'ml', '1 L', 'melocotón, melocoton'),
+    ('lima', 'Lima', F, 'Frutas', 'unit', 'Caja 12 uds', 'lima'),
+    ('sirope-simple', 'Sirope simple', S, 'Siropes', 'ml', '1 L', 'sirope, jarabe, simple, azúcar líquido'),
+    ('sirope-almendra', 'Sirope de almendra', S, 'Siropes', 'ml', '70 cl', 'almendra, orgeat'),
+    ('granadina', 'Granadina', S, 'Siropes', 'ml', '70 cl', 'granadina'),
+    ('crema-coco', 'Crema de coco', S, 'Siropes', 'ml', '1 L', 'coco'),
+    ('azucar', 'Azúcar', S, 'Azúcares', 'g', '1 kg', 'azúcar, azucar'),
+    ('soda', 'Soda', R, 'Aguas', 'ml', 'Caja 24 × 20 cl', 'soda, con gas, agua con gas'),
+    ('tonica', 'Tónica', R, 'Tónicas', 'ml', 'Caja 24 × 20 cl', 'tónica, tonica'),
+    ('ginger-beer', 'Ginger beer', R, 'Refrescos', 'ml', 'Caja 24 × 20 cl', 'ginger beer, jengibre'),
+    ('cola', 'Refresco de cola', R, 'Refrescos', 'ml', 'Caja 24 × 20 cl', 'cola'),
+    ('refresco-pomelo', 'Refresco de pomelo', R, 'Refrescos', 'ml', 'Caja 24 × 20 cl', 'pomelo'),
+    ('espumoso', 'Vino espumoso', V, 'Espumosos', 'ml', '75 cl', 'espumoso, cava, prosecco, brut'),
+    ('cafe', 'Café', CI, 'Café', 'g', '1 kg', 'café, cafe, espresso'),
+    ('nata', 'Nata', O, 'Lácteos', 'ml', '1 L', 'nata'),
+    ('huevo', 'Huevo (clara)', O, 'Varios', 'unit', 'Docena 12 uds', 'huevo, clara'),
+    ('hierbabuena', 'Hierbabuena', F, 'Hierbas', 'g', '100 g', 'hierbabuena, menta'),
+    ('salsa-inglesa', 'Salsa inglesa', O, 'Varios', 'ml', '150 ml', 'salsa inglesa, inglesa'),
+    ('salsa-picante', 'Salsa picante', O, 'Varios', 'ml', '60 ml', 'picante'),
+    ('sal-pimienta', 'Sal y pimienta', O, 'Varios', 'g', '1 kg', 'sal, pimienta'),
+    ('hielo', 'Hielo', O, 'Hielo', 'g', '2 kg', 'hielo'),
+    ('guarnicion', 'Guarnición', O, 'Guarniciones', 'unit', '1 ud', 'guarnición, guarnicion, piel, rodaja, cereza, aceituna'),
 ]
+TYPE_UNITS = {'ml': {'ml', 'dash', 'gota', 'cucharada', 'rellenar', 'al_gusto'}, 'g': {'g', 'al_gusto'}, 'unit': {'unidad', 'al_gusto'}}
 
 def c(tipo, cantidad, unidad='ml', opcional=False, nota=''):
     return {'tipo': tipo, 'cantidad': cantidad, 'unidad': unidad, 'opcional': opcional, 'nota': nota}
@@ -107,6 +141,7 @@ NOTE = ('Recetas clásicas con medidas orientativas: cada barra puede servirlas 
 
 def build():
     type_ids = [t[0] for t in TYPES]
+    unit_of = {t[0]: t[4] for t in TYPES}
     assert len(set(type_ids)) == len(type_ids), 'tipos repetidos'
     ids = [x[0] for x in COCKTAILS]
     assert len(set(ids)) == len(ids), 'cócteles repetidos'
@@ -115,10 +150,12 @@ def build():
         for k in comps:
             assert k['tipo'] in type_ids, (cid, k['tipo'])
             assert k['unidad'] in UNITS, (cid, k['unidad'])
+            assert k['unidad'] in TYPE_UNITS[unit_of[k['tipo']]], ('unidad incompatible con el tipo', cid, k)
             if k['unidad'] in NO_QTY: assert k['cantidad'] is None, (cid, k)
             else: assert isinstance(k['cantidad'], (int, float)) and k['cantidad'] > 0, (cid, k)
     lib = {'version': VERSION, 'nota': NOTE, 'unidades': UNITS,
-           'tipos': [{'id': i, 'nombre': n} for i, n in TYPES],
+           'tipos': [{'id': i, 'nombre': n, 'categoria': cat, 'subcategoria': sub, 'unidad': u, 'formato': f, 'palabras': [w.strip() for w in kw.split(',') if w.strip()]}
+                     for i, n, cat, sub, u, f, kw in TYPES],
            'cocteles': [{'id': i, 'nombre': n, 'base': b, 'componentes': comps, 'metodo': m, 'version': VERSION, 'revisada': False}
                         for i, n, b, comps, m in COCKTAILS]}
     return lib

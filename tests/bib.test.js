@@ -35,6 +35,16 @@ ok('cada componente usa un tipo de ingrediente definido y los tipos no se repite
 ok('familias por base: ron, ginebra, vodka, whisky, tequila, brandy, espumoso, sin alcohol…',['ron','ginebra','vodka','whisky','tequila','brandy','espumoso','sin alcohol'].every(b=>L.cocteles.some(c=>c.base===b)),[...new Set(L.cocteles.map(c=>c.base))]);
 ok('sin textos de «oficial» ni de organismos externos, y con nota de medidas orientativas',!/oficial|\bIBA\b/i.test(JSON.stringify(L))&&/orientativas/.test(L.nota),null);
 
+// ── 2. Tipos de ingrediente ──────────────────────────────────────────────────
+{const tax=await p0.evaluate(()=>data.settings.taxonomy);
+ok('todos los tipos tienen una subcategoría que existe en «Mi barra»',L.tipos.every(t=>{const c=tax.find(x=>x.name===t.categoria);return c&&c.subs.some(s=>s.name===t.subcategoria)}),L.tipos.filter(t=>{const c=tax.find(x=>x.name===t.categoria);return !(c&&c.subs.some(s=>s.name===t.subcategoria))}).map(t=>t.id));
+ok('cada tipo tiene unidad base (ml, g o unidad) y palabras clave',L.tipos.every(t=>['ml','g','unit'].includes(t.unidad)&&Array.isArray(t.palabras)&&t.palabras.length>0),null);
+const fmts=await p0.evaluate(T=>T.map(t=>{const f=parseFormat(t.formato);return[t.id,f&&f.unit===t.unidad]}),L.tipos);
+ok('el formato por defecto de cada tipo se reconoce y está en su misma unidad',fmts.every(x=>x[1]),fmts.filter(x=>!x[1]));
+const U={ml:['ml','dash','gota','cucharada','rellenar','al_gusto'],g:['g','al_gusto'],unit:['unidad','al_gusto']};
+ok('las unidades de cada componente son compatibles con la unidad base de su tipo',comps.every(k=>U[L.tipos.find(t=>t.id===k.tipo).unidad].includes(k.unidad)),comps.filter(k=>!U[L.tipos.find(t=>t.id===k.tipo).unidad].includes(k.unidad)));
+ok('los rones blanco y añejo comparten la sección Rones (se proponen los mismos productos para elegir)',L.tipos.find(t=>t.id==='ron-blanco').subcategoria==='Rones'&&L.tipos.find(t=>t.id==='ron-anejo').subcategoria==='Rones',null)}
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO biblioteca: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

@@ -14,179 +14,553 @@
  "tipos": [
   {
    "id": "ron-blanco",
-   "nombre": "Ron blanco"
+   "nombre": "Ron blanco",
+   "categoria": "Destilados",
+   "subcategoria": "Rones",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "ron blanco",
+    "blanco",
+    "carta blanca",
+    "plata",
+    "silver"
+   ]
   },
   {
    "id": "ron-anejo",
-   "nombre": "Ron añejo"
+   "nombre": "Ron añejo",
+   "categoria": "Destilados",
+   "subcategoria": "Rones",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "añejo",
+    "anejo",
+    "oscuro",
+    "dorado",
+    "reserva",
+    "años",
+    "gold"
+   ]
   },
   {
    "id": "cachaca",
-   "nombre": "Cachaça"
+   "nombre": "Cachaça",
+   "categoria": "Destilados",
+   "subcategoria": "Rones",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "cachaça",
+    "cachaca"
+   ]
   },
   {
    "id": "ginebra",
-   "nombre": "Ginebra"
+   "nombre": "Ginebra",
+   "categoria": "Destilados",
+   "subcategoria": "Ginebras",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "ginebra",
+    "gin"
+   ]
   },
   {
    "id": "vodka",
-   "nombre": "Vodka"
+   "nombre": "Vodka",
+   "categoria": "Destilados",
+   "subcategoria": "Vodkas",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "vodka"
+   ]
   },
   {
    "id": "tequila",
-   "nombre": "Tequila"
+   "nombre": "Tequila",
+   "categoria": "Destilados",
+   "subcategoria": "Tequilas y mezcales",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "tequila",
+    "blanco"
+   ]
   },
   {
    "id": "whisky",
-   "nombre": "Whisky"
+   "nombre": "Whisky",
+   "categoria": "Destilados",
+   "subcategoria": "Whiskys",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "whisky",
+    "whiskey",
+    "bourbon",
+    "rye",
+    "centeno"
+   ]
   },
   {
    "id": "brandy",
-   "nombre": "Brandy"
+   "nombre": "Brandy",
+   "categoria": "Destilados",
+   "subcategoria": "Brandis",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "brandy",
+    "brandi",
+    "coñac",
+    "cognac"
+   ]
   },
   {
    "id": "pisco",
-   "nombre": "Pisco"
+   "nombre": "Pisco",
+   "categoria": "Destilados",
+   "subcategoria": "Brandis",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "pisco"
+   ]
   },
   {
    "id": "vermut-rojo",
-   "nombre": "Vermut rojo"
+   "nombre": "Vermut rojo",
+   "categoria": "Vinos",
+   "subcategoria": "Vermuts y generosos",
+   "unidad": "ml",
+   "formato": "1 L",
+   "palabras": [
+    "vermut rojo",
+    "rojo",
+    "rosso",
+    "dulce"
+   ]
   },
   {
    "id": "vermut-seco",
-   "nombre": "Vermut seco"
+   "nombre": "Vermut seco",
+   "categoria": "Vinos",
+   "subcategoria": "Vermuts y generosos",
+   "unidad": "ml",
+   "formato": "1 L",
+   "palabras": [
+    "vermut seco",
+    "seco",
+    "dry",
+    "extra dry"
+   ]
   },
   {
    "id": "licor-naranja",
-   "nombre": "Licor de naranja"
+   "nombre": "Licor de naranja",
+   "categoria": "Destilados",
+   "subcategoria": "Licores y amargos",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "naranja",
+    "triple seco",
+    "triple sec",
+    "curaçao",
+    "curacao"
+   ]
   },
   {
    "id": "bitter-rojo",
-   "nombre": "Bitter rojo"
+   "nombre": "Bitter rojo",
+   "categoria": "Destilados",
+   "subcategoria": "Licores y amargos",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "bitter",
+    "aperitivo rojo"
+   ]
   },
   {
    "id": "aperitivo-naranja",
-   "nombre": "Aperitivo de naranja"
+   "nombre": "Aperitivo de naranja",
+   "categoria": "Destilados",
+   "subcategoria": "Licores y amargos",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "aperitivo",
+    "spritz",
+    "naranja amarga"
+   ]
   },
   {
    "id": "licor-cafe",
-   "nombre": "Licor de café"
+   "nombre": "Licor de café",
+   "categoria": "Destilados",
+   "subcategoria": "Licores y amargos",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "licor de café",
+    "café",
+    "cafe"
+   ]
   },
   {
    "id": "amargo-aromatico",
-   "nombre": "Amargo aromático"
+   "nombre": "Amargo aromático",
+   "categoria": "Destilados",
+   "subcategoria": "Licores y amargos",
+   "unidad": "ml",
+   "formato": "20 cl",
+   "palabras": [
+    "amargo",
+    "aromático",
+    "aromatico",
+    "bitters"
+   ]
   },
   {
    "id": "zumo-lima",
-   "nombre": "Zumo de lima"
+   "nombre": "Zumo de lima",
+   "categoria": "Frutas, hierbas y zumos",
+   "subcategoria": "Zumos",
+   "unidad": "ml",
+   "formato": "1 L",
+   "palabras": [
+    "lima"
+   ]
   },
   {
    "id": "zumo-limon",
-   "nombre": "Zumo de limón"
+   "nombre": "Zumo de limón",
+   "categoria": "Frutas, hierbas y zumos",
+   "subcategoria": "Zumos",
+   "unidad": "ml",
+   "formato": "1 L",
+   "palabras": [
+    "limón",
+    "limon"
+   ]
   },
   {
    "id": "zumo-naranja",
-   "nombre": "Zumo de naranja"
+   "nombre": "Zumo de naranja",
+   "categoria": "Frutas, hierbas y zumos",
+   "subcategoria": "Zumos",
+   "unidad": "ml",
+   "formato": "1 L",
+   "palabras": [
+    "naranja"
+   ]
   },
   {
    "id": "zumo-pina",
-   "nombre": "Zumo de piña"
+   "nombre": "Zumo de piña",
+   "categoria": "Frutas, hierbas y zumos",
+   "subcategoria": "Zumos",
+   "unidad": "ml",
+   "formato": "1 L",
+   "palabras": [
+    "piña",
+    "pina"
+   ]
   },
   {
    "id": "zumo-tomate",
-   "nombre": "Zumo de tomate"
+   "nombre": "Zumo de tomate",
+   "categoria": "Frutas, hierbas y zumos",
+   "subcategoria": "Zumos",
+   "unidad": "ml",
+   "formato": "1 L",
+   "palabras": [
+    "tomate"
+   ]
   },
   {
    "id": "zumo-arandano",
-   "nombre": "Zumo de arándano"
+   "nombre": "Zumo de arándano",
+   "categoria": "Frutas, hierbas y zumos",
+   "subcategoria": "Zumos",
+   "unidad": "ml",
+   "formato": "1 L",
+   "palabras": [
+    "arándano",
+    "arandano",
+    "cranberry"
+   ]
   },
   {
    "id": "pure-melocoton",
-   "nombre": "Puré de melocotón"
+   "nombre": "Puré de melocotón",
+   "categoria": "Frutas, hierbas y zumos",
+   "subcategoria": "Zumos",
+   "unidad": "ml",
+   "formato": "1 L",
+   "palabras": [
+    "melocotón",
+    "melocoton"
+   ]
   },
   {
    "id": "lima",
-   "nombre": "Lima"
+   "nombre": "Lima",
+   "categoria": "Frutas, hierbas y zumos",
+   "subcategoria": "Frutas",
+   "unidad": "unit",
+   "formato": "Caja 12 uds",
+   "palabras": [
+    "lima"
+   ]
   },
   {
    "id": "sirope-simple",
-   "nombre": "Sirope simple"
+   "nombre": "Sirope simple",
+   "categoria": "Siropes y azúcares",
+   "subcategoria": "Siropes",
+   "unidad": "ml",
+   "formato": "1 L",
+   "palabras": [
+    "sirope",
+    "jarabe",
+    "simple",
+    "azúcar líquido"
+   ]
   },
   {
    "id": "sirope-almendra",
-   "nombre": "Sirope de almendra"
+   "nombre": "Sirope de almendra",
+   "categoria": "Siropes y azúcares",
+   "subcategoria": "Siropes",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "almendra",
+    "orgeat"
+   ]
   },
   {
    "id": "granadina",
-   "nombre": "Granadina"
+   "nombre": "Granadina",
+   "categoria": "Siropes y azúcares",
+   "subcategoria": "Siropes",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "granadina"
+   ]
   },
   {
    "id": "crema-coco",
-   "nombre": "Crema de coco"
+   "nombre": "Crema de coco",
+   "categoria": "Siropes y azúcares",
+   "subcategoria": "Siropes",
+   "unidad": "ml",
+   "formato": "1 L",
+   "palabras": [
+    "coco"
+   ]
   },
   {
    "id": "azucar",
-   "nombre": "Azúcar"
+   "nombre": "Azúcar",
+   "categoria": "Siropes y azúcares",
+   "subcategoria": "Azúcares",
+   "unidad": "g",
+   "formato": "1 kg",
+   "palabras": [
+    "azúcar",
+    "azucar"
+   ]
   },
   {
    "id": "soda",
-   "nombre": "Soda"
+   "nombre": "Soda",
+   "categoria": "Refrescos y mixers",
+   "subcategoria": "Aguas",
+   "unidad": "ml",
+   "formato": "Caja 24 × 20 cl",
+   "palabras": [
+    "soda",
+    "con gas",
+    "agua con gas"
+   ]
   },
   {
    "id": "tonica",
-   "nombre": "Tónica"
+   "nombre": "Tónica",
+   "categoria": "Refrescos y mixers",
+   "subcategoria": "Tónicas",
+   "unidad": "ml",
+   "formato": "Caja 24 × 20 cl",
+   "palabras": [
+    "tónica",
+    "tonica"
+   ]
   },
   {
    "id": "ginger-beer",
-   "nombre": "Ginger beer"
+   "nombre": "Ginger beer",
+   "categoria": "Refrescos y mixers",
+   "subcategoria": "Refrescos",
+   "unidad": "ml",
+   "formato": "Caja 24 × 20 cl",
+   "palabras": [
+    "ginger beer",
+    "jengibre"
+   ]
   },
   {
    "id": "cola",
-   "nombre": "Refresco de cola"
+   "nombre": "Refresco de cola",
+   "categoria": "Refrescos y mixers",
+   "subcategoria": "Refrescos",
+   "unidad": "ml",
+   "formato": "Caja 24 × 20 cl",
+   "palabras": [
+    "cola"
+   ]
   },
   {
    "id": "refresco-pomelo",
-   "nombre": "Refresco de pomelo"
+   "nombre": "Refresco de pomelo",
+   "categoria": "Refrescos y mixers",
+   "subcategoria": "Refrescos",
+   "unidad": "ml",
+   "formato": "Caja 24 × 20 cl",
+   "palabras": [
+    "pomelo"
+   ]
   },
   {
    "id": "espumoso",
-   "nombre": "Vino espumoso"
+   "nombre": "Vino espumoso",
+   "categoria": "Vinos",
+   "subcategoria": "Espumosos",
+   "unidad": "ml",
+   "formato": "75 cl",
+   "palabras": [
+    "espumoso",
+    "cava",
+    "prosecco",
+    "brut"
+   ]
   },
   {
    "id": "cafe",
-   "nombre": "Café"
+   "nombre": "Café",
+   "categoria": "Café e infusiones",
+   "subcategoria": "Café",
+   "unidad": "g",
+   "formato": "1 kg",
+   "palabras": [
+    "café",
+    "cafe",
+    "espresso"
+   ]
   },
   {
    "id": "nata",
-   "nombre": "Nata"
+   "nombre": "Nata",
+   "categoria": "Otros",
+   "subcategoria": "Lácteos",
+   "unidad": "ml",
+   "formato": "1 L",
+   "palabras": [
+    "nata"
+   ]
   },
   {
    "id": "huevo",
-   "nombre": "Huevo (clara)"
+   "nombre": "Huevo (clara)",
+   "categoria": "Otros",
+   "subcategoria": "Varios",
+   "unidad": "unit",
+   "formato": "Docena 12 uds",
+   "palabras": [
+    "huevo",
+    "clara"
+   ]
   },
   {
    "id": "hierbabuena",
-   "nombre": "Hierbabuena"
+   "nombre": "Hierbabuena",
+   "categoria": "Frutas, hierbas y zumos",
+   "subcategoria": "Hierbas",
+   "unidad": "g",
+   "formato": "100 g",
+   "palabras": [
+    "hierbabuena",
+    "menta"
+   ]
   },
   {
    "id": "salsa-inglesa",
-   "nombre": "Salsa inglesa"
+   "nombre": "Salsa inglesa",
+   "categoria": "Otros",
+   "subcategoria": "Varios",
+   "unidad": "ml",
+   "formato": "150 ml",
+   "palabras": [
+    "salsa inglesa",
+    "inglesa"
+   ]
   },
   {
    "id": "salsa-picante",
-   "nombre": "Salsa picante"
+   "nombre": "Salsa picante",
+   "categoria": "Otros",
+   "subcategoria": "Varios",
+   "unidad": "ml",
+   "formato": "60 ml",
+   "palabras": [
+    "picante"
+   ]
   },
   {
    "id": "sal-pimienta",
-   "nombre": "Sal y pimienta"
+   "nombre": "Sal y pimienta",
+   "categoria": "Otros",
+   "subcategoria": "Varios",
+   "unidad": "g",
+   "formato": "1 kg",
+   "palabras": [
+    "sal",
+    "pimienta"
+   ]
   },
   {
    "id": "hielo",
-   "nombre": "Hielo"
+   "nombre": "Hielo",
+   "categoria": "Otros",
+   "subcategoria": "Hielo",
+   "unidad": "g",
+   "formato": "2 kg",
+   "palabras": [
+    "hielo"
+   ]
   },
   {
    "id": "guarnicion",
-   "nombre": "Guarnición"
+   "nombre": "Guarnición",
+   "categoria": "Otros",
+   "subcategoria": "Guarniciones",
+   "unidad": "unit",
+   "formato": "1 ud",
+   "palabras": [
+    "guarnición",
+    "guarnicion",
+    "piel",
+    "rodaja",
+    "cereza",
+    "aceituna"
+   ]
   }
  ],
  "cocteles": [

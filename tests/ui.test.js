@@ -45,6 +45,7 @@ await nav('Bebidas');ok('toque › Bebidas: pantalla visible y sin desbordamient
 await u.fill('#dName','Mojito');await u.fill('#dPrice','9');await tap(u,'#drinkForm .more-toggle');await u.fill('#dOtherCost','1.10');await tap(u,'#drinkForm button:has-text("+ Añadir ingrediente")');
 await u.locator('#recipeLines select').selectOption({index:1});await u.fill('#recipeLines input[type=number]','50');await tap(u,'#drinkForm button:has-text("Guardar bebida")');
 const dr=(await D()).drinks;ok('Bebidas: «+ Añadir ingrediente» y «Guardar bebida» guardan el mojito (50 ml de ron) y el margen sale en la lista',dr.length===1&&dr[0].name==='Mojito'&&dr[0].recipeItems.length===1&&dr[0].recipeItems[0].qty===50&&/76,67\s*%/.test(await u.locator('#drinkList').innerText()),[dr,await u.locator('#drinkList').innerText()]);
+await tap(u,'#libOpen');ok('toque › Bebidas › Añadir desde la biblioteca: pantalla visible y sin desbordamiento',await shown('library'),null);await tap(u,'#libBack');
 await nav('Stock');ok('toque › Stock: pantalla visible y sin desbordamiento',await shown('stock'),null);
 for(const [k,x] of Object.entries({sProduct:'Ron blanco',sStart:'2026-10-07',sEnd:'2026-10-13',sOpening:'7000',sPurchases:'2800',sClosing:'3500',sSalesUse:'5000',sTastings:'800'}))await u.fill('#'+k,x);
 await tap(u,'#stockForm button:has-text("Calcular y guardar control")');

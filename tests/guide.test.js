@@ -190,16 +190,9 @@ ok('catálogo inicial: añade 17 ingredientes habituales sin precio y editables'
 ok('el catálogo sin precios no cuenta como «ingredientes con precio» en la guía',(await D(s7)).ingredients.filter(i=>i.packPrice>0).length===1,null);
 await tap(s7,'#starterAdd');ok('volver a añadirlo no duplica nada',(await D(s7)).ingredients.length===18,null);
 await nav(s7,'Bebidas');
-ok('recetas sugeridas presentadas como sugerencias, no como recetas universales',/no recetas universales/.test(await text(s7,'#suggestNote'))&&(await s7.locator('#dSuggest option').allInnerTexts()).slice(1).every(t=>/\(sugerencia\)$/.test(t)),null);
-await s7.selectOption('#dSuggest',{label:'Mojito (sugerencia)'});
-const lines7=await s7.locator('#recipeLines .item').count();
-ok('elegir «Mojito (sugerencia)» rellena nombre y 6 ingredientes con cantidades, sin precio de venta y sin guardar',(await s7.inputValue('#dName'))==='Mojito'&&lines7===6&&(await s7.inputValue('#dPrice'))===''&&(await D(s7)).drinks.length===0&&/cantidades de partida/.test(await text(s7,'#suggestNote')),{lines7});
-let s8=await mk();await tap(s8,'#wStart');await nav(s8,'Ingredientes');await s8.fill('#iName','Ron blanco');await s8.fill('#iPackQty','700');await s8.fill('#iPackPrice','14');await tap(s8,'#ingredientForm button:has-text("Guardar ingrediente")');
-await nav(s8,'Bebidas');await s8.selectOption('#dSuggest',{label:'Cuba libre (sugerencia)'});
-ok('si faltan ingredientes, la sugerencia usa los que hay y dice cuáles faltan',(await s8.locator('#recipeLines .item').count())===1&&/No están en tu catálogo: Refresco de cola, Hielo/.test(await text(s8,'#suggestNote')),await text(s8,'#suggestNote'));
-await s8.fill('#dPrice','8');await tap(s8,'#drinkForm button:has-text("Guardar bebida")');
-ok('la bebida creada desde la sugerencia se guarda como cualquier otra (editable)',(d=>d&&d.name==='Cuba libre'&&d.recipeItems.length===1&&d.recipeItems[0].qty===50)((await D(s8)).drinks[0]),(await D(s8)).drinks[0]);
-ok('tras guardar vuelve la nota general de sugerencias',/no recetas universales/.test(await text(s8,'#suggestNote')),null);
+// las recetas sugeridas del encargo anterior las sustituye la biblioteca de cócteles (bib.test.js)
+ok('el formulario de bebida ya no ofrece recetas sugeridas y lleva a la biblioteca de cócteles',(await s7.locator('#dSuggest').count())===0&&(await seen(s7,'#libFromForm')),null);
+await tap(s7,'#libFromForm');ok('«Añadir desde la biblioteca de cócteles» abre la biblioteca',await seen(s7,'#page-library'),null);
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const q=await mk(dev);await tap(q,'#wStart');await nav(q,'Ingredientes');ok(`Ingredientes con formatos rápidos y arranque rápido sin desbordamiento a ${wd} px`,await noOverflow(q),await wide(q));await nav(q,'Bebidas');ok(`Bebidas con recetas sugeridas sin desbordamiento a ${wd} px`,await noOverflow(q),await wide(q))}
 
 // ── 8. Marca personalizable ──────────────────────────────────────────────────

@@ -19,8 +19,8 @@ NO_QTY = {'rellenar', 'al_gusto'}  # sin cantidad fija: la pone el ajuste o no t
 # (para crear el producto si no está en la barra) y palabras clave para proponer los productos del usuario.
 D, V, R, F, S, CI, O = 'Destilados', 'Vinos', 'Refrescos y mixers', 'Frutas, hierbas y zumos', 'Siropes y azúcares', 'Café e infusiones', 'Otros'
 TYPES = [
-    ('ron-blanco', 'Ron blanco', D, 'Rones', 'ml', '70 cl', 'ron blanco, blanco, carta blanca, plata, silver'),
-    ('ron-anejo', 'Ron añejo', D, 'Rones', 'ml', '70 cl', 'añejo, anejo, oscuro, dorado, reserva, años, gold'),
+    ('ron-blanco', 'Ron blanco', D, 'Rones', 'ml', '70 cl', 'ron blanco, blanco, carta blanca, plata, silver, ron'),
+    ('ron-anejo', 'Ron añejo', D, 'Rones', 'ml', '70 cl', 'añejo, anejo, oscuro, dorado, reserva, años, gold, ron'),
     ('cachaca', 'Cachaça', D, 'Rones', 'ml', '70 cl', 'cachaça, cachaca'),
     ('ginebra', 'Ginebra', D, 'Ginebras', 'ml', '70 cl', 'ginebra, gin'),
     ('vodka', 'Vodka', D, 'Vodkas', 'ml', '70 cl', 'vodka'),
@@ -28,8 +28,8 @@ TYPES = [
     ('whisky', 'Whisky', D, 'Whiskys', 'ml', '70 cl', 'whisky, whiskey, bourbon, rye, centeno'),
     ('brandy', 'Brandy', D, 'Brandis', 'ml', '70 cl', 'brandy, brandi, coñac, cognac'),
     ('pisco', 'Pisco', D, 'Brandis', 'ml', '70 cl', 'pisco'),
-    ('vermut-rojo', 'Vermut rojo', V, 'Vermuts y generosos', 'ml', '1 L', 'vermut rojo, rojo, rosso, dulce'),
-    ('vermut-seco', 'Vermut seco', V, 'Vermuts y generosos', 'ml', '1 L', 'vermut seco, seco, dry, extra dry'),
+    ('vermut-rojo', 'Vermut rojo', V, 'Vermuts y generosos', 'ml', '1 L', 'vermut rojo, rojo, rosso, dulce, vermut, vermouth'),
+    ('vermut-seco', 'Vermut seco', V, 'Vermuts y generosos', 'ml', '1 L', 'vermut seco, seco, dry, extra dry, vermut, vermouth'),
     ('licor-naranja', 'Licor de naranja', D, 'Licores y amargos', 'ml', '70 cl', 'naranja, triple seco, triple sec, curaçao, curacao'),
     ('bitter-rojo', 'Bitter rojo', D, 'Licores y amargos', 'ml', '70 cl', 'bitter, aperitivo rojo'),
     ('aperitivo-naranja', 'Aperitivo de naranja', D, 'Licores y amargos', 'ml', '70 cl', 'aperitivo, spritz, naranja amarga'),
@@ -43,7 +43,7 @@ TYPES = [
     ('zumo-arandano', 'Zumo de arándano', F, 'Zumos', 'ml', '1 L', 'arándano, arandano, cranberry'),
     ('pure-melocoton', 'Puré de melocotón', F, 'Zumos', 'ml', '1 L', 'melocotón, melocoton'),
     ('lima', 'Lima', F, 'Frutas', 'unit', 'Caja 12 uds', 'lima'),
-    ('sirope-simple', 'Sirope simple', S, 'Siropes', 'ml', '1 L', 'sirope, jarabe, simple, azúcar líquido'),
+    ('sirope-simple', 'Sirope simple', S, 'Siropes', 'ml', '1 L', 'sirope simple, simple, jarabe simple, sirope de azúcar, sirope de azucar, azúcar líquido'),
     ('sirope-almendra', 'Sirope de almendra', S, 'Siropes', 'ml', '70 cl', 'almendra, orgeat'),
     ('granadina', 'Granadina', S, 'Siropes', 'ml', '70 cl', 'granadina'),
     ('crema-coco', 'Crema de coco', S, 'Siropes', 'ml', '1 L', 'coco'),

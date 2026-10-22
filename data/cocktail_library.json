@@ -24,7 +24,8 @@
     "blanco",
     "carta blanca",
     "plata",
-    "silver"
+    "silver",
+    "ron"
    ]
   },
   {
@@ -41,7 +42,8 @@
     "dorado",
     "reserva",
     "años",
-    "gold"
+    "gold",
+    "ron"
    ]
   },
   {
@@ -142,7 +144,9 @@
     "vermut rojo",
     "rojo",
     "rosso",
-    "dulce"
+    "dulce",
+    "vermut",
+    "vermouth"
    ]
   },
   {
@@ -156,7 +160,9 @@
     "vermut seco",
     "seco",
     "dry",
-    "extra dry"
+    "extra dry",
+    "vermut",
+    "vermouth"
    ]
   },
   {
@@ -327,9 +333,11 @@
    "unidad": "ml",
    "formato": "1 L",
    "palabras": [
-    "sirope",
-    "jarabe",
+    "sirope simple",
     "simple",
+    "jarabe simple",
+    "sirope de azúcar",
+    "sirope de azucar",
     "azúcar líquido"
    ]
   },

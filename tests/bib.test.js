@@ -63,6 +63,72 @@ await u3.fill('#un_gota','0');await tap(u3,'#unitsSave');ok('una equivalencia de
 await tap(u3,'#unitsReset');ok('«Valores por defecto» las restablece',JSON.stringify((await D(u3)).settings.units)===JSON.stringify({dash:0.8,gota:0.05,cucharada:5,rellenar:100}),null);
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wDemo');await nav(z,'Ajustes');ok(`[${wd}] Ajustes con equivalencias sin desbordamiento`,await noOverflow(z),await wide(z))}
 
+const contrastFails=p=>p.evaluate(()=>{const rgb=s=>{const m=s.match(/[\d.]+/g)||[0,0,0,0];return m.map(Number)};const lum=([r,g,b])=>{const f=x=>{x/=255;return x<=0.03928?x/12.92:((x+0.055)/1.055)**2.4};return .2126*f(r)+.7152*f(g)+.0722*f(b)};
+ const bgOf=el=>{for(let e=el;e;e=e.parentElement){const c=rgb(getComputedStyle(e).backgroundColor);if((c[3]===undefined||c[3]>0.5))return c}return[255,255,255]};const bad=[];
+ document.querySelectorAll('body *').forEach(el=>{if(!el.offsetParent&&getComputedStyle(el).position!=='fixed')return;const own=[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim());if(!own)return;const cs=getComputedStyle(el);if(cs.visibility==='hidden'||Number(cs.opacity)<0.5)return;let op=1;for(let e=el;e;e=e.parentElement)op*=Number(getComputedStyle(e).opacity);if(op<0.95)return;const a=lum(rgb(cs.color)),b2=lum(bgOf(el)),r=(Math.max(a,b2)+.05)/(Math.min(a,b2)+.05);if(r<4.5)bad.push(el.tagName+'.'+el.className+' «'+el.textContent.trim().slice(0,30)+'» '+r.toFixed(2))});return bad});
+const cands=(p,tipo)=>p.evaluate(t=>libCandidates(t).map(i=>i.name),tipo);
+// ── 4. Añadir desde la biblioteca ────────────────────────────────────────────
+const quick=async(p,cat,sub,name,price,fmtLabel)=>{await nav(p,'Mi barra');await tap(p,`#barCats .cat-chip:has-text("${cat}")`);if(await p.locator(`.shelf[data-sub="${sub}"]`).getAttribute('open')===null)await tap(p,`#barSections .shelf[data-sub="${sub}"] summary`);await tap(p,`.shelf[data-sub="${sub}"] .add-to-shelf`);await p.locator('#qaName').pressSequentially(name);if(fmtLabel)await tap(p,`#qaForm .qa-fmt:has-text("${fmtLabel}")`);if(price)await p.locator('#qaPrice').pressSequentially(price);await tap(p,'#qaSave')};
+let f=await mk();await tap(f,'#wStart');await tap(f,'#tplSkip');
+await quick(f,'Destilados','Rones','Ron Carta Blanca','14');await quick(f,'Destilados','Rones','Ron Reserva 7 años','21');
+await nav(f,'Bebidas');await tap(f,'#libOpen');
+ok('Bebidas › «Añadir desde la biblioteca» abre la biblioteca con la nota de medidas orientativas',(await seen(f,'#page-library'))&&/orientativas/.test(await text(f,'#libNote'))&&/Ninguna es un estándar oficial/.test(await text(f,'#libNote')),await text(f,'#libNote'));
+const items=p=>p.locator('#libList .lib-item b').allInnerTexts();
+ok('lista de 30 cócteles con contador',(await items(f)).length===30&&/30 de 30 cócteles · 0 elegidos/.test(await text(f,'#libCount')),await text(f,'#libCount'));
+await f.locator('#libSearch').pressSequentially('mojito');ok('buscar «mojito»: Mojito y Mojito sin alcohol',(await items(f)).join('|')==='Mojito|Mojito sin alcohol',await items(f));
+await f.fill('#libSearch','');await f.locator('#libSearch').pressSequentially('tomate');ok('buscar por ingrediente («tomate» → Bloody Mary)',(await items(f)).join('|')==='Bloody Mary',await items(f));
+await f.fill('#libSearch','');await f.locator('#libSearch').press('Backspace');await tap(f,'#libBases .cat-chip[data-base="ron"]');
+ok('filtro por base «Ron»: 5 cócteles',(await items(f)).length===5&&(await items(f)).includes('Mai Tai'),await items(f));
+for(const c of ['mojito','daiquiri','mai-tai'])await tap(f,`label[for="lib_${c}"]`);
+ok('marcar 3 cócteles → «Revisar con mi barra (3)»',(await text(f,'#libNext'))==='Revisar con mi barra (3)',null);
+await tap(f,'#libNext');
+const group=t=>f.locator(`#lg_${t}`);
+const opts=async t=>group(t).locator('.lib-opt span').allInnerTexts();
+ok('revisar: un grupo por tipo de ingrediente (ron blanco aparece una vez para los 3 cócteles)',(await seen(f,'#libReviewTitle'))&&(await f.locator('#lg_ron-blanco').count())===1&&/En: Mojito, Daiquiri, Mai Tai/.test(await text(f,'#lg_ron-blanco')),await text(f,'#lg_ron-blanco'));
+ok('con dos rones en la barra pregunta cuál usar (ninguno marcado) y los propone por parecido',/Tienes varios: elige cuál usar/.test(await text(f,'#lg_ron-blanco'))&&(await group('ron-blanco').locator('input:checked').count())===0&&(await opts('ron-blanco'))[0].startsWith('Ron Carta Blanca')&&(await opts('ron-anejo'))[0].startsWith('Ron Reserva 7 años'),[await opts('ron-blanco'),await opts('ron-anejo')]);
+ok('ingrediente que no está en la barra: «No lo tengo» marcado (crear sin precio)',(await group('zumo-lima').locator('input[value="__new"]').isChecked())&&/No lo tengo: crear «Zumo de lima» en Mi barra/.test(await text(f,'#lg_zumo-lima')),null);
+await tap(f,'#libCreate');ok('sin elegir los rones no crea nada y dice qué falta',/Elige un producto para: Ron blanco, Ron añejo/.test(await text(f,'#toast'))&&(await D(f)).drinks.length===0,await text(f,'#toast'));
+await tap(f,'#lg_ron-blanco .lib-opt:has-text("Ron Carta Blanca")');await tap(f,'#lg_ron-anejo .lib-opt:has-text("Ron Reserva 7 años")');
+await f.locator('#lg_mojito').pressSequentially('0,20');
+ok('la guarnición es opcional y solo con coste si se indica',(await seen(f,'#lg_mojito'))&&(await seen(f,'#lg_daiquiri'))===false,null);
+await tap(f,'#libCreate');let d4=await D(f);
+const drink=n=>d4.drinks.find(x=>x.name===n),ingN=n=>d4.ingredients.find(i=>i.name===n),line=(dr,n)=>dr.recipeItems.find(l=>l.ingredientId===ingN(n).id);
+ok('crea 3 bebidas con su plantilla (templateId y templateVersion)',d4.drinks.length===3&&['Mojito','Daiquiri','Mai Tai'].every(n=>drink(n)&&drink(n).templateVersion===1)&&drink('Mai Tai').templateId==='mai-tai',d4.drinks.map(x=>x.name));
+ok('dos rones distintos: Mai Tai lleva 40 ml de Ron Reserva 7 años y 20 ml de Ron Carta Blanca',line(drink('Mai Tai'),'Ron Reserva 7 años').qty===40&&line(drink('Mai Tai'),'Ron Carta Blanca').qty===20&&line(drink('Mojito'),'Ron Carta Blanca').qty===50,null);
+ok('«No lo tengo» crea cada ingrediente una vez en Mi barra, «Sin precio» y en su sección',['Zumo de lima','Sirope simple','Hierbabuena','Soda','Licor de naranja','Sirope de almendra'].every(n=>d4.ingredients.filter(i=>i.name===n).length===1&&ingN(n).packPrice===0)&&ingN('Zumo de lima').subcategory==='Zumos'&&ingN('Hierbabuena').unit==='g'&&ingN('Soda').packQty===4800,d4.ingredients.map(i=>i.name+':'+i.packPrice));
+ok('medidas: rellenar con soda ≈ 100 ml; hierbabuena 8 g; hielo y guarnición sin coste',line(drink('Mojito'),'Soda').qty===100&&line(drink('Mojito'),'Hierbabuena').qty===8&&drink('Mojito').recipeItems.length===5&&drink('Mojito').otherCost===0.2,drink('Mojito').recipeItems);
+ok('coste calculado con los precios que hay (Daiquiri: 60 ml × 0,02 €/ml = 1,20 €; el resto, sin precio)',Math.abs(drink('Daiquiri').ingredientCost-1.2)<1e-9,drink('Daiquiri').ingredientCost);
+const res=await text(f,'#libStep3');
+ok('al terminar muestra las bebidas con sus avisos (falta el precio, coste incompleto)',/3 bebidas creadas/.test(res)&&/Aviso: Falta el precio/.test(res)&&/Coste incompleto: Zumo de lima sin precio válido/.test(res)&&/Coste directo: 1,20 € \(con 0,20 € de guarnición\)/.test(res),res.slice(0,400));
+await nav(f,'Mi barra');await tap(f,'#barCats .cat-chip:has-text("Frutas, hierbas y zumos")');ok('el ingrediente creado aparece en su estante con «Sin precio»',/Zumos 1/.test(await text(f,'.shelf[data-sub="Zumos"] summary'))&&/1 sin precio/.test(await text(f,'.shelf[data-sub="Zumos"] summary')),null);
+// no duplicar
+await nav(f,'Bebidas');await tap(f,'#libOpen');
+ok('si el cóctel ya está en la carta lo avisa («Ya en tu carta») y no se puede marcar',/Ya en tu carta/.test(await text(f,'.lib-item:has(#lib_mojito)'))&&(await f.locator('#lib_mojito').isDisabled()),null);
+await tap(f,'#libBack');await f.fill('#dName','Negroni');await f.fill('#dPrice','10');await tap(f,'#drinkForm button:has-text("Guardar bebida")');await tap(f,'#libOpen');
+ok('también reconoce por el nombre una bebida creada a mano (Negroni)',(await f.locator('#lib_negroni').isDisabled())&&/Ya en tu carta/.test(await text(f,'.lib-item:has(#lib_negroni)')),null);
+// opcionales, al gusto y medidas aprox.
+for(const c of ['cuba-libre','margarita','old-fashioned'])await tap(f,`label[for="lib_${c}"]`);await tap(f,'#libNext');
+ok('los opcionales vienen desmarcados (Cuba libre: zumo de lima)',(await seen(f,'#lo_cuba-libre_2'))&&!(await f.isChecked('#lo_cuba-libre_2')),null);
+ok('«al gusto» se lista sin coste (sal y pimienta, hielo)',/Al gusto, sin coste/.test(await text(f,'#libStep2'))&&/Sal y pimienta/.test(await text(f,'#libStep2')),null);
+ok('sección compartida: el licor de naranja no se propone como amargo aromático (queda «No lo tengo»)',(await f.locator('#lg_amargo-aromatico .lib-opt').count())===1&&(await f.locator('#lg_amargo-aromatico input[value="__new"]').isChecked()),await text(f,'#lg_amargo-aromatico'));
+ok('el sirope de almendra no se propone como sirope simple',JSON.stringify(await cands(f,'sirope-simple'))==='["Sirope simple"]'&&JSON.stringify(await cands(f,'amargo-aromatico'))==='[]',[await cands(f,'sirope-simple'),await cands(f,'amargo-aromatico')]);
+ok('cada producto ya en la barra queda elegido (un solo candidato)',(await f.locator('#lg_zumo-lima input:checked').inputValue())===ingN('Zumo de lima').id,null);
+await tap(f,'#lg_ron-blanco .lib-opt:has-text("Ron Carta Blanca")');await tap(f,'#libCreate');d4=await D(f);
+const of=drink('Old fashioned');
+ok('Old fashioned: 2 golpes de amargo ≈ 1,6 ml y 1 cucharada de bar de sirope ≈ 5 ml (aprox.)',(k=>k.qty===1.6&&k.approx)(of.components.find(k=>k.tipo==='amargo-aromatico'))&&(k=>k.qty===5&&k.approx)(of.components.find(k=>k.tipo==='sirope-simple')),of.components.filter(k=>k.approx));
+ok('Margarita: la sal «al gusto» no suma coste ni crea ingrediente',(k=>k.qty===0&&!k.ingredientId)(drink('Margarita').components.find(k=>k.tipo==='sal-pimienta'))&&!d4.ingredients.some(i=>i.name==='Sal y pimienta'),null);
+ok('Cuba libre sin el opcional: sin zumo de lima en la receta',!drink('Cuba libre').recipeItems.some(l=>l.ingredientId===ingN('Zumo de lima').id),null);
+// desde la guía
+let g4=await mk();await tap(g4,'#wDemo');await nav(g4,'Resumen');await tap(g4,'#guideHide');await tap(g4,'#guideShow');
+await nav(g4,'Ficha');await tap(g4,'#businessForm button:has-text("Guardar ficha")');
+let gx=await mk();await tap(gx,'#wStart');await tap(gx,'#tplSkip');await gx.fill('#bName','B');await gx.fill('#bLocation','L');await gx.fill('#bPeriod','P');await tap(gx,'#businessForm button:has-text("Guardar ficha")');for(const [n,pr] of [['Ron A','10'],['Ron B','11'],['Ron C','12'],['Ron D','13'],['Ron E','14']])await quick(gx,'Destilados','Rones',n,pr);
+await nav(gx,'Resumen');ok('guía: el paso «3 bebidas con receta» invita a la biblioteca',/biblioteca de cócteles clásicos/.test(await text(gx,'#guideNext')),await text(gx,'#guideNext'));
+await tap(gx,'#guideGo');ok('guía › «Continuar» abre la biblioteca',await seen(gx,'#page-library'),null);
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wDemo');await nav(z,'Bebidas');await tap(z,'#libOpen');ok(`[${wd}] biblioteca sin desbordamiento`,await noOverflow(z),await wide(z));for(const c of ['bloody-mary','pisco-sour','espresso-martini'])await tap(z,`label[for="lib_${c}"]`);await tap(z,'#libNext');ok(`[${wd}] revisar con mi barra sin desbordamiento`,await noOverflow(z),await wide(z));
+ for(const t of await z.locator('#libStep2 fieldset.need').evaluateAll(fs=>fs.map(x=>x.id.slice(3))))await tap(z,`#lg_${t} .lib-opt`);await tap(z,'#libCreate');ok(`[${wd}] resultado sin desbordamiento`,(await seen(z,'#libResultTitle'))&&await noOverflow(z),await wide(z));
+ const small=await z.evaluate(()=>[...document.querySelectorAll('#page-library button,#page-library label.lib-opt,#page-library .lib-item')].filter(x=>x.offsetParent).map(x=>[x.textContent.trim().slice(0,20),Math.round(x.getBoundingClientRect().height)]).filter(([,h])=>h<44));ok(`[${wd}] biblioteca: objetivos táctiles ≥ 44 px`,small.length===0,small)}
+{const z=await mk();await tap(z,'#wDemo');await nav(z,'Bebidas');await tap(z,'#libOpen');const cf=await contrastFails(z);for(const c of ['negroni','spritz'])await tap(z,`label[for="lib_${c}"]`);await tap(z,'#libNext');cf.push(...await contrastFails(z));ok('biblioteca y revisión: contraste ≥ 4,5:1',cf.length===0,cf.slice(0,6))}
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO biblioteca: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

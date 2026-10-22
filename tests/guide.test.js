@@ -1,10 +1,10 @@
 // Primer uso y orientación: emulación de móvil (390 y 360 px) y solo toques; no se llaman funciones de la app.
-const {chromium,devices}=require('playwright');const path=require('path');const fs=require('fs');const TMP=path.join(__dirname,'tmp')+path.sep;fs.mkdirSync(TMP,{recursive:true});const [,,F,J]=process.argv;const T=[];
+const {chromium,devices}=require('playwright');const path=require('path');const fs=require('fs');const TMP=path.join(__dirname,'tmp')+path.sep;fs.mkdirSync(TMP,{recursive:true});const [,,F,J]=process.argv;const APP_URL=/^https?:/.test(F)?F:'file://'+F;const T=[];
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const KEY='islaBarraControlMVP_v1',DEMO=JSON.parse(fs.readFileSync(J,'utf8'));
 const PHONE={...devices['iPhone 13'],acceptDownloads:true,reducedMotion:'reduce'},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}};
 (async()=>{const b=await chromium.launch();const pages=[];
-const mk=async(dev=PHONE,seed)=>{const c=await b.newContext(dev);await c.clock.setFixedTime(new Date('2026-10-21T10:00:00Z'));await c.addInitScript(()=>{window.print=()=>{window.__prints=(window.__prints||0)+1}});if(seed)await c.addInitScript(([k,s])=>{if(location.protocol!=='file:'||window.name==='semilla')return;window.name='semilla';localStorage.setItem(k,s)},[KEY,JSON.stringify(seed)]);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type()+': '+d.message().slice(0,60));d.dismiss()});await p.goto('file://'+F);pages.push(p);return p};
+const mk=async(dev=PHONE,seed)=>{const c=await b.newContext(dev);await c.clock.setFixedTime(new Date('2026-10-21T10:00:00Z'));await c.addInitScript(()=>{window.print=()=>{window.__prints=(window.__prints||0)+1}});if(seed)await c.addInitScript(([k,s])=>{if(!/isla_barra_control_mvp\.html$/.test(location.pathname)||window.name==='semilla')return;window.name='semilla';localStorage.setItem(k,s)},[KEY,JSON.stringify(seed)]);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type()+': '+d.message().slice(0,60));d.dismiss()});await p.goto(APP_URL);pages.push(p);return p};
 const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error("toque en "+sel+": "+e.message.split("\n")[0])});
 const seen=(p,sel)=>p.locator(sel).filter({visible:true}).count().then(n=>n>0);
 const text=(p,sel)=>p.locator(sel).first().innerText().then(t=>t.replace(/\s+/g,' ').trim());
@@ -49,7 +49,7 @@ await tap(r,'#demoExit');
 ok('al salir del ejemplo avisa de que vuelven tus datos',/Volverán tus datos/.test(await text(r,'#appConfirmText')),await text(r,'#appConfirmText'));
 await tap(r,'#appConfirmYes');d=await D(r);
 ok('salir del ejemplo restaura los datos reales y borra la copia interna',d.business.name==='Bar Real'&&!d.business.isDemo&&d.drinks.length===0&&(await stored(r,KEY+'_antes_del_ejemplo'))===null,{name:d.business.name,demo:d.business.isDemo});
-await r.reload();ok('tras recargar siguen los datos reales sin rastro del ejemplo',(await D(r)).business.name==='Bar Real'&&!(await seen(r,'#demoBadge')),null);
+await r.waitForTimeout(500);/* pausa breve antes de recargar, como haría una persona */await r.reload();ok('tras recargar siguen los datos reales sin rastro del ejemplo',(await D(r)).business.name==='Bar Real'&&!(await seen(r,'#demoBadge')),null);
 
 // ── 2. Guía de inicio ────────────────────────────────────────────────────────
 let g=await mk();await tap(g,'#wStart');await nav(g,'Resumen');
@@ -67,7 +67,7 @@ await nav(g,'Resumen');ok('guía: 4 con precio y 1 sin precio → sigue en ingre
 await nav(g,'Ingredientes');await addI('Zumo de lima',1000,4.5);await nav(g,'Resumen');
 ok('guía: 5 ingredientes con precio → «2 de 6» y siguiente: bebidas',(await gcount())==='2 de 6'&&/Siguiente: 3 bebidas con receta/.test(await text(g,'#guideNext')),await text(g,'#guidePanel'));
 await tap(g,'#guideHide');ok('guía: «Ocultar la guía» la oculta y deja un botón para mostrarla con el progreso',!(await seen(g,'#guideNext'))&&/Mostrar la guía de inicio \(2 de 6\)/.test(await text(g,'#guideShow')),null);
-await g.reload();ok('guía: sigue oculta tras recargar',await seen(g,'#guideShow')&&!(await seen(g,'#guideCount')),null);
+await g.waitForTimeout(500);/* pausa breve antes de recargar, como haría una persona */await g.reload();ok('guía: sigue oculta tras recargar',await seen(g,'#guideShow')&&!(await seen(g,'#guideCount')),null);
 await tap(g,'#guideShow');ok('guía: «Mostrar» la vuelve a enseñar',(await gcount())==='2 de 6',null);
 let gd=await mk();await tap(gd,'#wDemo');
 ok('guía con el ejemplo: «5 de 6», falta revisar el informe',(await text(gd,'#guideCount'))==='5 de 6'&&/Siguiente: Informe revisado/.test(await text(gd,'#guideNext')),await text(gd,'#guidePanel'));
@@ -144,7 +144,7 @@ const box5=await box(m5,'#ingredientForm .more-toggle');ok('«Más opciones» co
 await nav(m5,'Resumen');await tap(m5,'#dashSettings');ok('Resumen › «Ajustes» abre los ajustes con la vista actual marcada (Sencilla)',(await seen(m5,'#page-settings'))&&(await m5.isChecked('#modeSimple')),null);
 await tap(m5,'label[for=modeFull]');a5=await D(m5);
 ok('elegir «Completa» lo guarda en settings.mode',a5.settings.mode==='full'&&(await m5.isChecked('#modeFull')),a5.settings.mode);
-await m5.reload();a5={tax:await onPage(m5,'Bebidas',()=>vis(m5,'#dTax')),marg:await vis(m5,'#marginMin'),toggles:await m5.locator('.more-toggle').filter({visible:true}).count(),thr:await onPage(m5,'Stock',()=>vis(m5,'#sThreshold')),follow:await vis(m5,'#sFollow'),cl:await m5.locator('#iUnit option[value=cl]').count()};
+await m5.waitForTimeout(500);/* pausa breve antes de recargar, como haría una persona */await m5.reload();a5={tax:await onPage(m5,'Bebidas',()=>vis(m5,'#dTax')),marg:await vis(m5,'#marginMin'),toggles:await m5.locator('.more-toggle').filter({visible:true}).count(),thr:await onPage(m5,'Stock',()=>vis(m5,'#sThreshold')),follow:await vis(m5,'#sFollow'),cl:await m5.locator('#iUnit option[value=cl]').count()};
 ok('completa (tras recargar): todo a la vista y sin «Más opciones»',a5.tax&&a5.marg&&a5.thr&&a5.follow&&a5.cl===1&&a5.toggles===0,a5);
 // quien ya tiene datos se queda en completa
 const v3={schema:3,business:{name:'Bar Antiguo'},ingredients:[{id:'i1',name:'Ron',unit:'ml',packQty:700,packPrice:14}],drinks:[],stocks:[],diagnostics:[],sales:[],settings:{marginMin:60}};

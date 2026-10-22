@@ -2,7 +2,9 @@
 
 Abre `isla_barra_control_mvp.html` en el navegador. Los datos se guardan en ese navegador: exporta una copia de seguridad con regularidad («Exportar copia»).
 
-Para probar con datos de ejemplo: «Importar» y elige `data/isla_barra_demo_bar_atlantico.json` (bar ficticio; sustituye los datos actuales).
+La primera vez verás tres opciones: «Probar con un bar de ejemplo» (datos ficticios que se borran con «Empezar con mis datos»), «Empezar con mi bar» y «Recuperar una copia de seguridad». El mismo bar ficticio está en `data/isla_barra_demo_bar_atlantico.json`.
+
+En Ajustes (en el móvil, desde «Más») eliges la vista sencilla o completa y la marca que aparece en la cabecera y en el informe.
 
 ## Desarrollo
 Necesitas Node.js y Python 3.

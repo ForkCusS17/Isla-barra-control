@@ -1,10 +1,10 @@
 // Interfaz en móvil: emulación de teléfono (390 px, táctil) y solo toques; sin llamar a funciones de la app.
-const {chromium,devices}=require('playwright');const path=require('path');const TMP=path.join(__dirname,'tmp')+path.sep;require('fs').mkdirSync(TMP,{recursive:true});const fs=require('fs');const [,,F,J]=process.argv;const T=[];
+const {chromium,devices}=require('playwright');const path=require('path');const TMP=path.join(__dirname,'tmp')+path.sep;require('fs').mkdirSync(TMP,{recursive:true});const fs=require('fs');const [,,F,J]=process.argv;const APP_URL=/^https?:/.test(F)?F:'file://'+F;const T=[];
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const canon=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort()):v);
 const PHONE={...devices['iPhone 13'],acceptDownloads:true,reducedMotion:'reduce'};
 (async()=>{const b=await chromium.launch();
-const mk=async()=>{const c=await b.newContext(PHONE);await c.addInitScript(()=>{window.__prints=0;window.print=()=>{window.__prints++}});const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,100)));p.on('dialog',d=>{p.dl.push(d.message().slice(0,80));d.accept()});await p.goto('file://'+F);return p};
+const mk=async()=>{const c=await b.newContext(PHONE);await c.addInitScript(()=>{window.__prints=0;window.print=()=>{window.__prints++}});const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,100)));p.on('dialog',d=>{p.dl.push(d.message().slice(0,80));d.accept()});await p.goto(APP_URL);return p};
 // Toca un elemento visible; falla si no existe, no se ve o queda tapado (Playwright comprueba que el toque le llega).
 const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000});
 const visibleIn=async(p,sel)=>{const l=p.locator(sel).filter({visible:true}).first();if(!await l.count())return null;const r=await l.boundingBox();return r&&r.width>0&&r.height>0&&r.x>=0&&r.x+r.width<=390+1?r:null};
@@ -63,11 +63,11 @@ await nav('Resumen');const ex2=await downloadByTap(u,'#page-dashboard button:has
 let v=await mk();await importByTap(v,'.top-actions label:has-text("Importar")',TMP+'ui_copia2.json');
 ok('Resumen › «Exportar copia» de lo introducido por toques y «Importar» en otro navegador: mismos datos',canon(await v.evaluate(()=>data))===before2,null);
 // 3. Dentro de un visor que bloquea los diálogos del navegador (iframe con sandbox sin allow-modals): Importar debe funcionar igual
-fs.writeFileSync(TMP+'visor.html',`<iframe id="f" sandbox="allow-scripts allow-same-origin allow-forms" src="file://${F}" style="width:390px;height:800px;border:0"></iframe>`);
-{const c=await b.newContext(PHONE);const s=await c.newPage();const dl=[];s.on('dialog',d=>{dl.push(d.type());d.accept()});await s.goto('file://'+TMP+'visor.html');await s.waitForTimeout(400);const fr=s.frameLocator('#f');
+fs.writeFileSync(TMP+'visor.html',`<iframe id="f" sandbox="allow-scripts allow-same-origin allow-forms" src="${APP_URL}" style="width:390px;height:800px;border:0"></iframe>`);
+{const c=await b.newContext(PHONE);const s=await c.newPage();const dl=[];s.on('dialog',d=>{dl.push(d.type());d.accept()});await s.goto(/^https?:/.test(APP_URL)?new URL('tests/tmp/visor.html',APP_URL).href:'file://'+TMP+'visor.html');/* mismo origen que la app */await s.waitForTimeout(400);const fr=s.frameLocator('#f');
 let fc=null;try{[fc]=await Promise.all([s.waitForEvent('filechooser',{timeout:4000}),fr.locator('#welcome label:has-text("Recuperar una copia")').tap({timeout:4000})])}catch(e){}
 if(fc){await fc.setFiles(J);await fr.locator('#importYes').tap({timeout:4000})}await s.waitForTimeout(300);
-const n=await s.frames().find(x=>x.url().startsWith('file://'+F)).evaluate(()=>data.drinks.length);
+const n=await s.frames().find(x=>x.url().startsWith(APP_URL)).evaluate(()=>data.drinks.length);
 ok('dentro de un visor sin diálogos: Importar abre el selector, confirma en la página e importa',!!fc&&n===11&&dl.length===0,{selector:!!fc,bebidas:n,dialogos:dl})}
 ok('sin errores de JavaScript',[p,q,u,v].every(x=>x.errs.length===0),[p.errs,q.errs,u.errs,v.errs]);
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO interfaz móvil: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message);process.exit(1)});

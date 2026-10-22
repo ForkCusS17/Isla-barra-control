@@ -39,7 +39,7 @@ await nav(p,'Resumen');
 ok('tras salir del ejemplo no vuelve la bienvenida (ya se empezó)',!(await seen(p,'#welcome'))&&await seen(p,'#dashMain'),null);
 // con datos reales: el ejemplo exige confirmación y copia interna, y al salir vuelven los datos
 let r=await mk();await tap(r,'#wStart');
-ok('«Empezar con mi bar» abre la ficha',await seen(r,'#page-business'),null);
+ok('«Empezar con mi bar» pregunta el tipo de negocio',await seen(r,'#page-template'),null);await tap(r,'#tplSkip');ok('«Ahora no, verlo todo» abre la ficha',await seen(r,'#page-business'),null);
 await r.fill('#bName','Bar Real');await tap(r,'#businessForm button:has-text("Guardar ficha")');
 await nav(r,'Resumen');await tap(r,'#dashDemo');
 ok('con datos reales, ver el ejemplo pide confirmación y menciona la copia interna',await seen(r,'#appConfirm')&&/copia interna/.test(await text(r,'#appConfirmText'))&&(await D(r)).business.name==='Bar Real',await text(r,'#appConfirmText'));

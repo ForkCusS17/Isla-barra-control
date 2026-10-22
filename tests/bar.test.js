@@ -16,6 +16,7 @@ const MORE=['Ficha','Diagnóstico','Informe','Ajustes'];
 const nav=async(p,label)=>{if(label==='Ingredientes'){await tap(p,'.mobile-nav button:has-text("Mi barra")');await tap(p,'#barFullList');return}/* la lista completa se abre desde «Mi barra» */if(MORE.includes(label)){await tap(p,'.mobile-nav button:has-text("Más")');await tap(p,`#page-more button:has-text("${label}")`)}else await tap(p,`.mobile-nav button:has-text("${label}")`)};
 const importTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:4000}),tap(p,sel)]);await fc.setFiles(file);await p.locator('#importConfirm').waitFor({state:'visible',timeout:3000});await tap(p,'#importYes');await p.waitForTimeout(150)};
 const ing=(d,name)=>d.ingredients.find(i=>i.name===name);
+const openManage=async p=>{if(await p.locator('#barManage').getAttribute('open')===null)await tap(p,'#barManage summary')};/* tocar el resumen de un <details> abierto lo cierra */
 
 // ── 1. Modelo: subcategorías, taxonomía y migración desde el esquema 4 ─────────
 const v4={app:'Isla & Barra Control',schema:4,settings:{marginMin:55,mode:'full'},business:{name:'Bar Esquema 4'},sales:[],drinks:[],stocks:[],diagnostics:[],
@@ -164,6 +165,43 @@ await tap(c,'#barPaste');await c.fill('#pasteText','Tanqueray 70 cl 15\nsolo tex
 ok(`[${wd}] duplicado de algo que ya está en tu barra: aviso y desmarcado; sin filas válidas el botón queda desactivado`,/ya tienes «Tanqueray» en tu barra/.test(R[0].warn)&&!R[0].add&&R[1].dis&&(await c.locator('#pasteAdd').isDisabled())&&(await text(c,'#pasteAdd'))==='Añadir 0 productos',R);
 await tap(c,'#pastePreview button:has-text("Cancelar")');ok(`[${wd}] «Cancelar» cierra sin guardar`,(await D(c)).ingredients.length===8&&!(await seen(c,'#pastePanel')),null);
 }
+
+// ── 5. Plantillas por tipo de negocio y asistente de clasificación ───────────
+const chips=p=>p.locator('#barCats .cat-chip').allInnerTexts().then(a=>a.map(x=>x.replace(/\s*\d+$/,'').trim()));
+const secNames=p=>p.locator('#barSections .shelf summary span:first-child').allInnerTexts();
+let t5=await mk();await tap(t5,'#wStart');
+ok('«Empezar con mi bar» pregunta el tipo de negocio: coctelería, bar, cafetería, restaurante y hotel, más «Ahora no»',(await seen(t5,'#page-template'))&&(await t5.locator('#tplList .tpl-opt b').allInnerTexts()).join('|')==='Coctelería|Bar|Cafetería|Restaurante|Hotel'&&(await seen(t5,'#tplSkip')),null);
+await tap(t5,'#tplList .tpl-opt:has-text("Cafetería")');let d5=await D(t5);
+ok('elegir «Cafetería»: abre la ficha, guarda el tipo de negocio y la plantilla, y no crea productos ni precios',(await seen(t5,'#page-business'))&&d5.business.type==='Cafetería'&&(await t5.inputValue('#bType'))==='Cafetería'&&d5.settings.template==='cafeteria'&&d5.ingredients.length===0&&d5.drinks.length===0,[d5.business.type,d5.settings.template]);
+await nav(t5,'Mi barra');
+ok('cafetería: no aparece la categoría Vinos y sí Café e infusiones',!(await chips(t5)).includes('Vinos')&&(await chips(t5)).includes('Café e infusiones'),await chips(t5));
+ok('cafetería: en Destilados solo Brandis y Licores y amargos',(await secNames(t5)).join('|')==='Brandis|Licores y amargos',await secNames(t5));
+await openManage(t5);await tap(t5,'#barManageBody .manage-row:has(input[data-old="Ginebras"]) button:has-text("Mostrar")');
+ok('todo editable: «Mostrar» Ginebras la añade a la cafetería',(await secNames(t5)).join('|')==='Ginebras|Brandis|Licores y amargos',await secNames(t5));
+let t6=await mk();await tap(t6,'#wStart');await tap(t6,'#tplList .tpl-opt:has-text("Coctelería")');await nav(t6,'Mi barra');
+ok('coctelería: 7 secciones de destilados y sin Café e infusiones',(await secNames(t6)).length===7&&!(await chips(t6)).includes('Café e infusiones'),[await secNames(t6),await chips(t6)]);
+let t7=await mk();await tap(t7,'#wStart');await tap(t7,'#tplSkip');await nav(t7,'Mi barra');
+ok('«Ahora no, verlo todo»: las 8 categorías',(await chips(t7)).length===8&&(await D(t7)).settings.template==='',await chips(t7));
+// volver a aplicar desde Ajustes (con confirmación)
+await nav(t5,'Ajustes');ok('Ajustes muestra la plantilla actual',/Plantilla actual: Cafetería/.test(await text(t5,'#tplCurrent')),null);
+await tap(t5,'#tplSettings button:has-text("Hotel")');ok('aplicar otra plantilla desde Ajustes pide confirmación y explica que no toca productos ni precios',(await seen(t5,'#appConfirm'))&&/no cambian/.test(await text(t5,'#appConfirmText')),null);
+await tap(t5,'#appConfirmYes');await nav(t5,'Mi barra');ok('plantilla «Hotel»: se ven todas las categorías',(await chips(t5)).length===8&&(await D(t5)).settings.template==='hotel',await chips(t5));
+// la plantilla no oculta secciones creadas por el usuario
+await openManage(t5);await t5.fill('#subNew','Ginebras de la casa');await tap(t5,'#subAdd');await nav(t5,'Ajustes');await tap(t5,'#tplSettings button:has-text("Cafetería")');await tap(t5,'#appConfirmYes');await nav(t5,'Mi barra');
+ok('volver a «Cafetería» no oculta la sección propia «Ginebras de la casa»',(await secNames(t5)).includes('Ginebras de la casa'),await secNames(t5));
+// asistente «Clasificar mis ingredientes»
+let w5=await mk();await importTap(w5,'#wRestore',TMP+'bar_v4.json');await nav(w5,'Mi barra');await tap(w5,'#barClassify');
+const cls=()=>w5.locator('#classifyBody .paste-row').evaluateAll(rs=>rs.map(r=>({name:r.querySelector('label').textContent,sub:r.querySelector('select').value,on:r.querySelector('input').checked})));
+let C=await cls();
+ok('asistente: lista los 5 ingredientes sin clasificar con una sugerencia por nombre',C.length===5&&C.find(x=>x.name==='Ron añejo').sub==='Destilados|Rones'&&C.find(x=>x.name==='Cerveza botellín').sub==='Cervezas|Botellín y lata'&&C.find(x=>x.name==='Vino tinto Rioja').sub==='Vinos|Tintos'&&C.find(x=>x.name==='Leche').sub==='Otros|Lácteos'&&C.find(x=>x.name==='Limas').sub==='Frutas, hierbas y zumos|Frutas',C);
+ok('asistente: «Aplicar 5 cambios» y aviso de que no ha cambiado nada todavía',(await text(w5,'#classifyApply'))==='Aplicar 5 cambios'&&/No se ha cambiado nada todavía/.test(await text(w5,'#classifySummary'))&&(await D(w5)).ingredients.every(i=>i.subcategory===''),null);
+await tap(w5,'#classifyBody .paste-row:has-text("Leche") input[type=checkbox]');await w5.selectOption('#classifyBody .paste-row:has-text("Limas") select','Frutas, hierbas y zumos|Zumos');
+ok('desmarcar una sugerencia y cambiar otra → «Aplicar 4 cambios»; sigue sin aplicar nada',(await text(w5,'#classifyApply'))==='Aplicar 4 cambios'&&(await D(w5)).ingredients.every(i=>i.subcategory===''),null);
+await tap(w5,'#classifyApply');let d6=await D(w5);
+ok('al confirmar: aplica solo los 4 marcados (con la elección del usuario) y Leche sigue sin clasificar',ing(d6,'Ron añejo').subcategory==='Rones'&&ing(d6,'Cerveza botellín').subcategory==='Botellín y lata'&&ing(d6,'Vino tinto Rioja').subcategory==='Tintos'&&ing(d6,'Limas').subcategory==='Zumos'&&ing(d6,'Leche').subcategory===''&&!(await seen(w5,'#classifyPanel')),d6.ingredients.map(i=>i.name+':'+i.subcategory));
+await tap(w5,'#barClassify');ok('al volver a abrirlo queda 1 sin clasificar',(await cls()).length===1,null);
+await tap(w5,'#classifyBody button:has-text("Cancelar")');ok('«Cancelar» cierra sin cambiar nada',ing(await D(w5),'Leche').subcategory===''&&!(await seen(w5,'#classifyPanel')),null);
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wStart');ok(`[${wd}] elegir tipo de negocio sin desbordamiento`,await noOverflow(z),await wide(z));await tap(z,'#tplSkip');const z2=await mk(dev);await importTap(z2,'#wRestore',TMP+'bar_v4.json');await nav(z2,'Mi barra');await tap(z2,'#barClassify');ok(`[${wd}] asistente de clasificación sin desbordamiento`,await noOverflow(z2),await wide(z2))}
 
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));

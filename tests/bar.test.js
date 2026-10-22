@@ -217,6 +217,28 @@ await tap(g6,'#barCats .cat-chip:has-text("Cervezas")');await tap(g6,'#barSectio
 await nav(g6,'Resumen');
 ok('con 5 productos con precio el paso queda hecho: chip «✓ Rellena tu barra» y siguiente paso',/✓ Rellena tu barra/.test(await text(g6,'#guidePanel .chips'))&&!/Siguiente: Rellena tu barra/.test(await text(g6,'#guidePanel')),await text(g6,'#guidePanel'));
 
+// ── 7. Editables: palabras para sugerir, texto del botón y textos de ayuda ───
+let e7=await mk();await tap(e7,'#wStart');await tap(e7,'#tplSkip');await nav(e7,'Mi barra');await openManage(e7);
+ok('cada sección muestra su botón y sus palabras para sugerir, editables',(await e7.inputValue('#subOne1'))==='ron'&&/bacardi/.test(await e7.inputValue('#subKw1')),null);
+await e7.fill('#subOne1','ron o cachaça');await tap(e7,'#subKw0');await tap(e7,'#barSections .shelf[data-sub="Rones"] summary');
+ok('cambiar el texto del botón: «Añadir ron o cachaça»',(await D(e7)).settings.taxonomy[0].subs[1].one==='ron o cachaça'&&(await text(e7,'.shelf[data-sub="Rones"] .add-to-shelf'))==='Añadir ron o cachaça',null);
+await e7.fill('#subKw0','ginebra, gin, xoriguer, gin de la casa');await tap(e7,'#subNew');
+ok('cambiar las palabras para sugerir de Ginebras',(await D(e7)).settings.taxonomy[0].subs[0].keywords.join('|')==='ginebra|gin|xoriguer|gin de la casa',null);
+await tap(e7,'#barPaste');await e7.fill('#pasteText','Xoriguer 70cl 17\nCachaça 51 1 L 9');await tap(e7,'#pasteReview');
+ok('las sugerencias usan las palabras nuevas (Xoriguer → Ginebras)',(await e7.inputValue('#pr0sub'))==='Destilados|Ginebras',await e7.inputValue('#pr0sub'));
+ok('lo que no reconoce queda sin subcategoría sugerida y lo avisa',/Sin subcategoría sugerida/.test(await text(e7,'#pr1warn')),await text(e7,'#pr1warn'));
+await tap(e7,'#pastePreview button:has-text("Cancelar")');
+ok('las claves de las ayudas «?» coinciden con la lista que valida la copia',await e7.evaluate(()=>JSON.stringify(Object.keys(HELP))===JSON.stringify(HELP_KEYS)),null);
+await nav(e7,'Ajustes');await tap(e7,'#helpPanel summary');
+ok('Ajustes › Textos de ayuda: explicación y ejemplo de cada ayuda',(await e7.locator('#helpEditor fieldset').count())===8&&/No es beneficio/.test(await e7.inputValue('#he_margin_t')),null);
+await e7.fill('#he_margin_t','Lo que queda tras pagar la copia. No es beneficio: faltan sueldos y local.');await e7.fill('#he_margin_e','Ejemplo de la casa: 9 € − 2,10 € = 6,90 €.');await tap(e7,'#helpSave');
+await nav(e7,'Bebidas');await tap(e7,'#drinkForm button.help[aria-label="Qué es: Margen bruto"]');
+ok('la ayuda «?» muestra el texto editado',/Lo que queda tras pagar la copia/.test(await text(e7,'#drinkForm .help-note:not(.hidden)'))&&/Ejemplo de la casa/.test(await text(e7,'#drinkForm .help-note:not(.hidden)')),await text(e7,'#drinkForm .help-note:not(.hidden)'));
+await nav(e7,'Ajustes');await e7.fill('#he_cost_t','');await tap(e7,'#helpSave');ok('una ayuda sin explicación no se guarda',/Cada ayuda necesita explicación y ejemplo/.test(await text(e7,'#toast')),null);
+await tap(e7,'#helpReset');await tap(e7,'#appConfirmYes');await nav(e7,'Bebidas');
+ok('«Volver a los textos originales» restablece las ayudas',/Lo que te queda del precio sin impuestos/.test(await text(e7,'#drinkForm .help-note:not(.hidden)'))&&JSON.stringify((await D(e7)).settings.help)==='{}',await text(e7,'#drinkForm .help-note:not(.hidden)'));
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wDemo');await nav(z,'Mi barra');await openManage(z);ok(`[${wd}] editar secciones sin desbordamiento`,await noOverflow(z),await wide(z));await nav(z,'Ajustes');await tap(z,'#helpPanel summary');ok(`[${wd}] Ajustes con los textos de ayuda abiertos sin desbordamiento`,await noOverflow(z),await wide(z))}
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO barra: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

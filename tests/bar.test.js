@@ -203,6 +203,20 @@ await tap(w5,'#barClassify');ok('al volver a abrirlo queda 1 sin clasificar',(aw
 await tap(w5,'#classifyBody button:has-text("Cancelar")');ok('«Cancelar» cierra sin cambiar nada',ing(await D(w5),'Leche').subcategory===''&&!(await seen(w5,'#classifyPanel')),null);
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wStart');ok(`[${wd}] elegir tipo de negocio sin desbordamiento`,await noOverflow(z),await wide(z));await tap(z,'#tplSkip');const z2=await mk(dev);await importTap(z2,'#wRestore',TMP+'bar_v4.json');await nav(z2,'Mi barra');await tap(z2,'#barClassify');ok(`[${wd}] asistente de clasificación sin desbordamiento`,await noOverflow(z2),await wide(z2))}
 
+// ── 6. Guía: «Rellena tu barra» ──────────────────────────────────────────────
+let g6=await mk();await tap(g6,'#wStart');await tap(g6,'#tplSkip');await g6.fill('#bName','Bar Estantes');await g6.fill('#bLocation','Arrecife');await g6.fill('#bPeriod','Noviembre');await tap(g6,'#businessForm button:has-text("Guardar ficha")');await nav(g6,'Resumen');await tap(g6,'#guideHide');await tap(g6,'#guideShow');
+ok('la guía dice «Rellena tu barra» y cuenta productos con precio (0 de 5)',/Rellena tu barra/.test(await text(g6,'#guidePanel'))&&/Con precio: 0 de 5\./.test(await text(g6,'#guidePanel')),await text(g6,'#guidePanel'));
+await nav(g6,'Mi barra');
+const quick=async(sub,name,price,fmtLabel)=>{await tap(g6,`.shelf[data-sub="${sub}"] .add-to-shelf`);await g6.locator('#qaName').pressSequentially(name);if(fmtLabel)await tap(g6,`#qaForm .qa-fmt:has-text("${fmtLabel}")`);if(price)await g6.locator('#qaPrice').pressSequentially(price);await tap(g6,'#qaSave')};
+for(const s of ['Ginebras','Rones'])await tap(g6,`#barSections .shelf[data-sub="${s}"] summary`);
+await quick('Ginebras','Tanqueray','15,90');await quick('Ginebras','Beefeater','13');await quick('Rones','Bacardí','');await quick('Rones','Havana 3','12,50');
+await nav(g6,'Resumen');
+ok('por subcategoría: «Con precio: 3 de 5 · Ginebras 2 · Rones 1» (el producto sin precio no cuenta)',/Con precio: 3 de 5 · Ginebras 2 · Rones 1\./.test(await text(g6,'#guideNext')),await text(g6,'#guideNext'));
+await tap(g6,'#guideGo');ok('«Continuar» lleva a Mi barra',await seen(g6,'#page-bar'),null);
+await tap(g6,'#barCats .cat-chip:has-text("Cervezas")');await tap(g6,'#barSections .shelf[data-sub="Botellín y lata"] summary');await tap(g6,'.shelf[data-sub="Botellín y lata"] .add-to-shelf');await g6.locator('#qaName').pressSequentially('Estrella Galicia');await g6.locator('#qaPrice').pressSequentially('21,60');await tap(g6,'#qaSaveMore');await g6.locator('#qaName').pressSequentially('Mahou');await g6.locator('#qaPrice').pressSequentially('19');await tap(g6,'#qaSave');
+await nav(g6,'Resumen');
+ok('con 5 productos con precio el paso queda hecho: chip «✓ Rellena tu barra» y siguiente paso',/✓ Rellena tu barra/.test(await text(g6,'#guidePanel .chips'))&&!/Siguiente: Rellena tu barra/.test(await text(g6,'#guidePanel')),await text(g6,'#guidePanel'));
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO barra: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

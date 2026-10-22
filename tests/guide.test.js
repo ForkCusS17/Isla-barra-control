@@ -59,11 +59,11 @@ await tap(g,'#guideGo');ok('guía: «Continuar» lleva a la Ficha',await seen(g,
 await g.fill('#bName','Bar Guía');await tap(g,'#businessForm button:has-text("Guardar ficha")');await nav(g,'Resumen');
 ok('guía: con nombre pero sin localidad ni periodo la ficha no cuenta y dice qué falta',(await gcount())==='0 de 6'&&/Falta: localidad, periodo analizado/.test(await text(g,'#guideNext')),await text(g,'#guideNext'));
 await tap(g,'#guideGo');await g.fill('#bLocation','Arrecife');await g.fill('#bPeriod','1–7 nov');await tap(g,'#businessForm button:has-text("Guardar ficha")');await nav(g,'Resumen');
-ok('guía: ficha completa → «1 de 6», chip «✓ Ficha completa» y siguiente: ingredientes',(await gcount())==='1 de 6'&&/✓ Ficha completa/.test(await text(g,'#guidePanel .chips'))&&/Siguiente: 5 ingredientes con precio/.test(await text(g,'#guideNext')),await text(g,'#guidePanel'));
-await tap(g,'#guideGo');ok('guía: «Continuar» lleva a Ingredientes',await seen(g,'#page-ingredients'),null);
+ok('guía: ficha completa → «1 de 6», chip «✓ Ficha completa» y siguiente: «Rellena tu barra»',(await gcount())==='1 de 6'&&/✓ Ficha completa/.test(await text(g,'#guidePanel .chips'))&&/Siguiente: Rellena tu barra/.test(await text(g,'#guideNext')),await text(g,'#guidePanel'));
+await tap(g,'#guideGo');ok('guía: «Continuar» lleva a Mi barra',await seen(g,'#page-bar'),null);await tap(g,'#barFullList');
 const addI=async(n,q,pr)=>{await g.fill('#iName',n);await g.selectOption('#iUnit','ml');await g.fill('#iPackQty',String(q));await g.fill('#iPackPrice',String(pr));await tap(g,'#ingredientForm button:has-text("Guardar ingrediente")')};
 for(const [n,pr] of [['Ron',14],['Ginebra',16],['Vodka',12],['Tequila',18]])await addI(n,700,pr);await addI('Sirope',1000,0);
-await nav(g,'Resumen');ok('guía: 4 con precio y 1 sin precio → sigue en ingredientes («Tienes 4 de 5»)',(await gcount())==='1 de 6'&&/Tienes 4 de 5/.test(await text(g,'#guideNext')),await text(g,'#guideNext'));
+await nav(g,'Resumen');ok('guía: 4 con precio y 1 sin precio → sigue en «Rellena tu barra» («Con precio: 4 de 5 · Sin clasificar 4»)',(await gcount())==='1 de 6'&&/Con precio: 4 de 5 · Sin clasificar 4\./.test(await text(g,'#guideNext')),await text(g,'#guideNext'));
 await nav(g,'Ingredientes');await addI('Zumo de lima',1000,4.5);await nav(g,'Resumen');
 ok('guía: 5 ingredientes con precio → «2 de 6» y siguiente: bebidas',(await gcount())==='2 de 6'&&/Siguiente: 3 bebidas con receta/.test(await text(g,'#guideNext')),await text(g,'#guidePanel'));
 await tap(g,'#guideHide');ok('guía: «Ocultar la guía» la oculta y deja un botón para mostrarla con el progreso',!(await seen(g,'#guideNext'))&&/Mostrar la guía de inicio \(2 de 6\)/.test(await text(g,'#guideShow')),null);

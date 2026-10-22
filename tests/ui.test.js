@@ -68,9 +68,10 @@ ok('Resumen › «Exportar copia» de lo introducido por toques y «Importar» e
 // El archivo abierto en un visor no lleva las cabeceras del alojamiento (que prohíben incrustarlo): ?sin-cabeceras.
 fs.writeFileSync(TMP+'visor.html',`<iframe id="f" sandbox="allow-scripts allow-same-origin allow-forms" src="${/^https?:/.test(APP_URL)?APP_URL+'?sin-cabeceras':APP_URL}" style="width:390px;height:800px;border:0"></iframe>`);
 {const c=await b.newContext(PHONE);const s=await c.newPage();const dl=[];s.on('dialog',d=>{dl.push(d.type());d.accept()});await s.goto(/^https?:/.test(APP_URL)?new URL('tests/tmp/visor.html?sin-cabeceras',APP_URL).href:'file://'+TMP+'visor.html');/* mismo origen que la app */await s.waitForTimeout(400);const fr=s.frameLocator('#f');
-let fc=null;try{[fc]=await Promise.all([s.waitForEvent('filechooser',{timeout:10000}),fr.locator('#welcome label:has-text("Recuperar una copia")').tap({timeout:4000})])}catch(e){}
+const appFr=()=>s.frames().find(x=>x.url().startsWith(APP_URL));await appFr().evaluate(()=>{window.__fileClicks=0;document.getElementById('importFile').addEventListener('click',()=>window.__fileClicks++)});/* diagnóstico: ¿llega el toque al campo de archivo? */
+let fc=null,why='';try{[fc]=await Promise.all([s.waitForEvent('filechooser',{timeout:10000}),fr.locator('#welcome label:has-text("Recuperar una copia")').tap({timeout:4000})])}catch(e){why=e.message.split('\n')[0].slice(0,120)}const fileClicks=await appFr().evaluate(()=>window.__fileClicks).catch(()=>'?');
 if(fc){await fc.setFiles(J);await fr.locator('#importYes').tap({timeout:4000})}await s.waitForTimeout(300);
 const n=await s.frames().find(x=>x.url().startsWith(APP_URL)).evaluate(()=>data.drinks.length);
-ok('dentro de un visor sin diálogos: Importar abre el selector, confirma en la página e importa',!!fc&&n===11&&dl.length===0,{selector:!!fc,bebidas:n,dialogos:dl})}
+ok('dentro de un visor sin diálogos: Importar abre el selector, confirma en la página e importa',!!fc&&n===11&&dl.length===0,{selector:!!fc,bebidas:n,dialogos:dl,clicEnElCampo:fileClicks,error:why})}
 ok('sin errores de JavaScript',[p,q,u,v].every(x=>x.errs.length===0),[p.errs,q.errs,u.errs,v.errs]);
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO interfaz móvil: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message);process.exit(1)});

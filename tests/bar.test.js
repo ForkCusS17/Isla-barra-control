@@ -23,7 +23,7 @@ const v4={app:'Isla & Barra Control',schema:4,settings:{marginMin:55,mode:'full'
  ingredients:[{id:'a',name:'Ron añejo',category:'Destilado',unit:'ml',packQty:700,packPrice:21},{id:'b',name:'Cerveza botellín',category:'Vino / cerveza',unit:'unit',packQty:24,packPrice:21.6},{id:'c',name:'Vino tinto Rioja',category:'Vino / cerveza',unit:'ml',packQty:750,packPrice:6},{id:'d',name:'Leche',category:'Lácteo',unit:'ml',packQty:1000,packPrice:1.05},{id:'e',name:'Limas',category:'Fruta / verdura',unit:'g',packQty:1000,packPrice:3}]};
 fs.writeFileSync(TMP+'bar_v4.json',JSON.stringify(v4));
 let m=await mk();await importTap(m,'#wRestore',TMP+'bar_v4.json');let d=await D(m);
-ok('copia del esquema 4: se importa y pasa al esquema 5',d.schema===5&&d.ingredients.length===5&&m.errs.length===0,[d.schema,m.errs]);
+ok('copia del esquema 4: se importa y pasa al esquema actual (6)',d.schema===6&&d.ingredients.length===5&&m.errs.length===0,[d.schema,m.errs]);
 ok('migración: los ingredientes quedan con subcategoría vacía',d.ingredients.every(i=>i.subcategory===''),d.ingredients.map(i=>i.subcategory));
 ok('migración: categorías antiguas → nuevas (Destilado → Destilados; Vino / cerveza → Cervezas o Vinos por el nombre; Lácteo → Otros; Fruta / verdura → Frutas, hierbas y zumos)',ing(d,'Ron añejo').category==='Destilados'&&ing(d,'Cerveza botellín').category==='Cervezas'&&ing(d,'Vino tinto Rioja').category==='Vinos'&&ing(d,'Leche').category==='Otros'&&ing(d,'Limas').category==='Frutas, hierbas y zumos',d.ingredients.map(i=>i.category));
 ok('migración: no cambia cantidades, precios ni coste unitario',ing(d,'Ron añejo').unitCost===0.03&&ing(d,'Cerveza botellín').packQty===24&&Math.abs(ing(d,'Cerveza botellín').unitCost-0.9)<1e-12,null);

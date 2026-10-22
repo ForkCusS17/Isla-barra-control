@@ -45,6 +45,24 @@ const U={ml:['ml','dash','gota','cucharada','rellenar','al_gusto'],g:['g','al_gu
 ok('las unidades de cada componente son compatibles con la unidad base de su tipo',comps.every(k=>U[L.tipos.find(t=>t.id===k.tipo).unidad].includes(k.unidad)),comps.filter(k=>!U[L.tipos.find(t=>t.id===k.tipo).unidad].includes(k.unidad)));
 ok('los rones blanco y añejo comparten la sección Rones (se proponen los mismos productos para elegir)',L.tipos.find(t=>t.id==='ron-blanco').subcategoria==='Rones'&&L.tipos.find(t=>t.id==='ron-anejo').subcategoria==='Rones',null)}
 
+// ── 3. Unidades no estándar ──────────────────────────────────────────────────
+let u3=await mk();await tap(u3,'#wStart');await tap(u3,'#tplSkip');await nav(u3,'Ajustes');
+ok('Ajustes › Equivalencias (aprox.): 1 golpe = 0,8 ml, 1 gota = 0,05 ml, 1 cucharada de bar = 5 ml, rellenar = 100 ml',(await u3.inputValue('#un_dash'))==='0,8'&&(await u3.inputValue('#un_gota'))==='0,05'&&(await u3.inputValue('#un_cucharada'))==='5'&&(await u3.inputValue('#un_rellenar'))==='100'&&/aprox\./.test(await text(u3,'#unitsPanel h3')),null);
+const conv=k=>u3.evaluate(x=>compQty(x),k);
+let r3=await conv({tipo:'amargo-aromatico',cantidad:2,unidad:'dash'});ok('2 golpes de amargo ≈ 1,6 ml (aprox.)',r3.qty===1.6&&r3.approx&&r3.label==='2 golpes ≈ 1,6 ml (aprox.)',r3);
+r3=await conv({tipo:'amargo-aromatico',cantidad:3,unidad:'gota'});ok('3 gotas ≈ 0,15 ml (aprox.)',r3.qty===0.15&&r3.approx,r3);
+r3=await conv({tipo:'sirope-simple',cantidad:1,unidad:'cucharada'});ok('1 cucharada de bar de sirope ≈ 5 ml (aprox.)',r3.qty===5&&r3.label==='1 cucharada de bar ≈ 5 ml (aprox.)',r3);
+r3=await conv({tipo:'soda',cantidad:null,unidad:'rellenar'});ok('«rellenar con» soda ≈ 100 ml (aprox.)',r3.qty===100&&r3.approx&&/rellenar ≈ 100 ml \(aprox\.\)/.test(r3.label),r3);
+r3=await conv({tipo:'sal-pimienta',cantidad:null,unidad:'al_gusto'});ok('«al gusto» cuesta 0 y se muestra como tal',r3.qty===0&&r3.label==='al gusto (0 €)',r3);
+r3=await conv({tipo:'guarnicion',cantidad:1,unidad:'unidad',opcional:true});ok('la guarnición no cuenta en la receta (solo si le pones coste)',r3.qty===0&&/solo cuesta si le pones coste/.test(r3.label),r3);
+r3=await conv({tipo:'ron-blanco',cantidad:50,unidad:'ml'});ok('las medidas en ml son exactas (sin «aprox.»)',r3.qty===50&&!r3.approx&&r3.label==='50 ml',r3);
+await u3.fill('#un_dash','1');await u3.fill('#un_rellenar','120');await tap(u3,'#unitsSave');
+ok('editar equivalencias: 1 golpe = 1 ml y rellenar = 120 ml se guardan',(d=>d.settings.units.dash===1&&d.settings.units.rellenar===120)(await D(u3)),(await D(u3)).settings.units);
+r3=await conv({tipo:'amargo-aromatico',cantidad:2,unidad:'dash'});ok('las conversiones usan las equivalencias nuevas (2 golpes ≈ 2 ml)',r3.qty===2,r3);
+await u3.fill('#un_gota','0');await tap(u3,'#unitsSave');ok('una equivalencia de 0 no se guarda y lo explica',/mayor que 0/.test(await text(u3,'#toast'))&&(await D(u3)).settings.units.gota===0.05,null);
+await tap(u3,'#unitsReset');ok('«Valores por defecto» las restablece',JSON.stringify((await D(u3)).settings.units)===JSON.stringify({dash:0.8,gota:0.05,cucharada:5,rellenar:100}),null);
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wDemo');await nav(z,'Ajustes');ok(`[${wd}] Ajustes con equivalencias sin desbordamiento`,await noOverflow(z),await wide(z))}
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO biblioteca: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

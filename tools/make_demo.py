@@ -59,7 +59,7 @@ EXTRA={'g1':dict(evidence='Control de ron blanco 7–13 oct (datos sin validar):
 for g in diag:g.update(EXTRA[g['id']])
 for s_ in stocks:s_['salesId']='v-sem42' if s_['id']=='s-ron2' else 'v-sem41'
 sales=[dict(id='v-sem41',label='Semana 7–13 octubre',start='2026-10-07',end='2026-10-13',lines=[dict(drinkId=i,qty=q) for i,q in SALES.items()]),dict(id='v-sem42',label='Semana 14–20 octubre',start='2026-10-14',end='2026-10-20',lines=[dict(drinkId=i,qty=q) for i,q in SALES2.items()])]
-data=dict(app=APP,schema=5,sales=sales,exportedAt='2026-10-21T00:00:00Z',settings=dict(marginMin=55),
+data=dict(app=APP,schema=6,sales=sales,exportedAt='2026-10-21T00:00:00Z',settings=dict(marginMin=55),
 business=dict(isDemo=True,name='Bar Atlántico (ejemplo ficticio)',contact='Responsable de barra (ficticio)',location='Arrecife',date='2026-10-14',type='Bar / coctelería',period='7–20 octubre 2026',notes='CASO DE EJEMPLO FICTICIO para validar la app. Objetivo: entender costes y márgenes de la carta de cócteles y revisar las desviaciones de stock de la semana. Precios, ventas, proveedores y el 7 % de impuesto son inventados: ajústalos antes de usar datos reales.'),
 ingredients=ing,drinks=drinks,stocks=stocks,diagnostics=diag)
 json.dump(data,open(os.path.join(ROOT,'data','isla_barra_demo_bar_atlantico.json'),'w',encoding='utf-8'),ensure_ascii=False,indent=1)

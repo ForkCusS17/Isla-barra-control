@@ -24,10 +24,11 @@ const libOf=p=>p.evaluate(()=>JSON.parse(document.getElementById('cocktailLibrar
 // ── 1. Datos de la biblioteca ────────────────────────────────────────────────
 let p0=await mk();const L=await libOf(p0);
 ok('la biblioteca incrustada en el HTML es igual que data/cocktail_library.json',JSON.stringify(L)===JSON.stringify(LIBFILE),null);
-ok('30 cócteles con id, nombre, base, componentes, método, versión y revisada:false',L.cocteles.length===30&&L.cocteles.every(c=>c.id&&c.nombre&&c.base&&Array.isArray(c.componentes)&&c.componentes.length>0&&typeof c.metodo==='string'&&c.metodo.length>10&&Number.isInteger(c.version)&&c.version>=1&&c.revisada===false),null);
-ok('ids únicos',new Set(L.cocteles.map(c=>c.id)).size===30,null);
+ok('35 cócteles con id, nombre, base, componentes, método, versión y revisada:false',L.cocteles.length===35&&L.cocteles.every(c=>c.id&&c.nombre&&c.base&&Array.isArray(c.componentes)&&c.componentes.length>0&&typeof c.metodo==='string'&&c.metodo.length>10&&Number.isInteger(c.version)&&c.version>=1&&c.revisada===false),null);
+ok('ids únicos',new Set(L.cocteles.map(c=>c.id)).size===35,null);
 const PEDIDOS=['Mojito','Daiquiri','Margarita','Cosmopolitan','Negroni','Old fashioned','Manhattan','Dry martini','Whisky sour','Tom Collins','Moscow mule','Caipirinha','Piña colada','Cuba libre','Bloody Mary','Espresso martini','Mai Tai','Paloma','Sidecar','Bellini'];
 ok('incluye los 20 clásicos pedidos',PEDIDOS.every(n=>L.cocteles.some(c=>c.nombre.toLowerCase()===n.toLowerCase())),PEDIDOS.filter(n=>!L.cocteles.some(c=>c.nombre.toLowerCase()===n.toLowerCase())));
+ok('incluye los 5 añadidos (Long Island Iced Tea, Sex on the Beach, Mint Julep, Kir Royal, Dark \'n\' Stormy), sin revisar',['Long Island Iced Tea','Sex on the Beach','Mint Julep','Kir Royal',"Dark 'n' Stormy"].every(n=>L.cocteles.some(c=>c.nombre===n&&c.revisada===false&&c.version===1)),L.cocteles.slice(30).map(c=>c.nombre));
 const comps=L.cocteles.flatMap(c=>c.componentes.map(k=>({...k,c:c.id})));
 ok('unidades válidas (ml, g, unidad, dash, gota, cucharada, rellenar, al_gusto)',comps.every(k=>L.unidades.includes(k.unidad))&&L.unidades.join()==='ml,g,unidad,dash,gota,cucharada,rellenar,al_gusto',comps.filter(k=>!L.unidades.includes(k.unidad)));
 ok('cantidades > 0 (salvo «rellenar» y «al gusto», que no llevan cantidad fija)',comps.every(k=>['rellenar','al_gusto'].includes(k.unidad)?k.cantidad===null:(typeof k.cantidad==='number'&&k.cantidad>0)),comps.filter(k=>!(['rellenar','al_gusto'].includes(k.unidad)?k.cantidad===null:k.cantidad>0)));
@@ -74,11 +75,11 @@ await quick(f,'Destilados','Rones','Ron Carta Blanca','14');await quick(f,'Desti
 await nav(f,'Bebidas');await tap(f,'#libOpen');
 ok('Bebidas › «Añadir desde la biblioteca» abre la biblioteca con la nota de medidas orientativas',(await seen(f,'#page-library'))&&/orientativas/.test(await text(f,'#libNote'))&&/Ninguna es un estándar oficial/.test(await text(f,'#libNote')),await text(f,'#libNote'));
 const items=p=>p.locator('#libList .lib-item b').allInnerTexts();
-ok('lista de 30 cócteles con contador',(await items(f)).length===30&&/30 de 30 cócteles · 0 elegidos/.test(await text(f,'#libCount')),await text(f,'#libCount'));
+ok('lista de 35 cócteles con contador',(await items(f)).length===35&&/35 de 35 cócteles · 0 elegidos/.test(await text(f,'#libCount')),await text(f,'#libCount'));
 await f.locator('#libSearch').pressSequentially('mojito');ok('buscar «mojito»: Mojito y Mojito sin alcohol',(await items(f)).join('|')==='Mojito|Mojito sin alcohol',await items(f));
 await f.fill('#libSearch','');await f.locator('#libSearch').pressSequentially('tomate');ok('buscar por ingrediente («tomate» → Bloody Mary)',(await items(f)).join('|')==='Bloody Mary',await items(f));
 await f.fill('#libSearch','');await f.locator('#libSearch').press('Backspace');await tap(f,'#libBases .cat-chip[data-base="ron"]');
-ok('filtro por base «Ron»: 5 cócteles',(await items(f)).length===5&&(await items(f)).includes('Mai Tai'),await items(f));
+ok('filtro por base «Ron»: 6 cócteles',(await items(f)).length===6&&(await items(f)).includes('Mai Tai')&&(await items(f)).includes("Dark 'n' Stormy"),await items(f));
 for(const c of ['mojito','daiquiri','mai-tai'])await tap(f,`label[for="lib_${c}"]`);
 ok('marcar 3 cócteles → «Revisar con mi barra (3)»',(await text(f,'#libNext'))==='Revisar con mi barra (3)',null);
 await tap(f,'#libNext');

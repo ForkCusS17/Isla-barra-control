@@ -219,6 +219,35 @@
    ]
   },
   {
+   "id": "licor-melocoton",
+   "nombre": "Licor de melocotón",
+   "categoria": "Destilados",
+   "subcategoria": "Licores y amargos",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "licor de melocotón",
+    "licor de melocoton",
+    "melocotón",
+    "melocoton",
+    "peach"
+   ]
+  },
+  {
+   "id": "crema-casis",
+   "nombre": "Crema de casis",
+   "categoria": "Destilados",
+   "subcategoria": "Licores y amargos",
+   "unidad": "ml",
+   "formato": "70 cl",
+   "palabras": [
+    "crema de casis",
+    "casis",
+    "cassis",
+    "grosella negra"
+   ]
+  },
+  {
    "id": "amargo-aromatico",
    "nombre": "Amargo aromático",
    "categoria": "Destilados",
@@ -1905,6 +1934,252 @@
     }
    ],
    "metodo": "Agita los zumos con hielo, sirve en vaso alto y deja caer la granadina.",
+   "version": 1,
+   "revisada": false
+  },
+  {
+   "id": "long-island",
+   "nombre": "Long Island Iced Tea",
+   "base": "vodka",
+   "componentes": [
+    {
+     "tipo": "vodka",
+     "cantidad": 15,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "ginebra",
+     "cantidad": 15,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "ron-blanco",
+     "cantidad": 15,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "tequila",
+     "cantidad": 15,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "licor-naranja",
+     "cantidad": 15,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "zumo-limon",
+     "cantidad": 25,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "sirope-simple",
+     "cantidad": 15,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "cola",
+     "cantidad": null,
+     "unidad": "rellenar",
+     "opcional": false,
+     "nota": "un chorrito para dar color"
+    },
+    {
+     "tipo": "hielo",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": ""
+    },
+    {
+     "tipo": "guarnicion",
+     "cantidad": 1,
+     "unidad": "unidad",
+     "opcional": true,
+     "nota": "rodaja de limón"
+    }
+   ],
+   "metodo": "Mezcla los cinco destilados con el limón y el sirope sobre hielo en vaso alto y termina con un poco de cola.",
+   "version": 1,
+   "revisada": false
+  },
+  {
+   "id": "sex-on-the-beach",
+   "nombre": "Sex on the Beach",
+   "base": "vodka",
+   "componentes": [
+    {
+     "tipo": "vodka",
+     "cantidad": 40,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "licor-melocoton",
+     "cantidad": 20,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "zumo-naranja",
+     "cantidad": 40,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "zumo-arandano",
+     "cantidad": 40,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "hielo",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": ""
+    },
+    {
+     "tipo": "guarnicion",
+     "cantidad": 1,
+     "unidad": "unidad",
+     "opcional": true,
+     "nota": "rodaja de naranja"
+    }
+   ],
+   "metodo": "Agita todo con hielo y sirve en vaso alto con hielo nuevo.",
+   "version": 1,
+   "revisada": false
+  },
+  {
+   "id": "mint-julep",
+   "nombre": "Mint Julep",
+   "base": "whisky",
+   "componentes": [
+    {
+     "tipo": "whisky",
+     "cantidad": 60,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": "tipo bourbon"
+    },
+    {
+     "tipo": "sirope-simple",
+     "cantidad": 10,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "hierbabuena",
+     "cantidad": 6,
+     "unidad": "g",
+     "opcional": false,
+     "nota": "unas 8 hojas"
+    },
+    {
+     "tipo": "hielo",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": ""
+    },
+    {
+     "tipo": "guarnicion",
+     "cantidad": 1,
+     "unidad": "unidad",
+     "opcional": true,
+     "nota": "rama de hierbabuena"
+    }
+   ],
+   "metodo": "Presiona la hierbabuena con el sirope, añade el whisky, llena de hielo picado y remueve hasta enfriar.",
+   "version": 1,
+   "revisada": false
+  },
+  {
+   "id": "kir-royal",
+   "nombre": "Kir Royal",
+   "base": "espumoso",
+   "componentes": [
+    {
+     "tipo": "crema-casis",
+     "cantidad": 10,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "espumoso",
+     "cantidad": 90,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": ""
+    }
+   ],
+   "metodo": "Pon la crema de casis en copa alta y completa despacio con el espumoso frío.",
+   "version": 1,
+   "revisada": false
+  },
+  {
+   "id": "dark-n-stormy",
+   "nombre": "Dark 'n' Stormy",
+   "base": "ron",
+   "componentes": [
+    {
+     "tipo": "ron-anejo",
+     "cantidad": 60,
+     "unidad": "ml",
+     "opcional": false,
+     "nota": "ron oscuro"
+    },
+    {
+     "tipo": "ginger-beer",
+     "cantidad": null,
+     "unidad": "rellenar",
+     "opcional": false,
+     "nota": ""
+    },
+    {
+     "tipo": "zumo-lima",
+     "cantidad": 10,
+     "unidad": "ml",
+     "opcional": true,
+     "nota": ""
+    },
+    {
+     "tipo": "hielo",
+     "cantidad": null,
+     "unidad": "al_gusto",
+     "opcional": true,
+     "nota": ""
+    },
+    {
+     "tipo": "guarnicion",
+     "cantidad": 1,
+     "unidad": "unidad",
+     "opcional": true,
+     "nota": "gajo de lima"
+    }
+   ],
+   "metodo": "Sirve la ginger beer sobre hielo en vaso alto y deja flotar el ron encima; la lima, al gusto.",
    "version": 1,
    "revisada": false
   }

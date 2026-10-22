@@ -34,6 +34,8 @@ TYPES = [
     ('bitter-rojo', 'Bitter rojo', D, 'Licores y amargos', 'ml', '70 cl', 'bitter, aperitivo rojo'),
     ('aperitivo-naranja', 'Aperitivo de naranja', D, 'Licores y amargos', 'ml', '70 cl', 'aperitivo, spritz, naranja amarga'),
     ('licor-cafe', 'Licor de café', D, 'Licores y amargos', 'ml', '70 cl', 'licor de café, café, cafe'),
+    ('licor-melocoton', 'Licor de melocotón', D, 'Licores y amargos', 'ml', '70 cl', 'licor de melocotón, licor de melocoton, melocotón, melocoton, peach'),
+    ('crema-casis', 'Crema de casis', D, 'Licores y amargos', 'ml', '70 cl', 'crema de casis, casis, cassis, grosella negra'),
     ('amargo-aromatico', 'Amargo aromático', D, 'Licores y amargos', 'ml', '20 cl', 'amargo, aromático, aromatico, bitters'),
     ('zumo-lima', 'Zumo de lima', F, 'Zumos', 'ml', '1 L', 'lima'),
     ('zumo-limon', 'Zumo de limón', F, 'Zumos', 'ml', '1 L', 'limón, limon'),
@@ -134,6 +136,16 @@ COCKTAILS = [
      'Machaca la hierbabuena con la lima y el sirope, añade hielo picado y completa con soda.'),
     ('san-francisco', 'San Francisco', 'sin alcohol', [c('zumo-naranja', 60), c('zumo-pina', 60), c('zumo-limon', 15), c('granadina', 10), HIELO, guarnicion('rodaja de naranja')],
      'Agita los zumos con hielo, sirve en vaso alto y deja caer la granadina.'),
+    ('long-island', 'Long Island Iced Tea', 'vodka', [c('vodka', 15), c('ginebra', 15), c('ron-blanco', 15), c('tequila', 15), c('licor-naranja', 15), c('zumo-limon', 25), c('sirope-simple', 15), c('cola', None, 'rellenar', nota='un chorrito para dar color'), HIELO, guarnicion('rodaja de limón')],
+     'Mezcla los cinco destilados con el limón y el sirope sobre hielo en vaso alto y termina con un poco de cola.'),
+    ('sex-on-the-beach', 'Sex on the Beach', 'vodka', [c('vodka', 40), c('licor-melocoton', 20), c('zumo-naranja', 40), c('zumo-arandano', 40), HIELO, guarnicion('rodaja de naranja')],
+     'Agita todo con hielo y sirve en vaso alto con hielo nuevo.'),
+    ('mint-julep', 'Mint Julep', 'whisky', [c('whisky', 60, nota='tipo bourbon'), c('sirope-simple', 10), c('hierbabuena', 6, 'g', nota='unas 8 hojas'), HIELO, guarnicion('rama de hierbabuena')],
+     'Presiona la hierbabuena con el sirope, añade el whisky, llena de hielo picado y remueve hasta enfriar.'),
+    ('kir-royal', 'Kir Royal', 'espumoso', [c('crema-casis', 10), c('espumoso', 90)],
+     'Pon la crema de casis en copa alta y completa despacio con el espumoso frío.'),
+    ('dark-n-stormy', "Dark 'n' Stormy", 'ron', [c('ron-anejo', 60, nota='ron oscuro'), c('ginger-beer', None, 'rellenar'), c('zumo-lima', 10, opcional=True), HIELO, guarnicion('gajo de lima')],
+     'Sirve la ginger beer sobre hielo en vaso alto y deja flotar el ron encima; la lima, al gusto.'),
 ]
 
 NOTE = ('Recetas clásicas con medidas orientativas: cada barra puede servirlas distinto. '
@@ -145,7 +157,7 @@ def build():
     assert len(set(type_ids)) == len(type_ids), 'tipos repetidos'
     ids = [x[0] for x in COCKTAILS]
     assert len(set(ids)) == len(ids), 'cócteles repetidos'
-    assert len(COCKTAILS) == 30, len(COCKTAILS)
+    assert len(COCKTAILS) == 35, len(COCKTAILS)
     for cid, name, base, comps, method in COCKTAILS:
         for k in comps:
             assert k['tipo'] in type_ids, (cid, k['tipo'])

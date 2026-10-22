@@ -184,6 +184,31 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap
   const small=await z.evaluate(()=>[...document.querySelectorAll('#page-recipe button,#page-recipe select,#page-recipe input')].filter(x=>x.offsetParent).map(x=>[x.id||x.textContent.trim().slice(0,20),Math.round(x.getBoundingClientRect().height)]).filter(([,h])=>h<44));ok(`[${wd}] receta de ${n}: objetivos táctiles ≥ 44 px`,small.length===0,small);await tap(z,'#rcBack')}
  if(wd===390){await tap(z,'#drinkList tr:has-text("Old fashioned") button:has-text("Receta")');ok('Old fashioned: los golpes y la cucharada se marcan «aprox.»; el hielo, al gusto',(await z.locator('#page-recipe h4:has-text("aprox.")').count())===2&&/al gusto \(0 €\)/.test(await text(z,'#rcBody')),await text(z,'#rcBody'));const cf=await contrastFails(z);ok('receta: contraste ≥ 4,5:1',cf.length===0,cf.slice(0,6))}}
 
+// ── 6. Palabras genéricas y palabra fuerte (clasificar y proponer productos) ──
+{const c=await mk();await tap(c,'#wStart');await tap(c,'#tplSkip');await nav(c,'Mi barra');await tap(c,'#barPaste');
+ await c.fill('#pasteText','Ron blanco 70 cl 14\nRon blanco 1 L 18\nVino blanco 75 cl 6\nTequila blanco 70 cl 18\nBlanco 70 cl 9\nWhisky reserva 70 cl 25\nVino reserva 75 cl 8\nCava brut 75 cl 7');await tap(c,'#pasteReview');
+ const R=await c.locator('.paste-row').evaluateAll(rs=>rs.map(r=>[r.querySelector('[id$=name]').value,r.querySelector('select').value]));const S=Object.fromEntries(R);
+ ok('clasificar: «Ron blanco» y «Ron blanco 1 L» → Rones (no Vinos › Blancos)',S['Ron blanco']==='Destilados|Rones'&&R[1][0]==='Ron blanco'&&R[1][1]==='Destilados|Rones',R);
+ ok('clasificar: «Vino blanco» → Vinos › Blancos; «Tequila blanco» → Tequilas y mezcales',S['Vino blanco']==='Vinos|Blancos'&&S['Tequila blanco']==='Destilados|Tequilas y mezcales',R);
+ ok('clasificar: una palabra genérica sola no clasifica («Blanco» no va a Vinos › Blancos)',S['Blanco']!=='Vinos|Blancos',R);
+ ok('clasificar: manda la palabra fuerte («Whisky reserva» → Whiskys; «Vino reserva» → Tintos; «Cava brut» → Espumosos)',S['Whisky reserva']==='Destilados|Whiskys'&&S['Vino reserva']==='Vinos|Tintos'&&S['Cava brut']==='Vinos|Espumosos',R);
+ const dupRow=c.locator('.paste-row').nth(1);ok('«Ron blanco 1 L» repite nombre: aviso de posible duplicado (se marca a mano)',/Posible duplicado/.test(await dupRow.locator('.row-warn').innerText()),null);if(!(await dupRow.locator('input[type=checkbox]').isChecked()))await dupRow.locator('input[type=checkbox]').tap();
+ if(await c.locator('.paste-row').nth(4).locator('input[type=checkbox]').isChecked())await c.locator('.paste-row').nth(4).locator('input[type=checkbox]').tap();
+ await tap(c,'#pasteAdd');const dc=await D(c);
+ ok('se guardan en su sección (Ron blanco ×2 en Rones, Tequila blanco en Tequilas, Vino blanco en Blancos)',dc.ingredients.filter(i=>i.name==='Ron blanco'&&i.subcategory==='Rones').length===2&&dc.ingredients.find(i=>i.name==='Tequila blanco').subcategory==='Tequilas y mezcales'&&dc.ingredients.find(i=>i.name==='Vino blanco').subcategory==='Blancos',dc.ingredients.map(i=>i.name+':'+i.subcategory));
+ await nav(c,'Bebidas');await tap(c,'#libOpen');for(const x of ['margarita','daiquiri'])await tap(c,`label[for="lib_${x}"]`);await tap(c,'#libNext');
+ const o=async t=>(await c.locator(`#lg_${t} .lib-opt span`).allInnerTexts()).map(x=>x.replace(/\s+/g,' '));const oT=await o('tequila'),oR=await o('ron-blanco');
+ ok('biblioteca: los candidatos del tequila no incluyen ron ni vino',oT.some(x=>/^Tequila blanco/.test(x))&&!oT.some(x=>/^(Ron|Vino)/.test(x)),oT);
+ ok('biblioteca: los candidatos del ron blanco no incluyen tequila ni vino (los dos rones blancos sí)',oR.filter(x=>/^Ron blanco/.test(x)).length===2&&!oR.some(x=>/^(Tequila|Vino|Whisky)/.test(x)),oR)}
+{const ings=[['u1','Ron blanco','Destilados'],['u2','Ron Carta Blanca','Destilados'],['u3','Tequila blanco','Destilados'],['u4','Tequila plata','Destilados'],['u5','Vino blanco','Vinos'],['u6','Blanco','Otros'],['u7','Vodka silver','Destilados'],['u8','Ginger beer','Refrescos y mixers']].map(([id,name,category])=>({id,name,category,subcategory:'',supplier:'',format:'70 cl',unit:'ml',packUnit:'cl',packInput:70,packQty:700,packPrice:14,unitCost:0.02,notes:'',active:true}));
+ fs.writeFileSync(TMP+'bib_sin_clasificar.json',JSON.stringify({app:'Isla & Barra Control',schema:6,exportedAt:'2026-10-21T10:00:00.000Z',settings:{marginMin:65,mode:'full'},business:{name:'Bar sin clasificar'},sales:[],stocks:[],diagnostics:[],ingredients:ings,drinks:[]}));
+ const c=await mk();await importTap(c,'#wRestore',TMP+'bib_sin_clasificar.json');await nav(c,'Bebidas');await tap(c,'#libOpen');for(const x of ['margarita','daiquiri','moscow-mule','gin-tonic'])await tap(c,`label[for="lib_${x}"]`);await tap(c,'#libNext');
+ const o=async t=>(await c.locator(`#lg_${t} .lib-opt span`).allInnerTexts()).map(x=>x.replace(/\s+/g,' ').split(' · ')[0]);
+ const oT=await o('tequila'),oR=await o('ron-blanco'),oV=await o('vodka'),oG=await o('ginebra');
+ ok('sin clasificar: tequila → solo los tequilas (ni ron, ni vino, ni «Blanco» suelto)',oT.filter(x=>!/^No lo tengo/.test(x)).join('|')==='Tequila blanco|Tequila plata',oT);
+ ok('sin clasificar: ron blanco → solo los rones (ni tequila, ni vino, ni «Blanco» suelto)',oR.filter(x=>!/^No lo tengo/.test(x)).join('|')==='Ron Carta Blanca|Ron blanco',oR);
+ ok('sin clasificar: «Vodka silver» se propone para vodka; «Ginger beer» no es candidato a ginebra',oV.filter(x=>!/^No lo tengo/.test(x)).join('|')==='Vodka silver'&&oG.filter(x=>!/^No lo tengo/.test(x)).length===0,[oV,oG])}
+
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO biblioteca: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

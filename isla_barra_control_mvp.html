@@ -578,7 +578,22 @@ function quickSaveFormats(){const cat=catOf(quickAdd.cat),list=v('qaFormatsText'
 // Pegar una lista: texto libre o CSV → vista previa editable; no se guarda nada hasta confirmar
 let pasteRows=[];
 const fold=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-function suggestSub(name){const t=' '+fold(name)+' ';let best=null;for(const c of tax())for(const s of c.subs){if(s.hidden)continue;for(const kw of s.keywords){const k=fold(kw);if(!k)continue;const i=t.indexOf(k);if(i<0)continue;const before=t[i-1],after=t[i+k.length];if(/[a-z0-9]/.test(before)||/[a-z0-9]/.test(after||' ')&&k.length<4)continue;if(!best||k.length>best.len||(k.length===best.len&&i<best.at))best={cat:c.name,sub:s.name,len:k.length,at:i}}}return best?best.cat+'|'+best.sub:''}
+// Palabras genéricas: no clasifican ni proponen un producto por sí solas («Ron blanco» no es un vino blanco).
+// Manda la palabra fuerte (ron, ginebra, vino…); si el nombre lleva la de otra familia, ese tipo se descarta.
+const WEAK_WORDS=new Set(['blanco','blanca','oscuro','oscura','dorado','plata','gold','silver','reserva','brut','seco','seca','dry']);
+const STRONG_WORDS=new Set(['ron','rum','ginebra','gin','vodka','tequila','mezcal','whisky','whiskey','bourbon','brandy','brandi','cognac','conac','pisco','cachaca','vino','cerveza','vermut','vermouth','cava','prosecco','champagne','champan','sidra','licor']);
+const toks=s=>fold(s).split(/[^a-z0-9]+/).filter(Boolean);
+const isWeak=k=>{const w=toks(k);return w.length>0&&w.every(x=>WEAK_WORDS.has(x))};
+function kwHit(t,k){let i=t.indexOf(k);while(i>=0){const before=t[i-1],after=t[i+k.length];if(!/[a-z0-9]/.test(before||' ')&&(!/[a-z0-9]/.test(after||' ')||k.length>=4))return i;i=t.indexOf(k,i+1)}return -1}
+// Palabras de una familia (subcategoría): las de su sección en Mi barra, las de los tipos de la biblioteca de esa sección y el nombre de la categoría en singular.
+function famWords(cat,sub){const w=new Set(toks(cat).map(x=>x.replace(/s$/,'')));const c=catOf(cat),sc=c&&c.subs.find(x=>x.name===sub);if(sc)sc.keywords.forEach(k=>toks(k).forEach(x=>w.add(x)));LIBRARY.tipos.filter(x=>x.categoria===cat&&x.subcategoria===sub).forEach(x=>x.palabras.forEach(k=>toks(k).forEach(y=>w.add(y))));return w}
+const strongIn=name=>toks(name).filter(x=>STRONG_WORDS.has(x));
+const clashes=(name,cat,sub)=>{const f=famWords(cat,sub);return strongIn(name).some(x=>!f.has(x))};
+function suggestSub(name){const t=' '+fold(name)+' ',hits=[];for(const c of tax())for(const s of c.subs){if(s.hidden)continue;for(const kw of s.keywords){const k=fold(kw);if(!k)continue;const at=kwHit(t,k);if(at<0)continue;hits.push({cat:c.name,sub:s.name,len:k.length,at,weak:isWeak(k)})}}
+const best=list=>list.reduce((b,h)=>!b||h.len>b.len||(h.len===b.len&&h.at<b.at)?h:b,null),fits=h=>!clashes(name,h.cat,h.sub),strong=hits.filter(h=>!h.weak);
+let r=best(strong.filter(fits))||best(strong);
+if(!r){const own=strongIn(name);r=best(hits.filter(h=>h.weak&&fits(h)&&own.some(x=>famWords(h.cat,h.sub).has(x))))}
+return r?r.cat+'|'+r.sub:''}
 function splitPrice(rest){let m=/(\d+(?:[.,]\d{1,4})?)\s*€/.exec(rest)||/€\s*(\d+(?:[.,]\d{1,4})?)/.exec(rest)||/(?:^|[\s;,\t])(\d+(?:[.,]\d{1,4})?)\s*$/.exec(rest);if(!m)return{price:'',rest};return{price:m[1],rest:rest.slice(0,m.index)+' '+rest.slice(m.index+m[0].length)}}
 function parseLine(line){const raw=line.replace(/"/g,'').trim();if(!raw)return null;if(/nombre/i.test(raw)&&/precio/i.test(raw)&&!findFormat(raw))return null;let name,fmtText='',price='';
 if(/[\t;]/.test(raw)){const f=raw.split(/[\t;]/).map(x=>x.trim());name=f[0];for(const x of f.slice(1)){if(!x)continue;if(!fmtText&&findFormat(x))fmtText=x;else if(!price)price=x.replace(/€/g,'').trim();else name+=' '+x}}
@@ -617,11 +632,12 @@ function classifyCount(){const n=classifyReady().length,b=document.getElementByI
 function applyClassify(){const rows=classifyReady();if(!rows.length)return;for(const r of rows){const i=ingOf(r.id),[c,s]=r.sub.split('|');if(i&&catOf(c)){i.category=c;i.subcategory=s}}document.getElementById('classifyPanel').classList.add('hidden');document.getElementById('barClassify').setAttribute('aria-expanded','false');save();toast(`${rows.length} ingrediente${rows.length===1?'':'s'} clasificado${rows.length===1?'':'s'}`);document.getElementById('barClassify').focus()}
 // Biblioteca: tipos de ingrediente y productos de «Mi barra» que encajan con cada tipo
 const libType=id=>LIBRARY.tipos.find(t=>t.id===id),libCocktail=id=>LIBRARY.cocteles.find(c=>c.id===id);
-function kwScore(name,words){const t=' '+fold(name)+' ';let best=0;for(const w of words){const k=fold(w);if(k&&t.includes(k)&&k.length>best)best=k.length}return best}
+function kwScore(name,words,strongOnly){const t=' '+fold(name)+' ';let best=0;for(const w of words){const k=fold(w);if(k&&(!strongOnly||!isWeak(k))&&kwHit(t,k)>=0&&k.length>best)best=k.length}return best}
 // Candidatos: productos activos con la misma unidad base y de la subcategoría del tipo (si varios tipos comparten esa
-// subcategoría, además con alguna palabra clave del tipo), o sin clasificar con alguna palabra clave.
+// subcategoría, además con alguna palabra clave del tipo), o sin clasificar con alguna palabra clave. Las palabras genéricas
+// no bastan y se descartan los productos con la palabra fuerte de otra familia (un «Tequila blanco» no es candidato a ron).
 const sharedSub=t=>LIBRARY.tipos.filter(x=>x.categoria===t.categoria&&x.subcategoria===t.subcategoria).length>1;
-function libCandidates(typeId){const t=libType(typeId);if(!t)return[];const sh=sharedSub(t);return data.ingredients.filter(i=>{if(i.active===false||i.unit!==t.unidad)return false;const kw=kwScore(i.name,t.palabras)>0;return(i.category===t.categoria&&i.subcategory===t.subcategoria&&(kw||!sh))||(!i.subcategory&&kw)}).map(i=>({i,s:kwScore(i.name,t.palabras)})).sort((a,b)=>b.s-a.s||a.i.name.localeCompare(b.i.name,'es')).map(x=>x.i)}
+function libCandidates(typeId){const t=libType(typeId);if(!t)return[];const sh=sharedSub(t);return data.ingredients.filter(i=>{if(i.active===false||i.unit!==t.unidad||clashes(i.name,t.categoria,t.subcategoria))return false;const kw=kwScore(i.name,t.palabras,true)>0;return(i.category===t.categoria&&i.subcategory===t.subcategoria&&(kw||!sh))||(!i.subcategory&&kw)}).map(i=>({i,s:kwScore(i.name,t.palabras)})).sort((a,b)=>b.s-a.s||a.i.name.localeCompare(b.i.name,'es')).map(x=>x.i)}
 // Unidades de la biblioteca → cantidad en unidad base para el coste. Las no estándar son aproximadas.
 const UNIT_WORDS={dash:['golpe','golpes'],gota:['gota','gotas'],cucharada:['cucharada de bar','cucharadas de bar'],unidad:['ud','uds']};
 function compQty(k){const u=data.settings.units,t=libType(k.tipo)||{unidad:'ml'},base=UL(t.unidad),n=k.cantidad,pl=(w,x)=>x===1?w[0]:w[1];

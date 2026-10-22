@@ -4,7 +4,7 @@ const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const KEY='islaBarraControlMVP_v1',DEMO=JSON.parse(fs.readFileSync(J,'utf8'));
 const PHONE={...devices['iPhone 13'],acceptDownloads:true,reducedMotion:'reduce'},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}};
 (async()=>{const b=await chromium.launch();const pages=[];
-const mk=async(dev=PHONE,seed)=>{const c=await b.newContext(dev);await c.clock.setFixedTime(new Date('2026-10-21T10:00:00Z'));await c.addInitScript(()=>{window.print=()=>{window.__prints=(window.__prints||0)+1}});if(seed)await c.addInitScript(([k,s])=>{if(!sessionStorage.seeded){sessionStorage.seeded=1;localStorage.setItem(k,s)}},[KEY,JSON.stringify(seed)]);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type()+': '+d.message().slice(0,60));d.dismiss()});await p.goto('file://'+F);pages.push(p);return p};
+const mk=async(dev=PHONE,seed)=>{const c=await b.newContext(dev);await c.clock.setFixedTime(new Date('2026-10-21T10:00:00Z'));await c.addInitScript(()=>{window.print=()=>{window.__prints=(window.__prints||0)+1}});if(seed)await c.addInitScript(([k,s])=>{if(location.protocol!=='file:'||window.name==='semilla')return;window.name='semilla';localStorage.setItem(k,s)},[KEY,JSON.stringify(seed)]);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type()+': '+d.message().slice(0,60));d.dismiss()});await p.goto('file://'+F);pages.push(p);return p};
 const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error("toque en "+sel+": "+e.message.split("\n")[0])});
 const seen=(p,sel)=>p.locator(sel).filter({visible:true}).count().then(n=>n>0);
 const text=(p,sel)=>p.locator(sel).first().innerText().then(t=>t.replace(/\s+/g,' ').trim());
@@ -13,7 +13,8 @@ const stored=(p,k)=>p.evaluate(k=>localStorage.getItem(k),k);
 // En emulación móvil, si algo se sale, el navegador agranda innerWidth: se compara con el ancho del dispositivo.
 const wide=async p=>[await p.evaluate(()=>document.documentElement.scrollWidth),p.viewportSize().width];
 const noOverflow=async p=>{const w=await wide(p);return w[0]<=w[1]+1};
-const nav=(p,label)=>tap(p,`.mobile-nav button:has-text("${label}")`);
+const MORE=['Ficha','Diagnóstico','Informe','Ajustes'];// en móvil se abren desde «Más»
+const nav=async(p,label)=>{if(MORE.includes(label)){await tap(p,'.mobile-nav button:has-text("Más")');await tap(p,`#page-more button:has-text("${label}")`)}else await tap(p,`.mobile-nav button:has-text("${label}")`)};
 const importTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:4000}),tap(p,sel)]);await fc.setFiles(file);await p.locator('#importConfirm').waitFor({state:'visible',timeout:3000});await tap(p,'#importYes');await p.waitForTimeout(150)};
 const box=async(p,sel)=>(await p.locator(sel).filter({visible:true}).first().boundingBox())||{width:0,height:0};
 
@@ -233,6 +234,35 @@ let k10=await mk();await importTap(k10,'#wRestore',TMP+'guide_marca_mala.json');
 ok('una copia con color sin contraste o logo no válido se corrige al importar (color por defecto, sin logo)',br.color==='#0E4A5A'&&br.logo===''&&br.name==='X',br);
 await tap(k9,'#dashSettings');await tap(k9,'#brReset');await tap(k9,'#appConfirmYes');
 ok('«Volver a Isla & Barra» restablece la marca (con confirmación)',(await text(k9,'#brandTitle'))==='Isla & Barra Control'&&(await D(k9)).settings.brand.logo==='',null);
+
+// ── 9. Navegación de 5 y recordatorio de copia ───────────────────────────────
+let n9=await mk();await tap(n9,'#wDemo');
+const navTexts=(await n9.locator('.mobile-nav button').filter({visible:true}).allInnerTexts()).map(x=>x.replace(/^\W*\s*/,'').trim());
+ok('barra inferior de 5: Resumen, Bebidas, Ingredientes, Stock y Más',navTexts.join()==='Resumen,Bebidas,Ingredientes,Stock,Más',navTexts);
+const navBoxes=await n9.locator('.mobile-nav button').evaluateAll(bs=>bs.map(b=>[b.getBoundingClientRect().width,b.getBoundingClientRect().height]));ok('botones de la barra inferior ≥ 44 × 44 px',navBoxes.every(([w,h])=>w>=44&&h>=44),navBoxes);
+await tap(n9,'.mobile-nav button:has-text("Más")');
+ok('«Más» abre Ficha, Diagnóstico, Informe y Ajustes',(await seen(n9,'#page-more'))&&(await n9.locator('#page-more .more-item').allInnerTexts()).map(t=>t.split('\n')[0]).join()==='Ficha del bar,Diagnóstico,Informe,Ajustes',null);
+for(const [lab,pg] of [['Ficha','business'],['Diagnóstico','diagnosis'],['Informe','report'],['Ajustes','settings']]){await nav(n9,lab);ok(`Más › ${lab}: abre la pantalla y «Más» queda marcado (aria-current)`,(await seen(n9,'#page-'+pg))&&(await n9.locator('.mobile-nav button:has-text("Más")').getAttribute('aria-current'))==='page',null)}
+await nav(n9,'Bebidas');ok('en Bebidas, la marca pasa a «Bebidas»',(await n9.locator('.mobile-nav button:has-text("Bebidas")').getAttribute('aria-current'))==='page'&&!(await n9.locator('.mobile-nav button:has-text("Más")').getAttribute('aria-current')),null);
+await nav(n9,'Resumen');
+ok('sin copias: «Todavía no has exportado ninguna copia» con aviso',/Todavía no has exportado ninguna copia/.test(await text(n9,'#backupStatus'))&&/warn/.test(await n9.getAttribute('#backupStatus','class')),await text(n9,'#backupStatus'));
+const [dl9]=await Promise.all([n9.waitForEvent('download'),tap(n9,'#dashExport')]);const ex9=JSON.parse(fs.readFileSync(await dl9.path(),'utf8'));
+ok('al exportar: settings.lastBackupAt = fecha de la copia y «Última copia: hoy» sin aviso',ex9.settings.lastBackupAt===ex9.exportedAt&&(await D(n9)).settings.lastBackupAt===ex9.exportedAt&&/Última copia: hoy/.test(await text(n9,'#backupStatus'))&&!/warn/.test(await n9.getAttribute('#backupStatus','class')),[ex9.settings.lastBackupAt,ex9.exportedAt]);
+await nav(n9,'Ajustes');ok('Ajustes también muestra la última copia y permite exportar e importar',/Última copia: hoy/.test(await text(n9,'#settingsBackup'))&&(await seen(n9,'#setExport'))&&(await seen(n9,'#setImport')),null);
+const old=(d,days)=>({...ex9,exportedAt:new Date(Date.parse('2026-10-21T10:00:00Z')-days*864e5).toISOString(),settings:{...ex9.settings,lastBackupAt:''}});
+fs.writeFileSync(TMP+'guide_copia10.json',JSON.stringify(old(ex9,10)));fs.writeFileSync(TMP+'guide_copia3.json',JSON.stringify(old(ex9,3)));
+let b10=await mk();await importTap(b10,'#wRestore',TMP+'guide_copia10.json');
+ok('copia de hace 10 días: «Última copia: hace 10 días» y aviso de exportar',/Última copia: hace 10 días\. Han pasado 10 días/.test(await text(b10,'#backupStatus'))&&/warn/.test(await b10.getAttribute('#backupStatus','class')),await text(b10,'#backupStatus'));
+let b3=await mk();await importTap(b3,'#wRestore',TMP+'guide_copia3.json');
+ok('copia de hace 3 días: «hace 3 días» sin aviso',/Última copia: hace 3 días\.$/.test(await text(b3,'#backupStatus'))&&!/warn/.test(await b3.getAttribute('#backupStatus','class')),await text(b3,'#backupStatus'));
+await tap(b10,'#dashExport');await b10.waitForTimeout(200);ok('tras exportar de nuevo: «Última copia: hoy»',/Última copia: hoy/.test(await text(b10,'#backupStatus')),null);
+// barrido final: todas las pantallas, 360 y 390 px, vista sencilla y completa
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]])for(const mode of ['simple','full']){const q=await mk(dev);await tap(q,'#wDemo');if(mode==='full'){await nav(q,'Ajustes');await tap(q,'label[for=modeFull]')}const over=[],small=[];
+ for(const lab of ['Resumen','Bebidas','Ingredientes','Stock','Ficha','Diagnóstico','Informe','Ajustes']){await nav(q,lab);if(!(await noOverflow(q)))over.push(lab+' '+(await wide(q))[0]);
+  const sm=await q.evaluate(()=>[...document.querySelectorAll('button,label[role=button],.mobile-nav button')].filter(b=>b.offsetParent&&getComputedStyle(b).visibility!=='hidden').map(b=>{const r=b.getBoundingClientRect();return[b.textContent.trim().slice(0,20)||b.getAttribute('aria-label'),Math.round(r.width),Math.round(r.height)]}).filter(([,w,h])=>w<44||h<44));small.push(...sm.map(x=>lab+': '+x.join(' ')))}
+ ok(`${wd} px, vista ${mode==='simple'?'sencilla':'completa'}: ninguna pantalla se desborda`,over.length===0,over);
+ ok(`${wd} px, vista ${mode==='simple'?'sencilla':'completa'}: todos los botones visibles ≥ 44 × 44 px`,small.length===0,small.slice(0,6))}
+{const q=await mk();await tap(q,'#wDemo');const cf9=[];for(const lab of ['Más','Informe','Ajustes']){if(lab==='Más')await tap(q,'.mobile-nav button:has-text("Más")');else await nav(q,lab);cf9.push(...(await contrastFails(q)).map(x=>lab+': '+x))}ok('contraste ≥ 4,5:1 en Más, Informe y Ajustes',cf9.length===0,cf9.slice(0,6))}
 
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));

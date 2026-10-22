@@ -2,7 +2,9 @@ const {chromium}=require('playwright');const path=require('path');const TMP=path
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);const n2=s=>String(s).replace(/\s/g,'');
 const canon=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort()):v);
 (async()=>{const b=await chromium.launch();
-const mk=async()=>{const c=await b.newContext({viewport:{width:390,height:800},acceptDownloads:true,reducedMotion:'reduce'});await c.addInitScript(()=>{try{if(!localStorage.getItem('islaBarraControlMVP_v1'))localStorage.setItem('islaBarraControlMVP_v1',JSON.stringify({settings:{mode:'full'}}))}catch(e){}});// estas series prueban la vista completa
+const mk=async()=>{const c=await b.newContext({viewport:{width:390,height:800},acceptDownloads:true,reducedMotion:'reduce'});// Estas series prueban la vista completa. La semilla solo actúa en la primera carga de la pestaña (marca en window.name):
+// al recargar, localStorage.getItem puede devolver null un instante y la semilla pisaría los datos.
+await c.addInitScript(()=>{if(location.protocol!=='file:'||window.name==='semilla')return;window.name='semilla';try{if(!localStorage.getItem('islaBarraControlMVP_v1'))localStorage.setItem('islaBarraControlMVP_v1',JSON.stringify({settings:{mode:'full'}}))}catch(e){}});
 const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,100)));p.on('dialog',d=>{p.dl.push(d.message().slice(0,80));d.accept()});await p.goto('file://'+F);return p};
 const imp=async(p,f)=>{await p.setInputFiles('#importFile',f);await p.click('#importYes');await p.waitForTimeout(150)};
 const sel=async(p,name,unit,sid)=>{await p.evaluate(()=>{showPage('stock');clearStockForm()});await p.fill('#sProduct',name);await p.selectOption('#sUnit',unit);if(sid!==null)await p.selectOption('#sSales',sid||'v-sem41')};
@@ -52,7 +54,7 @@ ok('sin errores de JavaScript en el recorrido',p.errs.length===0,p.errs);
 // informe, exportación e importación
 let q=await mk();await imp(q,J);const rep=await q.evaluate(()=>{showPage('report');return reportContent.innerText});
 ok('informe: indica ventas calculadas con recetas y cómo se calculan',/ventas calculadas con recetas/.test(rep)&&/unidades vendidas × cantidad de la receta/.test(rep),null);
-const before=canon(await q.evaluate(()=>data));const [dl]=await Promise.all([q.waitForEvent('download'),q.evaluate(()=>exportBackup())]);const path=await dl.path();
+const [dl]=await Promise.all([q.waitForEvent('download'),q.evaluate(()=>exportBackup())]);const before=canon(await q.evaluate(()=>data));const path=await dl.path();
 ok('exportación incluye las ventas',JSON.parse(fs.readFileSync(path,'utf8')).sales.length===2,null);
 let r=await mk();await imp(r,path);ok('exportar e importar conserva ventas y controles enlazados (datos idénticos)',canon(await r.evaluate(()=>data))===before,null);
 await imp(r,FIX+'legacy.json');ok('copia antigua sin ventas se importa (ventas vacías)',(await r.evaluate(()=>Array.isArray(data.sales)&&data.sales.length===0))&&r.errs.length===0,r.errs);

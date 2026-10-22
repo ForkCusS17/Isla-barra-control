@@ -2,7 +2,9 @@ const {chromium}=require('playwright');const path=require('path');const TMP=path
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const canon=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort()):v);
 (async()=>{const b=await chromium.launch();
-const mk=async()=>{const c=await b.newContext({viewport:{width:390,height:800},acceptDownloads:true,reducedMotion:'reduce'});await c.addInitScript(()=>{try{if(!localStorage.getItem('islaBarraControlMVP_v1'))localStorage.setItem('islaBarraControlMVP_v1',JSON.stringify({settings:{mode:'full'}}))}catch(e){}});// estas series prueban la vista completa
+const mk=async()=>{const c=await b.newContext({viewport:{width:390,height:800},acceptDownloads:true,reducedMotion:'reduce'});// Estas series prueban la vista completa. La semilla solo actúa en la primera carga de la pestaña (marca en window.name):
+// al recargar, localStorage.getItem puede devolver null un instante y la semilla pisaría los datos.
+await c.addInitScript(()=>{if(location.protocol!=='file:'||window.name==='semilla')return;window.name='semilla';try{if(!localStorage.getItem('islaBarraControlMVP_v1'))localStorage.setItem('islaBarraControlMVP_v1',JSON.stringify({settings:{mode:'full'}}))}catch(e){}});
 const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,100)));p.on('dialog',d=>{p.dl.push(d.message().slice(0,80));d.accept()});await p.goto('file://'+F);return p};
 const imp=async(p,f)=>{await p.setInputFiles('#importFile',f);await p.click('#importYes');await p.waitForTimeout(150)};
 const txt=(p,id)=>p.evaluate(i=>document.getElementById(i).innerText.replace(/\s+/g,' '),id);
@@ -56,7 +58,7 @@ ok('pendientes: una desviación sobre el umbral sin hipótesis ni acción se se�
 const hist=await txt(p,'stockHistory');ok('historial: columna «Fase» y estado de los datos en cada control',/FASE/i.test(hist)&&/Resultado registrado/.test(hist)&&/Datos validados/.test(hist)&&/Datos sin validar/.test(hist),hist.slice(0,200));
 const w=await p.evaluate(()=>{showPage('stock');document.getElementById('sFollow').open=true;return[document.documentElement.scrollWidth,window.innerWidth]});ok('390 px sin desbordamiento horizontal en Stock (seguimiento abierto)',w[0]<=w[1]+1,w);
 ok('sin errores de JavaScript en el recorrido',p.errs.length===0,p.errs);
-const before=canon(await p.evaluate(()=>data));const [dl]=await Promise.all([p.waitForEvent('download'),p.evaluate(()=>exportBackup())]);const path=await dl.path();
+const [dl]=await Promise.all([p.waitForEvent('download'),p.evaluate(()=>exportBackup())]);const before=canon(await p.evaluate(()=>data));const path=await dl.path();
 let q=await mk();await imp(q,path);ok('exportar e importar conserva el seguimiento (datos idénticos)',canon(await q.evaluate(()=>data))===before,null);
 let r=await mk();await imp(r,FIX+'legacy.json');
 const lg=await r.evaluate(()=>({stg:stageOf(data.stocks[0]),hist:document.getElementById('stockHistory').innerText.replace(/\s+/g,' '),trend:document.getElementById('stockTrend').innerText.slice(0,40)}));

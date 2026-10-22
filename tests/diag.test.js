@@ -3,7 +3,9 @@ const {chromium}=require('playwright');const path=require('path');const TMP=path
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const canon=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort()):v);
 (async()=>{const b=await chromium.launch();
-const mk=async(init)=>{const c=await b.newContext({viewport:{width:390,height:800},acceptDownloads:true,reducedMotion:'reduce'});await c.addInitScript(()=>{try{if(!localStorage.getItem('islaBarraControlMVP_v1'))localStorage.setItem('islaBarraControlMVP_v1',JSON.stringify({settings:{mode:'full'}}))}catch(e){}});// estas series prueban la vista completa
+const mk=async(init)=>{const c=await b.newContext({viewport:{width:390,height:800},acceptDownloads:true,reducedMotion:'reduce'});// Estas series prueban la vista completa. La semilla solo actúa en la primera carga de la pestaña (marca en window.name):
+// al recargar, localStorage.getItem puede devolver null un instante y la semilla pisaría los datos.
+await c.addInitScript(()=>{if(location.protocol!=='file:'||window.name==='semilla')return;window.name='semilla';try{if(!localStorage.getItem('islaBarraControlMVP_v1'))localStorage.setItem('islaBarraControlMVP_v1',JSON.stringify({settings:{mode:'full'}}))}catch(e){}});
 if(init)await c.addInitScript(init);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,100)));p.on('dialog',d=>{p.dl.push(d.message().slice(0,80));d.accept()});await p.goto('file://'+F);return p};
 const imp=async(p,f)=>{await p.setInputFiles('#importFile',f);await p.click('#importYes');await p.waitForTimeout(150)};
 const toastTxt=p=>p.evaluate(()=>document.getElementById('toast').textContent);
@@ -66,8 +68,8 @@ let m=await mk(()=>{if(!sessionStorage.s){sessionStorage.s=1;localStorage.setIte
 const M=await m.evaluate(()=>({g:data.diagnostics[0],t:document.getElementById('diagList').innerText}));
 ok('datos guardados con esquema 2 en el navegador: se leen y muestran sin errores',M.g.status==='En revisión'&&M.g.evidence===''&&/Sin evidencia registrada/.test(M.t)&&m.errs.length===0,[M,m.errs]);
 // 4. Ida y vuelta de la copia con los campos nuevos
-const before=canon(await p.evaluate(()=>data));
-const [dl]=await Promise.all([p.waitForEvent('download'),p.evaluate(()=>exportBackup())]);const exp=JSON.parse(fs.readFileSync(await dl.path(),'utf8'));
+
+const [dl]=await Promise.all([p.waitForEvent('download'),p.evaluate(()=>exportBackup())]);const before=canon(await p.evaluate(()=>data));const exp=JSON.parse(fs.readFileSync(await dl.path(),'utf8'));
 ok('exportar: incluye evidencia, responsable y resultado',exp.schema===4&&'evidence' in exp.diagnostics[0]&&'owner' in exp.diagnostics[0]&&'result' in exp.diagnostics[0],exp.diagnostics[0]);
 let r=await mk();await imp(r,await dl.path());
 ok('importar la copia exportada restituye exactamente el diagnóstico',canon(await r.evaluate(()=>data))===before,null);

@@ -2,7 +2,9 @@ const {chromium}=require('playwright');const path=require('path');const TMP=path
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);const n2=s=>String(s).replace(/\s/g,'');
 const canon=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort()):v);
 (async()=>{const b=await chromium.launch();
-const mk=async(init)=>{const c=await b.newContext({viewport:{width:390,height:800},acceptDownloads:true,reducedMotion:'reduce'});await c.addInitScript(()=>{try{if(!localStorage.getItem('islaBarraControlMVP_v1'))localStorage.setItem('islaBarraControlMVP_v1',JSON.stringify({settings:{mode:'full'}}))}catch(e){}});// estas series prueban la vista completa
+const mk=async(init)=>{const c=await b.newContext({viewport:{width:390,height:800},acceptDownloads:true,reducedMotion:'reduce'});// Estas series prueban la vista completa. La semilla solo actúa en la primera carga de la pestaña (marca en window.name):
+// al recargar, localStorage.getItem puede devolver null un instante y la semilla pisaría los datos.
+await c.addInitScript(()=>{if(location.protocol!=='file:'||window.name==='semilla')return;window.name='semilla';try{if(!localStorage.getItem('islaBarraControlMVP_v1'))localStorage.setItem('islaBarraControlMVP_v1',JSON.stringify({settings:{mode:'full'}}))}catch(e){}});
 if(init)await c.addInitScript(init);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,100)));p.on('dialog',d=>{p.dl.push(d.message().slice(0,90));d.accept()});await p.goto('file://'+F);return p};
 const addIng=async(p,n,q,pr,u)=>{await p.evaluate(()=>showPage('ingredients'));await p.fill('#iName',n);await p.selectOption('#iUnit',u||'ml');await p.fill('#iPackQty',String(q));await p.fill('#iPackPrice',String(pr));await p.click('#ingredientForm button[type=submit]')};
 const addDrink=async(p,name,price,lines,other,tax)=>{await p.evaluate(l=>{showPage('drinks');recipeDraft=l.map(x=>({ingredientId:data.ingredients.find(i=>i.name===x[0]).id,qty:x[1]}));renderRecipeLines()},lines);await p.fill('#dName',name);await p.fill('#dPrice',String(price));await p.fill('#dTax',String(tax||0));await p.fill('#dOtherCost',String(other||0));await p.click('#drinkForm button[type=submit]')};
@@ -64,8 +66,8 @@ ok('informe: fecha de generación, datos pendientes y sin NaN/undefined',/Inform
 for(const pg of ['dashboard','business','drinks','ingredients','stock','diagnosis','report']){await p.evaluate(x=>showPage(x),pg);const w=await p.evaluate(()=>[document.documentElement.scrollWidth,window.innerWidth]);ok('390 px sin desbordamiento horizontal: '+pg,w[0]<=w[1]+1,w)}
 ok('sin errores de JavaScript durante el recorrido',p.errs.length===0,p.errs);
 await p.evaluate(()=>{showPage('drinks');window.scrollTo(0,0)});await p.screenshot({path:TMP+'s_drinks.png',fullPage:true});await p.evaluate(()=>{showPage('ingredients')});await p.screenshot({path:TMP+'s_ing.png',fullPage:true});await p.evaluate(()=>{showPage('stock');viewStock(data.stocks[data.stocks.length-1].id)});await p.screenshot({path:TMP+'s_stock.png',fullPage:true});
-const before=canon(await p.evaluate(()=>data));
-const [dl]=await Promise.all([p.waitForEvent('download'),p.evaluate(()=>exportBackup())]);const path=await dl.path();const ex=JSON.parse(fs.readFileSync(path,'utf8'));
+
+const [dl]=await Promise.all([p.waitForEvent('download'),p.evaluate(()=>exportBackup())]);const before=canon(await p.evaluate(()=>data));const path=await dl.path();const ex=JSON.parse(fs.readFileSync(path,'utf8'));
 ok('exportación con app, schema, fecha y todos los datos',ex.app==='Isla & Barra Control'&&ex.schema===4&&!!ex.exportedAt&&ex.drinks.length===4&&ex.ingredients.length===4&&ex.stocks.length>=3&&ex.diagnostics.length===1,Object.keys(ex));
 let q=await mk();await q.setInputFiles('#importFile',path);await q.locator('#importConfirm').waitFor({state:'visible',timeout:3000});const askTxt=await q.locator('#importConfirm').innerText();const untouched=(await q.evaluate(()=>data.drinks.length))===0;await q.click('#importYes');await q.waitForTimeout(200);
 ok('importar la copia exportada restituye exactamente los mismos datos',canon(await q.evaluate(()=>data))===before,null);

@@ -10,14 +10,16 @@ function readHeaders(root=R){const f=path.join(root,'_headers');if(!fs.existsSyn
  return rules}
 const matches=(pat,p)=>pat==='/*'||pat===p||(pat.endsWith('*')&&p.startsWith(pat.slice(0,-1)));
 // opts.root: carpeta que se sirve (por defecto, el proyecto; «publicar» para probar la carpeta de publicación).
-function start(opts={}){const override=opts.override||{},RT=opts.root?path.resolve(R,opts.root):R,H=readHeaders(RT);
- const server=http.createServer((req,res)=>{const u=new URL(req.url,'http://x'),pth=decodeURIComponent(u.pathname);
+function start(opts={}){const override=opts.override||{},RT=opts.root?path.resolve(R,opts.root):R,H=readHeaders(RT),ctl={offline:false};
+ // ctl.offline: el servidor corta toda conexión. Playwright no aplica setOffline a las peticiones del service
+ // worker, así que para probar «sin conexión» de verdad hay que dejar también sin servidor.
+ const server=http.createServer((req,res)=>{if(ctl.offline){req.socket.destroy();return}const u=new URL(req.url,'http://x'),pth=decodeURIComponent(u.pathname);
   // ?sin-cabeceras simula abrir el archivo tal cual (por ejemplo, en un visor integrado): sin las cabeceras de _headers.
   const bare=u.searchParams.has('sin-cabeceras');const rel=pth==='/'?'/index.html':pth;const f=path.join(RT,rel);
   if(!f.startsWith(RT+path.sep)){res.writeHead(404);res.end();return}
   const h={'Content-Type':TYPES[path.extname(f)]||'application/octet-stream','Cache-Control':'no-cache'};if(!bare)for(const r of H)if(matches(r.pat,rel))Object.assign(h,r.h);
-  const key=rel.slice(1);if(key in override){const o=typeof override[key]==='function'?override[key]():override[key];const body=typeof o==='string'?o:o.body;if(o.headers)Object.assign(h,o.headers);res.writeHead(200,h);res.end(body);return}
+  const key=rel.slice(1);if(key in override){const o=typeof override[key]==='function'?override[key]():override[key];if(o.status){res.writeHead(o.status,{...h,...(o.headers||{})});res.end(o.body||'');return}/* redirección simulada (p. ej. 301 con Location) */const body=typeof o==='string'?o:o.body;if(o.headers)Object.assign(h,o.headers);res.writeHead(200,h);res.end(body);return}
   if(!fs.existsSync(f)||!fs.statSync(f).isFile()){res.writeHead(404);res.end();return}
   res.writeHead(200,h);fs.createReadStream(f).pipe(res)});
- return new Promise(ok=>server.listen(opts.port||0,'127.0.0.1',()=>ok({server,base:`http://127.0.0.1:${server.address().port}/`,override})))}
+ return new Promise(ok=>server.listen(opts.port||0,'127.0.0.1',()=>ok({server,base:`http://127.0.0.1:${server.address().port}/`,override,ctl})))}
 module.exports={start,root:R,readHeaders};

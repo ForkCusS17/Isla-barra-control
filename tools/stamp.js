@@ -26,6 +26,8 @@ function headersFile(csp){return `# Cabeceras de seguridad para el alojamiento (
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
 /isla_barra_control_mvp.html
   Cache-Control: no-cache
+/isla_barra_control_mvp
+  Cache-Control: no-cache
 /sw.js
   Cache-Control: no-cache
 `}

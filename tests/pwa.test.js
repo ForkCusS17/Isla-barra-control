@@ -36,10 +36,10 @@ ok('se registra el service worker',await swReady(p),null);
 await p.waitForTimeout(500);ok('primera visita: no aparece «Hay una versión nueva» (no hay nada nuevo)',!(await seen(p,'#updateBar')),null);
 await tap(p,'#wDemo');const before=await D(p);
 await p.reload();ok('tras recargar, la página la controla el service worker',await p.evaluate(()=>!!navigator.serviceWorker.controller),null);
-await p.context().setOffline(true);await p.reload();
+await p.context().setOffline(true);srv.ctl.offline=true;await p.reload();
 ok('sin conexión la app se abre con sus datos (bar de ejemplo)',(await seen(p,'#page-dashboard'))&&(await seen(p,'#demoBadge'))&&JSON.stringify(await D(p))===JSON.stringify(before),[await D(p),before]);
 await tap(p,'.mobile-nav button:has-text("Carta")');ok('sin conexión se navega (Mi carta)',await seen(p,'#page-drinks'),null);
-await p.context().setOffline(false);
+await p.context().setOffline(false);srv.ctl.offline=false;
 
 // ── 3. Versión nueva del HTML ────────────────────────────────────────────────
 {const r=restamp(HTML.replace(`APP_VERSION='${CUR}'`,"APP_VERSION='9.9.1'"));srv.override['isla_barra_control_mvp.html']={body:r.html,headers:{'Content-Security-Policy':r.csp}}}
@@ -61,6 +61,30 @@ const keys=await p.evaluate(()=>caches.keys());
 ok('«Actualizar» activa el nuevo y borra la caché anterior',keys.includes('isla-barra-app-9.9.2')&&!keys.includes('isla-barra-app-'+CUR),keys);
 ok('…y los datos siguen ahí',JSON.stringify(await D(p))===JSON.stringify(before),await D(p));
 delete srv.override['sw.js'];delete srv.override['isla_barra_control_mvp.html'];
+
+// ── 4b. Dirección sin «.html» (Netlify puede servir la app en /isla_barra_control_mvp) ──
+{const HT={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}/* sin caché HTTP: sin conexión solo puede responder el service worker */,app=(v)=>{if(!v)return{body:HTML,headers:HT};const r=restamp(HTML.replace(`APP_VERSION='${CUR}'`,`APP_VERSION='${v}'`));return{body:r.html,headers:{...HT,'Content-Security-Policy':r.csp}}};
+ const BARE=srv.base+'isla_barra_control_mvp';
+ const run=async(label,redirect)=>{
+  srv.override['isla_barra_control_mvp']=app();if(redirect)srv.override['isla_barra_control_mvp.html']={status:301,headers:{Location:'/isla_barra_control_mvp'}};else delete srv.override['isla_barra_control_mvp.html'];
+  const q=await mk();await q.goto(BARE);ok(`${label}: la app se abre en /isla_barra_control_mvp y registra el service worker`,(await seen(q,'#welcome'))&&(await swReady(q)),q.url());
+  await tap(q,'#wDemo');const before=await D(q);await q.waitForTimeout(300);await q.reload();
+  ok(`${label}: tras recargar, la controla el service worker`,await q.evaluate(()=>!!navigator.serviceWorker.controller),null);
+  await q.context().setOffline(true);srv.ctl.offline=true;const off=await q.reload();
+  ok(`${label}: sin conexión se abre desde la caché del service worker con sus datos`,!!off&&off.fromServiceWorker()&&(await seen(q,'#demoBadge'))&&JSON.stringify(await D(q))===JSON.stringify(before),[await D(q),before]);
+  const offH=await q.goto(srv.base+'isla_barra_control_mvp.html');
+  ok(`${label}: sin conexión también se abre la dirección con «.html» (la de inicio del manifiesto), con los mismos datos`,!!offH&&offH.fromServiceWorker()&&(await seen(q,'#demoBadge'))&&JSON.stringify(await D(q))===JSON.stringify(before),null);
+  await q.goto(BARE);await q.context().setOffline(false);srv.ctl.offline=false;
+  const nv=redirect?'9.9.4':'9.9.3';srv.override['isla_barra_control_mvp']=app(nv);if(!redirect)srv.override['isla_barra_control_mvp.html']=app(nv);
+  await q.reload();await q.locator('#updateBar').waitFor({state:'visible',timeout:8000}).catch(()=>{});
+  ok(`${label}: con una versión nueva sigue abriendo la guardada y avisa «Hay una versión nueva»`,(await q.evaluate(()=>APP_VERSION))===CUR&&(await seen(q,'#updateBar')),await q.evaluate(()=>APP_VERSION));
+  await Promise.all([q.waitForEvent('load'),tap(q,'#updateNow')]);
+  ok(`${label}: «Actualizar» carga la nueva sin perder datos`,(await q.evaluate(()=>APP_VERSION))===nv&&JSON.stringify(await D(q))===JSON.stringify(before),await q.evaluate(()=>APP_VERSION));
+  ok(`${label}: sin errores de JavaScript`,q.errs.length===0,q.errs);
+  delete srv.override['isla_barra_control_mvp'];delete srv.override['isla_barra_control_mvp.html']};
+ await run('sin «.html»',false);
+ await run('«.html» redirigida a la dirección sin «.html» (URL bonitas de Netlify)',true);
+ const mf=await (await p.request.get(srv.base+'manifest.webmanifest')).json();ok('el manifiesto sigue empezando en la app (start_url e id con «.html», que el service worker reconoce)',/isla_barra_control_mvp\.html$/.test(mf.start_url)&&/isla_barra_control_mvp\.html$/.test(mf.id),mf.start_url)}
 
 // ── 5. Guía «Añadir a pantalla de inicio»: iPhone ────────────────────────────
 const t0=new Date('2026-10-21T10:00:00Z');

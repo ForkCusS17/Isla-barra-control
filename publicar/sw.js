@@ -7,7 +7,10 @@ const CACHE='isla-barra-app-'+VERSION;
 const APP='isla_barra_control_mvp.html';
 const SHELL=[APP,'manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/maskable-512.png','icons/apple-touch-icon.png','icons/favicon-32.png'];
 
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL.map(u=>new Request(u,{cache:'reload'})))))});
+// Una respuesta que llegó tras una redirección (Netlify puede llevar «…mvp.html» a «…mvp») no se puede entregar a
+// una navegación: se guarda una copia limpia con el mismo cuerpo y las mismas cabeceras.
+async function clean(res){return res.redirected?new Response(await res.blob(),{status:res.status,statusText:res.statusText,headers:res.headers}):res}
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>Promise.all(SHELL.map(async u=>{const r=await fetch(new Request(u,{cache:'reload'}));if(!r.ok)throw new Error(u+' '+r.status);await c.put(u,await clean(r))}))))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('isla-barra-app-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 // Qué versión (huella del HTML) se ha servido a cada pestaña y cuál es la última guardada: así una pestaña que
 // pregunta al cargar («check») sabe si hay otra más nueva aunque el aviso se enviara antes de que existiera.
@@ -16,13 +19,16 @@ async function digest(t){const h=await crypto.subtle.digest('SHA-256',new TextEn
 self.addEventListener('message',e=>{const t=e.data&&e.data.type;if(t==='skipWaiting')self.skipWaiting();
  if(t==='check'&&e.source){const h=served.get(e.source.id);if(h&&current&&h!==current)e.source.postMessage({type:'update-available'})}});
 
-const isApp=url=>url.origin===self.location.origin&&(url.pathname.endsWith('/'+APP)||url.pathname===new URL(APP,self.registration.scope).pathname);
+// La app se reconoce con y sin «.html» (Netlify puede servirla en «/isla_barra_control_mvp»): las dos direcciones
+// se sirven desde la misma copia guardada, con el mismo aviso de versión nueva y el mismo modo sin conexión.
+const BARE=APP.replace(/\.html$/,'');
+const isApp=url=>{if(url.origin!==self.location.origin)return false;const p=url.pathname,s=new URL(self.registration.scope).pathname;return p===s+APP||p===s+BARE||p.endsWith('/'+APP)||p.endsWith('/'+BARE)};
 const notify=()=>self.clients.matchAll({type:'window'}).then(cs=>cs.forEach(c=>{if(served.get(c.id)!==current)c.postMessage({type:'update-available'})}));
 
 // Comprueba la app en la red; si ha cambiado, la guarda y avisa. Sin conexión no hace nada.
 // (Se vuelve a leer de la caché: la respuesta ya entregada a la página no se puede leer otra vez.)
 async function refreshApp(req){
- try{const res=await fetch(req,{cache:'no-cache'});if(!res.ok)return;const cache=await caches.open(CACHE),old=await cache.match(APP);
+ try{const res=await clean(await fetch(req,{cache:'no-cache'}));if(!res.ok)return;const cache=await caches.open(CACHE),old=await cache.match(APP);
   if(!old){await cache.put(APP,res);return}
   const [a,b]=await Promise.all([old.text(),res.clone().text()]);
   if(!current)current=await digest(a);

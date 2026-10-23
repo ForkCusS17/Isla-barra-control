@@ -16,6 +16,7 @@ function restamp(html){const h=hashes(html),tag=`<meta http-equiv="Content-Secur
  const out=/<meta http-equiv="Content-Security-Policy"[^>]*>/.test(html)?html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/,tag):html.replace('<meta charset="utf-8">\n','<meta charset="utf-8">\n'+tag+'\n');
  return{html:out,csp:policy(h,false)}}
 function headersFile(csp){return `# Cabeceras de seguridad para el alojamiento (Netlify o Cloudflare Pages). Lo escribe tools/stamp.js: no editar a mano.
+# X-Robots-Tag y <meta name="robots">: la beta no debe aparecer en buscadores; quitar ambos al lanzar.
 # GitHub Pages no admite cabeceras propias: allí solo actúa la CSP del <meta> del HTML (sin frame-ancestors ni nosniff).
 /*
   Content-Security-Policy: ${csp}
@@ -24,6 +25,7 @@ function headersFile(csp){return `# Cabeceras de seguridad para el alojamiento (
   X-Frame-Options: DENY
   Cross-Origin-Opener-Policy: same-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  X-Robots-Tag: noindex
 /isla_barra_control_mvp.html
   Cache-Control: no-cache
 /isla_barra_control_mvp

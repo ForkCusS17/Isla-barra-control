@@ -1,7 +1,7 @@
 # Cabeceras de seguridad para el alojamiento (Netlify o Cloudflare Pages). Lo escribe tools/stamp.js: no editar a mano.
 # GitHub Pages no admite cabeceras propias: allí solo actúa la CSP del <meta> del HTML (sin frame-ancestors ni nosniff).
 /*
-  Content-Security-Policy: default-src 'none'; script-src 'sha256-kZC41HI424AuYyy1lZ+sLqc1qBxD27BVeAX4cmjdt/w='; script-src-attr 'unsafe-inline'; style-src 'sha256-U6gSDeSS6KKbSbJErmZ6aerxS8QIajP0Z6cQwSO+Thw='; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self'; worker-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'sha256-txWWTdhrwoZK+7yOvY0KN5cLzKWcBwiaCNp9vu50t2I='; script-src-attr 'unsafe-inline'; style-src 'sha256-U6gSDeSS6KKbSbJErmZ6aerxS8QIajP0Z6cQwSO+Thw='; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self'; worker-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   X-Frame-Options: DENY

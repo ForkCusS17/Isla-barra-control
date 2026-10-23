@@ -13,9 +13,9 @@ const audit=async p=>{if(!(await p.evaluate(()=>!!window.axe)))await p.addScript
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const c=await b.newContext(dev);const p=await c.newPage();await p.goto(APP_URL);
  const check=async name=>{const v=await audit(p);ok(`[${wd}] ${name}: sin problemas de accesibilidad (axe, WCAG 2.1 AA)`,v.length===0,v)};
  await check('bienvenida');await tap(p,'#wDemo');await check('Resumen (bar de ejemplo)');
- for(const l of ['Bebidas','Mi barra','Ingredientes','Stock','Más','Ficha','Diagnóstico','Informe','Ajustes','Instalar la app','Acerca de']){await nav(p,l);if(l==='Acerca de')for(const id of ['#faqData','#legalPrivacy'])await tap(p,id+' summary');await check(l)}
- await nav(p,'Bebidas');await tap(p,'#libOpen');await check('Biblioteca');await tap(p,'label[for="lib_negroni"]');await tap(p,'#libNext');await check('Revisar con mi barra');
- await nav(p,'Bebidas');await tap(p,'#drinkList tr:has-text("Mojito") button:has-text("Receta")');await check('Receta de la biblioteca');
+ for(const l of ['Carta','Mi barra','Ingredientes','Stock','Más','Ficha','Diagnóstico','Informe','Ajustes','Instalar la app','Acerca de']){await nav(p,l);if(l==='Acerca de')for(const id of ['#faqData','#legalPrivacy'])await tap(p,id+' summary');await check(l)}
+ await nav(p,'Carta');await tap(p,'#libOpen');await check('Biblioteca');await tap(p,'label[for="lib_negroni"]');await tap(p,'#libNext');await check('Revisar con mi barra');
+ await nav(p,'Carta');await tap(p,'#drinkList .carta-row:has-text("Mojito")');await check('Receta de la biblioteca');
  await nav(p,'Mi barra');await tap(p,'#barPaste');await p.fill('#pasteText','Tanqueray 70 cl 15\nRon 1 L');await tap(p,'#pasteReview');await check('Pegar una lista');
  await nav(p,'Resumen');await tap(p,'#demoExit');await check('Confirmación dentro de la página');await c.close()}
 const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO accesibilidad (${NAME}): ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,400):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

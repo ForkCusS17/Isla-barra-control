@@ -232,10 +232,10 @@ ok('las claves de las ayudas «?» coinciden con la lista que valida la copia',a
 await nav(e7,'Ajustes');await tap(e7,'#helpPanel summary');
 ok('Ajustes › Textos de ayuda: explicación y ejemplo de cada ayuda',(await e7.locator('#helpEditor fieldset').count())===8&&/No es beneficio/.test(await e7.inputValue('#he_margin_t')),null);
 await e7.fill('#he_margin_t','Lo que queda tras pagar la copia. No es beneficio: faltan sueldos y local.');await e7.fill('#he_margin_e','Ejemplo de la casa: 9 € − 2,10 € = 6,90 €.');await tap(e7,'#helpSave');
-await nav(e7,'Bebidas');await tap(e7,'#drinkForm button.help[aria-label="Qué es: Margen bruto"]');
+await nav(e7,'Carta');await tap(e7,'#drinkAdd');await tap(e7,'#drinkForm button.help[aria-label="Qué es: Margen bruto"]');
 ok('la ayuda «?» muestra el texto editado',/Lo que queda tras pagar la copia/.test(await text(e7,'#drinkForm .help-note:not(.hidden)'))&&/Ejemplo de la casa/.test(await text(e7,'#drinkForm .help-note:not(.hidden)')),await text(e7,'#drinkForm .help-note:not(.hidden)'));
 await nav(e7,'Ajustes');await e7.fill('#he_cost_t','');await tap(e7,'#helpSave');ok('una ayuda sin explicación no se guarda',/Cada ayuda necesita explicación y ejemplo/.test(await text(e7,'#toast')),null);
-await tap(e7,'#helpReset');await tap(e7,'#appConfirmYes');await nav(e7,'Bebidas');
+await tap(e7,'#helpReset');await tap(e7,'#appConfirmYes');await nav(e7,'Carta');
 ok('«Volver a los textos originales» restablece las ayudas',/Lo que te queda del precio sin impuestos/.test(await text(e7,'#drinkForm .help-note:not(.hidden)'))&&JSON.stringify((await D(e7)).settings.help)==='{}',await text(e7,'#drinkForm .help-note:not(.hidden)'));
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wDemo');await nav(z,'Mi barra');await openManage(z);ok(`[${wd}] editar secciones sin desbordamiento`,await noOverflow(z),await wide(z));await nav(z,'Ajustes');await tap(z,'#helpPanel summary');ok(`[${wd}] Ajustes con los textos de ayuda abiertos sin desbordamiento`,await noOverflow(z),await wide(z))}
 

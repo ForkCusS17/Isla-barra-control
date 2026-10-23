@@ -72,8 +72,8 @@ const cands=(p,tipo)=>p.evaluate(t=>libCandidates(t).map(i=>i.name),tipo);
 const quick=async(p,cat,sub,name,price,fmtLabel)=>{await nav(p,'Mi barra');await tap(p,`#barCats .cat-chip:has-text("${cat}")`);if(await p.locator(`.shelf[data-sub="${sub}"]`).getAttribute('open')===null)await tap(p,`#barSections .shelf[data-sub="${sub}"] summary`);await tap(p,`.shelf[data-sub="${sub}"] .add-to-shelf`);await p.locator('#qaName').pressSequentially(name);if(fmtLabel)await tap(p,`#qaForm .qa-fmt:has-text("${fmtLabel}")`);if(price)await p.locator('#qaPrice').pressSequentially(price);await tap(p,'#qaSave')};
 let f=await mk();await tap(f,'#wStart');await tap(f,'#tplSkip');
 await quick(f,'Destilados','Rones','Ron Carta Blanca','14');await quick(f,'Destilados','Rones','Ron Reserva 7 años','21');
-await nav(f,'Bebidas');await tap(f,'#libOpen');
-ok('Bebidas › «Añadir desde la biblioteca» abre la biblioteca con la nota de medidas orientativas',(await seen(f,'#page-library'))&&/orientativas/.test(await text(f,'#libNote'))&&/Ninguna es un estándar oficial/.test(await text(f,'#libNote')),await text(f,'#libNote'));
+await nav(f,'Carta');await tap(f,'#libOpen');
+ok('Mi carta › «Añadir desde la biblioteca» abre la biblioteca con la nota de medidas orientativas',(await seen(f,'#page-library'))&&/orientativas/.test(await text(f,'#libNote'))&&/Ninguna es un estándar oficial/.test(await text(f,'#libNote')),await text(f,'#libNote'));
 const items=p=>p.locator('#libList .lib-item b').allInnerTexts();
 ok('lista de 35 cócteles con contador',(await items(f)).length===35&&/35 de 35 cócteles · 0 elegidos/.test(await text(f,'#libCount')),await text(f,'#libCount'));
 await f.locator('#libSearch').pressSequentially('mojito');ok('buscar «mojito»: Mojito y Mojito sin alcohol',(await items(f)).join('|')==='Mojito|Mojito sin alcohol',await items(f));
@@ -103,9 +103,9 @@ const res=await text(f,'#libStep3');
 ok('al terminar muestra las bebidas con sus avisos (falta el precio, coste incompleto)',/3 bebidas creadas/.test(res)&&/Aviso: Falta el precio/.test(res)&&/Coste incompleto: Zumo de lima sin precio válido/.test(res)&&/Coste directo: 1,20 € \(con 0,20 € de guarnición\)/.test(res),res.slice(0,400));
 await nav(f,'Mi barra');await tap(f,'#barCats .cat-chip:has-text("Frutas, hierbas y zumos")');ok('el ingrediente creado aparece en su estante con «Sin precio»',/Zumos 1/.test(await text(f,'.shelf[data-sub="Zumos"] summary'))&&/1 sin precio/.test(await text(f,'.shelf[data-sub="Zumos"] summary')),null);
 // no duplicar
-await nav(f,'Bebidas');await tap(f,'#libOpen');
+await nav(f,'Carta');await tap(f,'#libOpen');
 ok('si el cóctel ya está en la carta lo avisa («Ya en tu carta») y no se puede marcar',/Ya en tu carta/.test(await text(f,'.lib-item:has(#lib_mojito)'))&&(await f.locator('#lib_mojito').isDisabled()),null);
-await tap(f,'#libBack');await f.fill('#dName','Negroni');await f.fill('#dPrice','10');await tap(f,'#drinkForm button:has-text("Guardar bebida")');await tap(f,'#libOpen');
+await tap(f,'#libBack');await tap(f,'#drinkAdd');await f.fill('#dName','Negroni');await f.fill('#dPrice','10');await tap(f,'#drinkForm button:has-text("Guardar bebida")');await tap(f,'#libOpen');
 ok('también reconoce por el nombre una bebida creada a mano (Negroni)',(await f.locator('#lib_negroni').isDisabled())&&/Ya en tu carta/.test(await text(f,'.lib-item:has(#lib_negroni)')),null);
 // opcionales, al gusto y medidas aprox.
 for(const c of ['cuba-libre','margarita','old-fashioned'])await tap(f,`label[for="lib_${c}"]`);await tap(f,'#libNext');
@@ -123,27 +123,27 @@ ok('Cuba libre sin el opcional: sin zumo de lima en la receta',!drink('Cuba libr
 let g4=await mk();await tap(g4,'#wDemo');await nav(g4,'Resumen');await tap(g4,'#guideHide');await tap(g4,'#guideShow');
 await nav(g4,'Ficha');await tap(g4,'#businessForm button:has-text("Guardar ficha")');
 let gx=await mk();await tap(gx,'#wStart');await tap(gx,'#tplSkip');await gx.fill('#bName','B');await gx.fill('#bLocation','L');await gx.fill('#bPeriod','P');await tap(gx,'#businessForm button:has-text("Guardar ficha")');for(const [n,pr] of [['Ron A','10'],['Ron B','11'],['Ron C','12'],['Ron D','13'],['Ron E','14']])await quick(gx,'Destilados','Rones',n,pr);
-await nav(gx,'Resumen');ok('guía: el paso «3 bebidas con receta» invita a la biblioteca',/biblioteca de cócteles clásicos/.test(await text(gx,'#guideNext')),await text(gx,'#guideNext'));
+await nav(gx,'Resumen');ok('guía: el paso «Mi carta: 3 bebidas con receta» invita a la biblioteca',/biblioteca de cócteles clásicos/.test(await text(gx,'#guideNext')),await text(gx,'#guideNext'));
 await tap(gx,'#guideGo');ok('guía › «Continuar» abre la biblioteca',await seen(gx,'#page-library'),null);
-for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wDemo');await nav(z,'Bebidas');await tap(z,'#libOpen');ok(`[${wd}] biblioteca sin desbordamiento`,await noOverflow(z),await wide(z));for(const c of ['bloody-mary','pisco-sour','espresso-martini'])await tap(z,`label[for="lib_${c}"]`);await tap(z,'#libNext');ok(`[${wd}] revisar con mi barra sin desbordamiento`,await noOverflow(z),await wide(z));
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wDemo');await nav(z,'Carta');await tap(z,'#libOpen');ok(`[${wd}] biblioteca sin desbordamiento`,await noOverflow(z),await wide(z));for(const c of ['bloody-mary','pisco-sour','espresso-martini'])await tap(z,`label[for="lib_${c}"]`);await tap(z,'#libNext');ok(`[${wd}] revisar con mi barra sin desbordamiento`,await noOverflow(z),await wide(z));
  for(const t of await z.locator('#libStep2 fieldset.need').evaluateAll(fs=>fs.map(x=>x.id.slice(3))))await tap(z,`#lg_${t} .lib-opt`);await tap(z,'#libCreate');ok(`[${wd}] resultado sin desbordamiento`,(await seen(z,'#libResultTitle'))&&await noOverflow(z),await wide(z));
  const small=await z.evaluate(()=>[...document.querySelectorAll('#page-library button,#page-library label.lib-opt,#page-library .lib-item')].filter(x=>x.offsetParent).map(x=>[x.textContent.trim().slice(0,20),Math.round(x.getBoundingClientRect().height)]).filter(([,h])=>h<44));ok(`[${wd}] biblioteca: objetivos táctiles ≥ 44 px`,small.length===0,small)}
-{const z=await mk();await tap(z,'#wDemo');await nav(z,'Bebidas');await tap(z,'#libOpen');const cf=await contrastFails(z);for(const c of ['negroni','spritz'])await tap(z,`label[for="lib_${c}"]`);await tap(z,'#libNext');cf.push(...await contrastFails(z));ok('biblioteca y revisión: contraste ≥ 4,5:1',cf.length===0,cf.slice(0,6))}
+{const z=await mk();await tap(z,'#wDemo');await nav(z,'Carta');await tap(z,'#libOpen');const cf=await contrastFails(z);for(const c of ['negroni','spritz'])await tap(z,`label[for="lib_${c}"]`);await tap(z,'#libNext');cf.push(...await contrastFails(z));ok('biblioteca y revisión: contraste ≥ 4,5:1',cf.length===0,cf.slice(0,6))}
 
 // ── 5. Cambiar un ingrediente y restaurar medidas ────────────────────────────
 let s=await mk();await tap(s,'#wStart');await tap(s,'#tplSkip');
 await quick(s,'Destilados','Rones','Ron Carta Blanca','14');await quick(s,'Destilados','Rones','Ron Reserva 7 años','21');
-await nav(s,'Bebidas');await tap(s,'#libOpen');await tap(s,'label[for="lib_daiquiri"]');await tap(s,'#libNext');await tap(s,'#lg_ron-blanco .lib-opt:has-text("Ron Carta Blanca")');await tap(s,'#libCreate');await tap(s,'#libGoDrinks');
-await tap(s,'#drinkList tr:has-text("Daiquiri") button:has-text("Editar")');
+await nav(s,'Carta');await tap(s,'#libOpen');await tap(s,'label[for="lib_daiquiri"]');await tap(s,'#libNext');await tap(s,'#lg_ron-blanco .lib-opt:has-text("Ron Carta Blanca")');await tap(s,'#libCreate');await tap(s,'#libGoDrinks');
+await tap(s,'#drinkList .carta-row:has-text("Daiquiri")');await tap(s,'#rcEdit');
 ok('al editar una bebida de la biblioteca se ofrece «Ver receta» en vez del editor de líneas',(await seen(s,'#rcFromForm'))&&!(await seen(s,'#recipeEditor')),null);
 await s.fill('#dPrice','9');await tap(s,'#drinkForm button:has-text("Guardar bebida")');
 let d5=await D(s);const dq=()=>d5.drinks.find(x=>x.name==='Daiquiri'),ron=()=>dq().components.findIndex(k=>k.tipo==='ron-blanco'),lima=()=>dq().components.findIndex(k=>k.tipo==='zumo-lima'),ing5=n=>d5.ingredients.find(i=>i.name===n).id;
 ok('guardar el precio conserva la receta de la biblioteca (componentes y plantilla)',dq().price===9&&dq().components.length===4&&dq().templateId==='daiquiri'&&dq().recipeItems.length===3,dq());
-ok('Bebidas: las bebidas de la biblioteca tienen el botón «Receta»',(await seen(s,'#drinkList tr:has-text("Daiquiri") button:has-text("Receta")')),null);
-await tap(s,'#drinkList tr:has-text("Daiquiri") button:has-text("Receta")');
+ok('Mi carta: el cóctel de la biblioteca aparece en la lista',(await seen(s,'#drinkList .carta-row:has-text("Daiquiri")')),null);
+await tap(s,'#drinkList .carta-row:has-text("Daiquiri")');
 const R=ron(),Li=lima();
-ok('«Receta» abre la receta con coste y margen (1,20 € de coste; margen 7,80 €, 86,67 %; aclara que no es beneficio)',(await seen(s,'#page-recipe'))&&(await text(s,'#rcTitle'))==='Daiquiri'&&/Coste directo: 1,20 €/.test(await text(s,'#rcSummary'))&&/Margen bruto: 7,80 € \(86,67 ?%\)/.test(await text(s,'#rcSummary'))&&/no beneficio/.test(await text(s,'#rcSummary')),await text(s,'#rcSummary'));
-ok('la pestaña Bebidas sigue marcada en la receta',(await s.locator('.mobile-nav button[aria-current="page"]').innerText()).includes('Bebidas'),null);
+ok('tocar la fila abre la receta con coste y margen (1,20 € de coste; margen 7,80 €, 86,67 %; aclara que no es beneficio)',(await seen(s,'#page-recipe'))&&(await text(s,'#rcTitle'))==='Daiquiri'&&/Coste directo: 1,20 €/.test(await text(s,'#rcSummary'))&&/Margen bruto: 7,80 € \(86,67 ?%\)/.test(await text(s,'#rcSummary'))&&/no beneficio/.test(await text(s,'#rcSummary')),await text(s,'#rcSummary'));
+ok('la pestaña Carta sigue marcada en la receta',(await s.locator('.mobile-nav button[aria-current="page"]').innerText()).includes('Carta'),null);
 const optTexts=await s.locator(`#rcIng_${R} option`).allInnerTexts();
 ok('para el ron solo se ofrecen productos de la misma sección (Rones)',optTexts.length===2&&optTexts[0].startsWith('Ron Carta Blanca')&&optTexts[1].startsWith('Ron Reserva 7 años'),optTexts);
 ok('el zumo de lima no tiene alternativa y lo dice; muestra «Sin precio»',(await s.locator(`#rcIng_${Li} option`).count())===1&&/No hay otro producto en «Zumos»/.test(await text(s,`#rc_${Li}`))&&/Sin precio/.test(await text(s,`#rc_${Li}`)),await text(s,`#rc_${Li}`));
@@ -157,8 +157,8 @@ ok('cambiar la medida a 45 ml: 1,35 € y aviso «Medida cambiada (estándar: 60
 await s.fill(`#rcQty_${R}`,'0');await s.waitForTimeout(900);const err0=await s.locator(`#rcErr_${R}`).innerText();await tap(s,'#rcTitle');d5=await D(s);
 ok('una cantidad 0 se rechaza (lo explica junto al campo) y no se guarda',(/mayor que 0/.test(err0)||/mayor que 0/.test(await text(s,'#toast')))&&dq().components[R].qty===45,[err0,dq().components[R]]);
 await s.fill(`#rcQty_${R}`,'52,5');await s.waitForTimeout(900);await tap(s,'#rcTitle');d5=await D(s);ok('acepta coma decimal (52,5 ml)',dq().components[R].qty===52.5,dq().components[R]);
-await nav(s,'Bebidas');ok('la lista de Bebidas refleja el nuevo coste',/1,58 €/.test(await text(s,'#drinkList tr:has-text("Daiquiri")')),await text(s,'#drinkList tr:has-text("Daiquiri")'));
-await tap(s,'#drinkList tr:has-text("Daiquiri") button:has-text("Receta")');await tap(s,'#rcRestore');
+await nav(s,'Carta');ok('la lista de Mi carta refleja el nuevo coste',/1,58 €/.test(await text(s,'#drinkList .carta-row:has-text("Daiquiri")')),await text(s,'#drinkList .carta-row:has-text("Daiquiri")'));
+await tap(s,'#drinkList .carta-row:has-text("Daiquiri")');await tap(s,'#rcRestore');
 ok('«Restaurar medidas estándar» pide confirmación dentro de la página',(await seen(s,'#appConfirm'))&&/versión 1/.test(await text(s,'#appConfirmText')),null);
 await tap(s,'#appConfirmYes');d5=await D(s);
 ok('restaurar: vuelve a 60 ml y mantiene el producto elegido (1,80 €)',dq().components[R].qty===60&&dq().components[R].ingredientId===ing5('Ron Reserva 7 años')&&Math.abs(dq().ingredientCost-1.8)<1e-9&&/Tiene las medidas estándar/.test(await text(s,'#rcBody'))&&!/Medida cambiada/.test(await text(s,'#rcBody')),dq().components[R]);
@@ -171,21 +171,21 @@ ok('restaurar: vuelve a 60 ml y mantiene el producto elegido (1,80 €)',dq().co
  ok('(simulación) la biblioteca actualizada trae el Daiquiri v2 con 70 ml de ron',ld.version===2&&ld.componentes[0].cantidad===70,[ld.version,ld.componentes[0]]);
  await importTap(u,'#wRestore',TMP+'bib_v6.json');let du=await D(u),q=du.drinks.find(x=>x.name==='Daiquiri');
  ok('una actualización de la biblioteca no toca la receta guardada (sigue 55 ml, versión 1)',q.components[R].qty===55&&q.templateVersion===1&&q.templateSnapshot[R].cantidad===60,[q.components[R],q.templateVersion]);
- await nav(u,'Bebidas');await tap(u,'#drinkList tr:has-text("Daiquiri") button:has-text("Receta")');await tap(u,'#rcRestore');await tap(u,'#appConfirmYes');du=await D(u);q=du.drinks.find(x=>x.name==='Daiquiri');
+ await nav(u,'Carta');await tap(u,'#drinkList .carta-row:has-text("Daiquiri")');await tap(u,'#rcRestore');await tap(u,'#appConfirmYes');du=await D(u);q=du.drinks.find(x=>x.name==='Daiquiri');
  ok('restaurar usa la receta original guardada (60 ml, versión 1), no la nueva de la biblioteca',q.components[R].qty===60&&q.templateVersion===1,q.components[R])}
 {const v5={schema:5,app:'Isla & Barra Control',settings:{marginMin:65,mode:'full'},business:{name:'Bar v5'},sales:[],stocks:[],diagnostics:[],ingredients:[{id:'r1',name:'Ron',category:'Destilados',subcategory:'Rones',unit:'ml',packQty:700,packPrice:14,unitCost:0.02,active:true}],drinks:[{id:'d1',name:'Ron con hielo',category:'Cóctel',price:6,taxRate:0,otherCost:0,ingredientCost:1,recipeItems:[{ingredientId:'r1',qty:50}]}]};
  fs.writeFileSync(TMP+'bib_v5.json',JSON.stringify(v5));const m=await mk();await importTap(m,'#wRestore',TMP+'bib_v5.json');const dm=await D(m);
  ok('migración desde el esquema 5: esquema 6, la bebida conserva su receta y no tiene plantilla',dm.schema===6&&dm.drinks[0].recipeItems[0].qty===50&&!('templateId' in dm.drinks[0])&&!('components' in dm.drinks[0]),dm.drinks[0]);
- await nav(m,'Bebidas');ok('migración: sin botón «Receta» y con el editor de líneas de siempre',!(await seen(m,'#drinkList button:has-text("Receta")'))&&(await tap(m,'#drinkList button:has-text("Editar")'),await seen(m,'#recipeEditor')),null)}
+ await nav(m,'Carta');await tap(m,'#drinkList .carta-row:has-text("Ron con hielo")');ok('migración: la receta propia se ve sin cambiar producto ni medida y «Editar» abre el editor de líneas de siempre',(await seen(m,'#rcLines'))&&!(await seen(m,'#rcRestore'))&&(await tap(m,'#rcEdit'),await seen(m,'#recipeEditor')),null)}
 {const z=await mk();await tap(z,'#wDemo');const dz=await D(z),FL=['mojito','cuba-libre','gin-tonic','margarita'];
  ok('bar de ejemplo: sus 4 cócteles salen de la biblioteca (plantilla, versión y componentes)',FL.every(id=>(x=>x&&x.templateId===id&&x.templateVersion===1&&x.components.length===LIBFILE.cocteles.find(c=>c.id===id).componentes.length)(dz.drinks.find(d=>d.id===id))),dz.drinks.map(d=>[d.id,d.templateId]));
  ok('bar de ejemplo: Mojito con «rellenar» soda ≈ 100 ml y Cuba libre con la lima opcional incluida',dz.drinks.find(d=>d.id==='mojito').recipeItems.find(l=>l.ingredientId==='soda').qty===100&&dz.drinks.find(d=>d.id==='cuba-libre').recipeItems.some(l=>l.ingredientId==='lima-zumo'),null);
- await nav(z,'Bebidas');await tap(z,'#libOpen');ok('bar de ejemplo: la biblioteca marca sus cócteles «Ya en tu carta»',(await z.locator('#lib_gin-tonic').isDisabled())&&(await z.locator('#lib_margarita').isDisabled()),null);
- await tap(z,'#libBack');await tap(z,'#drinkList tr:has-text("Gin-tonic") button:has-text("Receta")');ok('bar de ejemplo: la receta del gin-tonic se abre (50 ml de ginebra, tónica aprox.)',(await z.inputValue('#rcQty_0'))==='50'&&/Tónica \(aprox\.\)/.test(await text(z,'#rcBody')),await text(z,'#rcBody'))}
-for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wStart');await tap(z,'#tplSkip');await quick(z,'Destilados','Rones','Ron Carta Blanca','14');await nav(z,'Bebidas');await tap(z,'#libOpen');for(const c of ['old-fashioned','mojito','margarita'])await tap(z,`label[for="lib_${c}"]`);await tap(z,'#libNext');await tap(z,'#libCreate');await tap(z,'#libGoDrinks');
- for(const n of ['Old fashioned','Mojito','Margarita']){await tap(z,`#drinkList tr:has-text("${n}") button:has-text("Receta")`);ok(`[${wd}] receta de ${n} sin desbordamiento`,await noOverflow(z),await wide(z));
+ await nav(z,'Carta');await tap(z,'#libOpen');ok('bar de ejemplo: la biblioteca marca sus cócteles «Ya en tu carta»',(await z.locator('#lib_gin-tonic').isDisabled())&&(await z.locator('#lib_margarita').isDisabled()),null);
+ await tap(z,'#libBack');await tap(z,'#drinkList .carta-row:has-text("Gin-tonic")');ok('bar de ejemplo: la receta del gin-tonic se abre (50 ml de ginebra, tónica aprox.)',(await z.inputValue('#rcQty_0'))==='50'&&/Tónica \(aprox\.\)/.test(await text(z,'#rcBody')),await text(z,'#rcBody'))}
+for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap(z,'#wStart');await tap(z,'#tplSkip');await quick(z,'Destilados','Rones','Ron Carta Blanca','14');await nav(z,'Carta');await tap(z,'#libOpen');for(const c of ['old-fashioned','mojito','margarita'])await tap(z,`label[for="lib_${c}"]`);await tap(z,'#libNext');await tap(z,'#libCreate');await tap(z,'#libGoDrinks');
+ for(const n of ['Old fashioned','Mojito','Margarita']){await tap(z,`#drinkList .carta-row:has-text("${n}")`);ok(`[${wd}] receta de ${n} sin desbordamiento`,await noOverflow(z),await wide(z));
   const small=await z.evaluate(()=>[...document.querySelectorAll('#page-recipe button,#page-recipe select,#page-recipe input')].filter(x=>x.offsetParent).map(x=>[x.id||x.textContent.trim().slice(0,20),Math.round(x.getBoundingClientRect().height)]).filter(([,h])=>h<44));ok(`[${wd}] receta de ${n}: objetivos táctiles ≥ 44 px`,small.length===0,small);await tap(z,'#rcBack')}
- if(wd===390){await tap(z,'#drinkList tr:has-text("Old fashioned") button:has-text("Receta")');ok('Old fashioned: los golpes y la cucharada se marcan «aprox.»; el hielo, al gusto',(await z.locator('#page-recipe h4:has-text("aprox.")').count())===2&&/al gusto \(0 €\)/.test(await text(z,'#rcBody')),await text(z,'#rcBody'));const cf=await contrastFails(z);ok('receta: contraste ≥ 4,5:1',cf.length===0,cf.slice(0,6))}}
+ if(wd===390){await tap(z,'#drinkList .carta-row:has-text("Old fashioned")');ok('Old fashioned: los golpes y la cucharada se marcan «aprox.»; el hielo, al gusto',(await z.locator('#page-recipe h4:has-text("aprox.")').count())===2&&/al gusto \(0 €\)/.test(await text(z,'#rcBody')),await text(z,'#rcBody'));const cf=await contrastFails(z);ok('receta: contraste ≥ 4,5:1',cf.length===0,cf.slice(0,6))}}
 
 // ── 6. Palabras genéricas y palabra fuerte (clasificar y proponer productos) ──
 {const c=await mk();await tap(c,'#wStart');await tap(c,'#tplSkip');await nav(c,'Mi barra');await tap(c,'#barPaste');
@@ -199,13 +199,13 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap
  if(await c.locator('.paste-row').nth(4).locator('input[type=checkbox]').isChecked())await c.locator('.paste-row').nth(4).locator('input[type=checkbox]').tap();
  await tap(c,'#pasteAdd');const dc=await D(c);
  ok('se guardan en su sección (Ron blanco ×2 en Rones, Tequila blanco en Tequilas, Vino blanco en Blancos)',dc.ingredients.filter(i=>i.name==='Ron blanco'&&i.subcategory==='Rones').length===2&&dc.ingredients.find(i=>i.name==='Tequila blanco').subcategory==='Tequilas y mezcales'&&dc.ingredients.find(i=>i.name==='Vino blanco').subcategory==='Blancos',dc.ingredients.map(i=>i.name+':'+i.subcategory));
- await nav(c,'Bebidas');await tap(c,'#libOpen');for(const x of ['margarita','daiquiri'])await tap(c,`label[for="lib_${x}"]`);await tap(c,'#libNext');
+ await nav(c,'Carta');await tap(c,'#libOpen');for(const x of ['margarita','daiquiri'])await tap(c,`label[for="lib_${x}"]`);await tap(c,'#libNext');
  const o=async t=>(await c.locator(`#lg_${t} .lib-opt span`).allInnerTexts()).map(x=>x.replace(/\s+/g,' '));const oT=await o('tequila'),oR=await o('ron-blanco');
  ok('biblioteca: los candidatos del tequila no incluyen ron ni vino',oT.some(x=>/^Tequila blanco/.test(x))&&!oT.some(x=>/^(Ron|Vino)/.test(x)),oT);
  ok('biblioteca: los candidatos del ron blanco no incluyen tequila ni vino (los dos rones blancos sí)',oR.filter(x=>/^Ron blanco/.test(x)).length===2&&!oR.some(x=>/^(Tequila|Vino|Whisky)/.test(x)),oR)}
 {const ings=[['u1','Ron blanco','Destilados'],['u2','Ron Carta Blanca','Destilados'],['u3','Tequila blanco','Destilados'],['u4','Tequila plata','Destilados'],['u5','Vino blanco','Vinos'],['u6','Blanco','Otros'],['u7','Vodka silver','Destilados'],['u8','Ginger beer','Refrescos y mixers']].map(([id,name,category])=>({id,name,category,subcategory:'',supplier:'',format:'70 cl',unit:'ml',packUnit:'cl',packInput:70,packQty:700,packPrice:14,unitCost:0.02,notes:'',active:true}));
  fs.writeFileSync(TMP+'bib_sin_clasificar.json',JSON.stringify({app:'Isla & Barra Control',schema:6,exportedAt:'2026-10-21T10:00:00.000Z',settings:{marginMin:65,mode:'full'},business:{name:'Bar sin clasificar'},sales:[],stocks:[],diagnostics:[],ingredients:ings,drinks:[]}));
- const c=await mk();await importTap(c,'#wRestore',TMP+'bib_sin_clasificar.json');await nav(c,'Bebidas');await tap(c,'#libOpen');for(const x of ['margarita','daiquiri','moscow-mule','gin-tonic'])await tap(c,`label[for="lib_${x}"]`);await tap(c,'#libNext');
+ const c=await mk();await importTap(c,'#wRestore',TMP+'bib_sin_clasificar.json');await nav(c,'Carta');await tap(c,'#libOpen');for(const x of ['margarita','daiquiri','moscow-mule','gin-tonic'])await tap(c,`label[for="lib_${x}"]`);await tap(c,'#libNext');
  const o=async t=>(await c.locator(`#lg_${t} .lib-opt span`).allInnerTexts()).map(x=>x.replace(/\s+/g,' ').split(' · ')[0]);
  const oT=await o('tequila'),oR=await o('ron-blanco'),oV=await o('vodka'),oG=await o('ginebra');
  ok('sin clasificar: tequila → solo los tequilas (ni ron, ni vino, ni «Blanco» suelto)',oT.filter(x=>!/^No lo tengo/.test(x)).join('|')==='Tequila blanco|Tequila plata',oT);

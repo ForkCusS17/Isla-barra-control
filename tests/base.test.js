@@ -7,7 +7,7 @@ const mk=async(init)=>{const c=await b.newContext({viewport:{width:390,height:80
 await c.addInitScript(()=>{if(!/isla_barra_control_mvp\.html$/.test(location.pathname)||window.name==='semilla')return;window.name='semilla';try{if(!localStorage.getItem('islaBarraControlMVP_v1'))localStorage.setItem('islaBarraControlMVP_v1',JSON.stringify({settings:{mode:'full'}}))}catch(e){}});
 if(init)await c.addInitScript(init);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,100)));p.on('dialog',d=>{p.dl.push(d.message().slice(0,90));d.accept()});await p.goto(APP_URL);return p};
 const addIng=async(p,n,q,pr,u)=>{await p.evaluate(()=>showPage('ingredients'));await p.fill('#iName',n);await p.selectOption('#iUnit',u||'ml');await p.fill('#iPackQty',String(q));await p.fill('#iPackPrice',String(pr));await p.click('#ingredientForm button[type=submit]')};
-const addDrink=async(p,name,price,lines,other,tax)=>{await p.evaluate(l=>{showPage('drinks');recipeDraft=l.map(x=>({ingredientId:data.ingredients.find(i=>i.name===x[0]).id,qty:x[1]}));renderRecipeLines()},lines);await p.fill('#dName',name);await p.fill('#dPrice',String(price));await p.fill('#dTax',String(tax||0));await p.fill('#dOtherCost',String(other||0));await p.click('#drinkForm button[type=submit]')};
+const addDrink=async(p,name,price,lines,other,tax)=>{await p.evaluate(l=>{showPage('drinks');openDrinkForm(true);recipeDraft=l.map(x=>({ingredientId:data.ingredients.find(i=>i.name===x[0]).id,qty:x[1]}));renderRecipeLines()},lines);await p.fill('#dName',name);await p.fill('#dPrice',String(price));await p.fill('#dTax',String(tax||0));await p.fill('#dOtherCost',String(other||0));await p.click('#drinkForm button[type=submit]')};
 const stock=async(p,o)=>{await p.evaluate(()=>{showPage('stock');clearStockForm()});for(const [k,x] of Object.entries(o)){if(k==='sUnit'||k==='sStatus')await p.selectOption('#'+k,x);else await p.fill('#'+k,String(x))}await p.click('#stockForm button[type=submit]')};
 let p=await mk();ok('carga sin errores de JavaScript',p.errs.length===0,p.errs);
 await p.fill('#bName','Bar Atlántico').catch(()=>{});await p.evaluate(()=>showPage('business'));await p.fill('#bName','Bar Atlántico');await p.fill('#bPeriod','7–13 octubre');await p.click('#businessForm button[type=submit]');
@@ -31,11 +31,11 @@ ok('recálculo: el panel muestra el coste medio actualizado (1,43 €)',n2(R.das
 await p.evaluate(()=>deleteIngredient(data.ingredients[0].id));
 const A=await p.evaluate(()=>({n:data.ingredients.length,act:data.ingredients[0].active,cost:directCost(data.drinks[0]),broken:data.drinks.filter(d=>recipeIssues(d).length).length}));
 ok('borrar un ingrediente usado lo archiva: no se pierde ni deja referencias rotas',A.n===4&&A.act===false&&A.cost.toFixed(2)==='2.60'&&A.broken===0,A);
-await p.evaluate(()=>{showPage('drinks');addRecipeLine()});
+await p.evaluate(()=>{showPage('drinks');openDrinkForm(true);addRecipeLine()});
 ok('un ingrediente archivado no se ofrece en recetas nuevas',!(await p.evaluate(()=>[...document.querySelector('#recipeLines select').options].map(o=>o.textContent).join('|'))).includes('Ron blanco'),null);
-await p.evaluate(()=>{toggleIngredient(data.ingredients[0].id);resetDrinkForm();showPage('drinks');addRecipeLine()});
+await p.evaluate(()=>{toggleIngredient(data.ingredients[0].id);resetDrinkForm();showPage('drinks');openDrinkForm(true);addRecipeLine()});
 ok('reactivar el ingrediente lo vuelve a ofrecer en recetas',(await p.evaluate(()=>[...document.querySelector('#recipeLines select').options].map(o=>o.textContent).join('|'))).includes('Ron blanco'),null);await p.evaluate(()=>resetDrinkForm());
-await p.evaluate(()=>{showPage('drinks');recipeDraft=[{ingredientId:data.ingredients[0].id,qty:0},{ingredientId:data.ingredients[1].id,qty:0}];renderRecipeLines()});
+await p.evaluate(()=>{showPage('drinks');openDrinkForm(true);recipeDraft=[{ingredientId:data.ingredients[0].id,qty:0},{ingredientId:data.ingredients[1].id,qty:0}];renderRecipeLines()});
 await p.fill('#recipeLines .item:nth-child(1) input[type=number]','50');
 ok('cantidad de receta: el coste se actualiza al teclear',n2(await p.evaluate(()=>document.getElementById('lc0').textContent))==='1,50€',await p.evaluate(()=>document.getElementById('lc0').textContent));
 await p.click('#recipeLines .item:nth-child(2) input[type=number]');

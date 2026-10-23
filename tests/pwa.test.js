@@ -31,7 +31,7 @@ await tap(p,'#wDemo');const before=await D(p);
 await p.reload();ok('tras recargar, la página la controla el service worker',await p.evaluate(()=>!!navigator.serviceWorker.controller),null);
 await p.context().setOffline(true);await p.reload();
 ok('sin conexión la app se abre con sus datos (bar de ejemplo)',(await seen(p,'#page-dashboard'))&&(await seen(p,'#demoBadge'))&&JSON.stringify(await D(p))===JSON.stringify(before),[await D(p),before]);
-await tap(p,'.mobile-nav button:has-text("Bebidas")');ok('sin conexión se navega (Bebidas)',await seen(p,'#page-drinks'),null);
+await tap(p,'.mobile-nav button:has-text("Carta")');ok('sin conexión se navega (Mi carta)',await seen(p,'#page-drinks'),null);
 await p.context().setOffline(false);
 
 // ── 3. Versión nueva del HTML ────────────────────────────────────────────────

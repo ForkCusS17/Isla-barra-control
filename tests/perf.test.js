@@ -26,12 +26,12 @@ await timed('leer y revisar la copia ('+Math.round(kb)+' KB)',()=>fc.setFiles(BI
 await timed('importar y pintar el Resumen',()=>tap('#importYes'),'#page-dashboard');
 const n=await p.evaluate(()=>[data.ingredients.length,data.drinks.length,data.stocks.length,data.sales.length,data.diagnostics.length]);
 ok('se importan 500 ingredientes, 100 bebidas, 2000 controles, 20 ventas y 60 hallazgos',n.join()==='500,100,2000,20,60',n);
-for(const l of ['Bebidas','Mi barra','Stock','Resumen'])await tapLat('abrir '+l,[`.mobile-nav button:has-text("${l}")`],'#page-'+{Bebidas:'drinks','Mi barra':'bar',Stock:'stock',Resumen:'dashboard'}[l]);
+for(const l of ['Carta','Mi barra','Stock','Resumen'])await tapLat('abrir '+l,[`.mobile-nav button:has-text("${l}")`],'#page-'+{Carta:'drinks','Mi barra':'bar',Stock:'stock',Resumen:'dashboard'}[l]);
 await tapLat('abrir la lista completa de ingredientes',['.mobile-nav button:has-text("Mi barra")','#barFullList'],'#page-ingredients');
 for(const l of MORE)await tapLat('abrir '+l,['.mobile-nav button:has-text("Más")',`#page-more button:has-text("${l}")`],'#page-'+{Ficha:'business','Diagnóstico':'diagnosis',Informe:'report',Ajustes:'settings','Acerca de':'about'}[l]);
 await tap('.mobile-nav button:has-text("Más")');await tap('#page-more button:has-text("Ficha")');await p.fill('#bName','Bar grande 2');
 await tapLat('guardar un cambio (ficha) con todos los datos',['#businessForm button:has-text("Guardar ficha")']);
-await tap('.mobile-nav button:has-text("Bebidas")');await tapLat('abrir la biblioteca',['#libOpen'],'#page-library');
+await tap('.mobile-nav button:has-text("Carta")');await tapLat('abrir la biblioteca',['#libOpen'],'#page-library');
 await tap('.mobile-nav button:has-text("Stock")');await tapLat('ver todos los controles (2000)',['#stockAll']);
 await timed('recargar la app con todos los datos',()=>p.reload(),'#page-dashboard');
 await tap('.mobile-nav button:has-text("Resumen")');await timed('exportar la copia',()=>Promise.all([p.waitForEvent('download'),tap('#dashExport')]));

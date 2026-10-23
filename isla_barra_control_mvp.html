@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ej79AksTjhRaf65UDUdQ+fwnhvwOGdpuB2D5YyPW+7g='; script-src-attr 'unsafe-inline'; style-src 'sha256-TEjZ4t4/iiJGbIXYFHRZJPPN28VF0zAiNYcYex3qSnU='; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self'; worker-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-u+D3SuBzuD7NHW2c7VrHeTAck90hNx2AmSkjn/10aP0='; script-src-attr 'unsafe-inline'; style-src 'sha256-TEjZ4t4/iiJGbIXYFHRZJPPN28VF0zAiNYcYex3qSnU='; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self'; worker-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0E4A5A" id="themeColor">
 <title>Isla & Barra Control</title>
@@ -78,14 +78,14 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 <section id="page-business" class="page hidden">
  <div class="eyebrow">Proyecto de consultoría</div><h2 class="page-title">Ficha del bar</h2><p class="sub">Una ficha por establecimiento. Esta primera versión trabaja con un bar cada vez.</p>
  <div class="panel"><form id="businessForm"><div class="fieldgrid">
-  <div class="field"><label for="bName">Nombre del bar</label><input id="bName" placeholder="Ej. Bar Atlántico"></div>
+  <div class="field"><label for="bName">Nombre del bar</label><input id="bName" aria-describedby="bNameReq" placeholder="Ej. Bar Atlántico"><small class="muted" id="bNameReq">Necesario para la guía y el informe</small></div>
   <div class="field"><label for="bContact">Persona de contacto (opcional)</label><input id="bContact" placeholder="Responsable o gerente"></div>
-  <div class="field"><label for="bLocation">Localidad</label><input id="bLocation" placeholder="Ej. Arrecife"></div>
+  <div class="field"><label for="bLocation">Localidad</label><input id="bLocation" aria-describedby="bLocationReq" placeholder="Ej. Arrecife"><small class="muted" id="bLocationReq">Necesario para la guía y el informe</small></div>
   <div class="field"><label for="bDate">Fecha del diagnóstico</label><input id="bDate" type="date"></div>
   <div class="field"><label for="bType">Tipo de establecimiento</label><select id="bType"><option>Bar / coctelería</option><option>Restaurante</option><option>Hotel</option><option>Cafetería</option><option>Food truck</option><option>Otro</option></select></div>
-  <div class="field"><label for="bPeriod">Periodo analizado</label><input id="bPeriod" placeholder="Ej. 7–13 octubre"></div>
+  <div class="field"><label for="bPeriod">Periodo analizado</label><input id="bPeriod" aria-describedby="bPeriodReq" placeholder="Ej. 7–13 octubre"><small class="muted" id="bPeriodReq">Necesario para la guía y el informe</small></div>
   <div class="field full"><label for="bNotes">Objetivo y observaciones</label><textarea id="bNotes" placeholder="Qué quiere mejorar el negocio, limitaciones observadas, etc."></textarea></div>
- </div><div class="form-actions"><button class="btn" type="submit">Guardar ficha</button></div></form></div>
+ </div><div id="businessMissing" class="notice warn hidden" role="status" style="margin-top:13px"></div><div class="form-actions"><button class="btn" type="submit">Guardar ficha</button></div></form></div>
 </section>
 <section id="page-drinks" class="page hidden">
  <div class="eyebrow">Costes y rentabilidad</div><h2 class="page-title">Bebidas y costes</h2><div class="form-actions" style="margin:0 0 12px"><button class="btn" id="libOpen" type="button" onclick="openLibrary()">Añadir desde la biblioteca</button></div><p class="sub">Calcula el coste directo de una receta y su margen bruto estimado. Introduce precios de compra sin IVA cuando los tengas disponibles y compara precios de venta sobre una base fiscal consistente.</p>
@@ -366,9 +366,13 @@ function avg(a){a=a.filter(x=>x!==null&&isFinite(x));return a.length?a.reduce((s
 const eu=x=>x===null?'—':euro(x),pc=x=>x===null?'—':fmt(x)+'%';
 function recipeIssues(d){const p=[],L=d.recipeItems||[];if(!L.length&&!num(d.ingredientCost))p.push('sin ingredientes');L.forEach(l=>{if(!l.ingredientId)return;const i=ingOf(l.ingredientId);if(!i)p.push('ingrediente eliminado');else if(!validIng(i))p.push(i.name+' sin precio válido')});return p}
 function drinkFlag(d){const m=margin(d);if(m===null)return{cls:'warn',txt:'Falta el precio'};if(gross(d)<0)return{cls:'bad',txt:'Margen negativo'};if(recipeIssues(d).length)return{cls:'warn',txt:'Coste incompleto'};if(m<data.settings.marginMin)return{cls:'warn',txt:'Revisar'};return{cls:'',txt:''}}
-function renderAll(){idx=null;applyBrand();renderAbout();renderInstallCard();renderInstallPage();renderBackupNag();renderStorage();renderCategoryOptions();renderBar();renderTemplates();renderHelpEditor();refreshHelpNotes();renderUnitsForm();renderBackupStatus();applyMode();renderFirstUse();renderGuide();renderReviewedNote();renderLookNow();renderBusiness();renderSales();renderTrend();renderIngredients();renderDrinks();renderStock();renderDiagnostics();renderDashboard();if(!document.getElementById('page-report').classList.contains('hidden'))renderReport()}
+function renderAll(){idx=null;applyBrand();renderAbout();renderInstallCard();renderInstallPage();renderBackupNag();renderStorage();renderCategoryOptions();renderBar();renderTemplates();renderHelpEditor();refreshHelpNotes();renderUnitsForm();renderBackupStatus();applyMode();renderFirstUse();renderGuide();renderReviewedNote();renderLookNow();renderBusiness();renderBusinessMissing();renderSales();renderTrend();renderIngredients();renderDrinks();renderStock();renderDiagnostics();renderDashboard();if(!document.getElementById('page-report').classList.contains('hidden'))renderReport()}
 function renderBusiness(){const b=data.business;for(const [id,key] of Object.entries({bName:'name',bContact:'contact',bLocation:'location',bDate:'date',bType:'type',bPeriod:'period',bNotes:'notes'})){const el=document.getElementById(id);if(el&&document.activeElement!==el)el.value=b[key]||''}}
-document.getElementById('businessForm').addEventListener('submit',e=>{e.preventDefault();data.business={...data.business,name:v('bName'),contact:v('bContact'),location:v('bLocation'),date:v('bDate'),type:v('bType'),period:v('bPeriod'),notes:v('bNotes')};save();toast('Ficha guardada')});
+document.getElementById('businessForm').addEventListener('submit',e=>{e.preventDefault();data.business={...data.business,name:v('bName'),contact:v('bContact'),location:v('bLocation'),date:v('bDate'),type:v('bType'),period:v('bPeriod'),notes:v('bNotes')};bizChecked=true;save();toast(bizMissing().length?'Ficha guardada, pero incompleta':'Ficha guardada')});
+// Nombre, localidad y periodo: necesarios para la guía y el informe. Tras guardar, la ficha dice qué falta.
+const BIZ_REQ={name:'nombre',location:'localidad',period:'periodo analizado'};let bizChecked=false;
+function bizMissing(){return Object.keys(BIZ_REQ).filter(k=>!String(data.business[k]||'').trim()).map(k=>BIZ_REQ[k])}
+function renderBusinessMissing(){const el=document.getElementById('businessMissing'),m=bizMissing();if(!el)return;el.classList.toggle('hidden',!bizChecked||!m.length);el.textContent=m.length?'Falta: '+m.join(', ')+'. Sin estos datos la ficha queda incompleta para la guía y el informe.':''}
 function v(id){return document.getElementById(id).value}
 let recipeDraft=[];
 let ingFilter={q:'',cat:''},salesDraft={};
@@ -507,8 +511,8 @@ function renderFirstUse(){const first=!hasContent(data)&&!data.settings.started,
 // Productos con precio por subcategoría, para la guía («Ginebras 2 · Rones 1»)
 function pricedBySub(){const n={};data.ingredients.filter(i=>i.active!==false&&validIng(i)).forEach(i=>{const k=i.subcategory||'Sin clasificar';n[k]=(n[k]||0)+1});const l=Object.entries(n).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'es'));return l.length?' · '+l.slice(0,6).map(([k,c])=>k+' '+c).join(' · ')+(l.length>6?' · …':''):''}
 // Guía de inicio: 6 pasos calculados a partir de los datos
-function guideSteps(){const b=data.business,ings=data.ingredients.filter(i=>i.active!==false&&validIng(i)).length,dr=data.drinks.filter(d=>(d.recipeItems||[]).some(l=>l.ingredientId&&num(l.qty)>0)).length,missing=['name','location','period'].filter(k=>!String(b[k]||'').trim());
-return[{key:'ficha',title:'Ficha completa',done:!missing.length,page:'business',why:'Con el nombre, la localidad y el periodo analizado, el informe deja claro de qué bar y de qué fechas habla.',detail:missing.length?'Falta: '+missing.map(k=>({name:'nombre',location:'localidad',period:'periodo analizado'})[k]).join(', ')+'.':''},
+function guideSteps(){const b=data.business,ings=data.ingredients.filter(i=>i.active!==false&&validIng(i)).length,dr=data.drinks.filter(d=>(d.recipeItems||[]).some(l=>l.ingredientId&&num(l.qty)>0)).length,missing=bizMissing();
+return[{key:'ficha',title:'Ficha completa',done:!missing.length,page:'business',why:'Con el nombre, la localidad y el periodo analizado, el informe deja claro de qué bar y de qué fechas habla.',detail:missing.length?'Falta: '+missing.join(', ')+'.':''},
 {key:'barra',title:'Rellena tu barra',done:ings>=5,page:'bar',why:'Cada producto con su formato y lo que pagas da el coste por ml o gramo de tus bebidas. Empieza por lo que más se vende.',detail:`Con precio: ${ings} de 5${pricedBySub()}.`},
 {key:'bebidas',title:'3 bebidas con receta',done:dr>=3,page:'library',why:'Con la receta, la app calcula cuánto cuesta preparar cada copa y cuánto te queda de cada venta. Puedes partir de la biblioteca de cócteles clásicos.',detail:`Tienes ${dr} de 3.`},
 {key:'stock',title:'Ventas y un control de stock',done:data.sales.length>0&&data.stocks.length>0,page:'stock',why:'Comparar lo vendido con lo que ha salido del almacén muestra si el consumo cuadra.',detail:`Ventas: ${data.sales.length?'sí':'no'} · Controles: ${data.stocks.length}.`},

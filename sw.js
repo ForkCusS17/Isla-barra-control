@@ -2,7 +2,7 @@
 // Los datos del usuario NO pasan por aquí: viven en el localStorage del navegador y no se tocan al actualizar.
 // La app se sirve desde la caché y se comprueba en segundo plano si hay una versión nueva; si la hay, se guarda
 // y se avisa a la página («Hay una versión nueva»). Al tocar «Actualizar», la página se recarga con ella.
-const VERSION='0.1.0';
+const VERSION='0.2.0';
 const CACHE='isla-barra-app-'+VERSION;
 const APP='isla_barra_control_mvp.html';
 const SHELL=[APP,'manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/maskable-512.png','icons/apple-touch-icon.png','icons/favicon-32.png'];

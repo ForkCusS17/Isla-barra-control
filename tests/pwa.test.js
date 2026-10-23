@@ -5,6 +5,7 @@ const {chromium,devices,NAME}=require('./env');const {start}=require('./server')
 const fs=require('fs'),path=require('path');const T=[];const ok=(n,c,x)=>{T.push([!!c,n,c?'':JSON.stringify(x)]);console.log('· '+(c?'ok ':'MAL ')+n)};/* progreso visible si la serie se corta */
 const PHONE={...devices['iPhone 13'],reducedMotion:'reduce'},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}},ANDROID={...devices['Pixel 7'],reducedMotion:'reduce'};
 const HTML=fs.readFileSync(path.join(__dirname,'..','isla_barra_control_mvp.html'),'utf8'),SW=fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8');
+const CUR=HTML.match(/APP_VERSION='([^']+)'/)[1];/* versión publicada; las pruebas simulan la siguiente */
 const pngSize=b=>[b.readUInt32BE(16),b.readUInt32BE(20)];
 (async()=>{const srv=await start();const APP=srv.base+'isla_barra_control_mvp.html';const b=await chromium.launch();const pages=[];
 const mk=async(dev=PHONE,init)=>{const c=await b.newContext(dev);if(init)await c.addInitScript(init);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type());d.dismiss()});await p.goto(APP);pages.push(p);return p};
@@ -35,23 +36,23 @@ await tap(p,'.mobile-nav button:has-text("Carta")');ok('sin conexión se navega 
 await p.context().setOffline(false);
 
 // ── 3. Versión nueva del HTML ────────────────────────────────────────────────
-{const r=restamp(HTML.replace("APP_VERSION='0.1.0'","APP_VERSION='0.1.1'"));srv.override['isla_barra_control_mvp.html']={body:r.html,headers:{'Content-Security-Policy':r.csp}}}
+{const r=restamp(HTML.replace(`APP_VERSION='${CUR}'`,"APP_VERSION='9.9.1'"));srv.override['isla_barra_control_mvp.html']={body:r.html,headers:{'Content-Security-Policy':r.csp}}}
 await p.reload();
-ok('al publicar una versión nueva se sigue abriendo la que hay en el dispositivo',(await p.evaluate(()=>APP_VERSION))==='0.1.0',null);
+ok('al publicar una versión nueva se sigue abriendo la que hay en el dispositivo',(await p.evaluate(()=>APP_VERSION))===CUR,null);
 await p.locator('#updateBar').waitFor({state:'visible',timeout:8000}).catch(()=>{});
 ok('aviso «Hay una versión nueva» (y que los datos se conservan)',/Hay una versión nueva/.test(await text(p,'#updateBar'))&&/datos se conservan/.test(await text(p,'#updateBar')),null);
 await Promise.all([p.waitForEvent('load'),tap(p,'#updateNow')]);
-ok('«Actualizar» recarga con la versión nueva',(await p.evaluate(()=>APP_VERSION))==='0.1.1',null);
+ok('«Actualizar» recarga con la versión nueva',(await p.evaluate(()=>APP_VERSION))==='9.9.1',null);
 ok('…sin perder datos',JSON.stringify(await D(p))===JSON.stringify(before)&&(await seen(p,'#demoBadge')),await D(p));
 ok('después de actualizar no vuelve a avisar',!(await seen(p,'#updateBar')),null);
 
 // ── 4. Versión nueva del service worker ─────────────────────────────────────
-srv.override['sw.js']=SW.replace("const VERSION='0.1.0'","const VERSION='0.1.2'");
+srv.override['sw.js']=SW.replace(`const VERSION='${CUR}'`,"const VERSION='9.9.2'");
 await p.reload();await p.locator('#updateBar').waitFor({state:'visible',timeout:10000}).catch(()=>{});
 ok('service worker nuevo: también avisa «Hay una versión nueva»',await seen(p,'#updateBar'),null);
 await Promise.all([p.waitForEvent('load',{timeout:10000}),tap(p,'#updateNow')]);
 const keys=await p.evaluate(()=>caches.keys());
-ok('«Actualizar» activa el nuevo y borra la caché anterior',keys.includes('isla-barra-app-0.1.2')&&!keys.includes('isla-barra-app-0.1.0'),keys);
+ok('«Actualizar» activa el nuevo y borra la caché anterior',keys.includes('isla-barra-app-9.9.2')&&!keys.includes('isla-barra-app-'+CUR),keys);
 ok('…y los datos siguen ahí',JSON.stringify(await D(p))===JSON.stringify(before),await D(p));
 delete srv.override['sw.js'];delete srv.override['isla_barra_control_mvp.html'];
 

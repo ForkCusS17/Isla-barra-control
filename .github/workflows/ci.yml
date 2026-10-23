@@ -59,8 +59,8 @@ jobs:
         # La descarga a veces se queda colgada: hasta 3 intentos de 3 minutos (solo descarga, sin apt).
         run: |
           for i in 1 2 3; do timeout 180 npx playwright install ${{ matrix.browser }} && exit 0; echo "Intento $i fallido"; done; exit 1
-      - name: CSP al día
-        run: node tools/stamp.js --check
+      - name: CSP y carpeta publicar/ al día
+        run: node tools/stamp.js --check && node tools/publicar.js --check
       - name: Pruebas
         run: node tests/run_all.js --parallel
         env:

@@ -4,11 +4,13 @@
 const {chromium,devices,NAME}=require('./env');const {start}=require('./server');const {restamp}=require('../tools/stamp');const {noOverflow,wide,smallTargets,contrastFails}=require('./helpers');
 const fs=require('fs'),path=require('path');const T=[];const ok=(n,c,x)=>{T.push([!!c,n,c?'':JSON.stringify(x)]);console.log('· '+(c?'ok ':'MAL ')+n)};/* progreso visible si la serie se corta */
 const PHONE={...devices['iPhone 13'],reducedMotion:'reduce'},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}},ANDROID={...devices['Pixel 7'],reducedMotion:'reduce'};
-const HTML=fs.readFileSync(path.join(__dirname,'..','isla_barra_control_mvp.html'),'utf8'),SW=fs.readFileSync(path.join(__dirname,'..','sw.js'),'utf8');
+// APP_ROOT=publicar: la misma serie, sirviendo solo la carpeta de publicación (como la recibiría el alojamiento).
+const ROOT=process.env.APP_ROOT||'',DIR=path.join(__dirname,'..',ROOT),TAG=ROOT?' · '+ROOT+'/':'';
+const HTML=fs.readFileSync(path.join(DIR,'isla_barra_control_mvp.html'),'utf8'),SW=fs.readFileSync(path.join(DIR,'sw.js'),'utf8');
 const CUR=HTML.match(/APP_VERSION='([^']+)'/)[1];/* versión publicada; las pruebas simulan la siguiente */
 const pngSize=b=>[b.readUInt32BE(16),b.readUInt32BE(20)];
-(async()=>{const srv=await start();const APP=srv.base+'isla_barra_control_mvp.html';const b=await chromium.launch();const pages=[];
-const mk=async(dev=PHONE,init)=>{const c=await b.newContext(dev);if(init)await c.addInitScript(init);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type());d.dismiss()});await p.goto(APP);pages.push(p);return p};
+(async()=>{const srv=await start({root:ROOT});const APP=srv.base+'isla_barra_control_mvp.html';const b=await chromium.launch();const pages=[];
+const mk=async(dev=PHONE,init)=>{const c=await b.newContext(dev);if(init)await c.addInitScript(init);const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,120)));p.on('dialog',d=>{p.dl.push(d.type());d.dismiss()});if(ROOT){p.on('console',m=>{if(m.type()==='error')p.errs.push('consola: '+m.text().slice(0,120))});p.on('response',r=>{if(r.status()>=400)p.errs.push(r.status()+' '+r.url())})}await p.goto(APP);pages.push(p);return p};
 const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:8000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0]+' | '+e.message.split('\n').slice(-6).join(' / ').slice(0,700))});
 const seen=(p,sel)=>p.locator(sel).filter({visible:true}).count().then(n=>n>0);
 const text=(p,sel)=>p.locator(sel).filter({visible:true}).first().innerText().then(t=>t.replace(/\s+/g,' ').trim());
@@ -18,6 +20,10 @@ const nav=async(p,label)=>{if(['Instalar la app'].includes(label)){await tap(p,'
 
 // ── 1. Manifiesto e iconos ───────────────────────────────────────────────────
 let p=await mk();
+if(ROOT){const files=(d=>{const l=x=>fs.readdirSync(x,{withFileTypes:true}).flatMap(e=>e.isDirectory()?l(path.join(x,e.name)).map(y=>e.name+'/'+y):[e.name]);return l(d).sort()})(DIR);
+ ok('publicar/ lleva solo lo necesario (index.html, la app, sw.js, manifiesto, iconos y _headers)',JSON.stringify(files)===JSON.stringify(['_headers','icons/apple-touch-icon.png','icons/favicon-32.png','icons/icon-192.png','icons/icon-512.png','icons/maskable-512.png','index.html','isla_barra_control_mvp.html','manifest.webmanifest','sw.js']),files);
+ const h=(await p.request.get(APP)).headers();ok('se aplican las cabeceras de _headers (CSP, nosniff, sin incrustar)',/frame-ancestors 'none'/.test(h['content-security-policy']||'')&&h['x-content-type-options']==='nosniff'&&h['x-frame-options']==='DENY',h);
+ const r=await mk();await r.goto(srv.base);await r.waitForURL(/isla_barra_control_mvp\.html$/,{timeout:8000}).catch(()=>{});ok('la dirección raíz (index.html) abre la app',/isla_barra_control_mvp\.html$/.test(r.url())&&(await seen(r,'#welcome')),r.url())}
 const man=await (await p.request.get(srv.base+'manifest.webmanifest')).json();
 ok('el HTML enlaza el manifiesto, el icono de iPhone y el favicon',await p.evaluate(()=>!!document.querySelector('link[rel=manifest][href="manifest.webmanifest"]')&&!!document.querySelector('link[rel=apple-touch-icon]')&&!!document.querySelector('link[rel=icon]')),null);
 ok('manifiesto: nombre, inicio en la app, pantalla completa y colores de la marca',man.name==='Isla & Barra Control'&&man.short_name==='Isla & Barra'&&new URL(man.start_url,srv.base).href===APP&&man.display==='standalone'&&man.theme_color==='#0E4A5A'&&man.background_color==='#F6F1E8'&&man.lang==='es',man);
@@ -96,4 +102,4 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const z=await mk(dev);await tap
  ok(`[${wd}] contraste ≥ 4,5:1`,cf.length===0,cf.slice(0,6))}
 
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
-const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO instalable (${NAME}): ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close();srv.server.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});
+const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO instalable (${NAME}${TAG}): ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close();srv.server.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

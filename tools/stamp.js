@@ -11,7 +11,7 @@ function hashes(html){const s=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)
  if(s.length!==1||st.length!==1)throw new Error(`se esperaba un <script> y un <style> sin atributos (hay ${s.length} y ${st.length})`);return{script:sha(s[0][1]),style:sha(st[0][1])}}
 // script-src-attr y style-src-attr 'unsafe-inline': la app usa atributos onclick/style en el HTML que genera.
 // El hash impide ejecutar cualquier <script> que no sea el de la app (inyectado, externo o modificado).
-function policy(h,meta){return[`default-src 'none'`,`script-src ${h.script}`,`script-src-attr 'unsafe-inline'`,`style-src ${h.style}`,`style-src-attr 'unsafe-inline'`,`img-src 'self' data: blob:`,`manifest-src 'self'`,`worker-src 'self'`,`connect-src 'self'`,`base-uri 'none'`,`form-action 'none'`,`object-src 'none'`,...(meta?[]:[`frame-ancestors 'none'`])].join('; ')}
+function policy(h,meta){return[`default-src 'none'`,`script-src ${h.script}`,`script-src-attr 'unsafe-inline'`,`style-src ${h.style}`,`style-src-attr 'unsafe-inline'`,`img-src 'self' data: blob:`,`font-src 'self'`,`manifest-src 'self'`,`worker-src 'self'`,`connect-src 'self'`,`base-uri 'none'`,`form-action 'none'`,`object-src 'none'`,...(meta?[]:[`frame-ancestors 'none'`])].join('; ')}
 function restamp(html){const h=hashes(html),tag=`<meta http-equiv="Content-Security-Policy" content="${policy(h,true)}">`;
  const out=/<meta http-equiv="Content-Security-Policy"[^>]*>/.test(html)?html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/,tag):html.replace('<meta charset="utf-8">\n','<meta charset="utf-8">\n'+tag+'\n');
  return{html:out,csp:policy(h,false)}}

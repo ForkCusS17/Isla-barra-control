@@ -3,7 +3,7 @@
 // simular una versión nueva sin tocar el disco.
 const http=require('http'),path=require('path'),fs=require('fs');
 const R=path.resolve(__dirname,'..');
-const TYPES={'.html':'text/html; charset=utf-8','.json':'application/json','.js':'text/javascript; charset=utf-8','.webmanifest':'application/manifest+json','.png':'image/png','.css':'text/css'};
+const TYPES={'.html':'text/html; charset=utf-8','.json':'application/json','.js':'text/javascript; charset=utf-8','.webmanifest':'application/manifest+json','.png':'image/png','.css':'text/css','.woff2':'font/woff2','.txt':'text/plain; charset=utf-8'};
 // _headers (formato de Netlify y Cloudflare Pages): una ruta sin sangría y debajo, con sangría, «Cabecera: valor».
 function readHeaders(root=R){const f=path.join(root,'_headers');if(!fs.existsSync(f))return[];const rules=[];let cur=null;
  for(const line of fs.readFileSync(f,'utf8').split('\n')){if(!line.trim()||line.trim().startsWith('#'))continue;if(!/^\s/.test(line)){cur={pat:line.trim(),h:{}};rules.push(cur);continue}const i=line.indexOf(':');if(cur&&i>0)cur.h[line.slice(0,i).trim()]=line.slice(i+1).trim()}

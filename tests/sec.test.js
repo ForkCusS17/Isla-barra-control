@@ -23,6 +23,7 @@ let p=await mk();const res=await p.request.get(APP);const H=res.headers(),csp=H[
 ok('cabecera CSP: nada por defecto, solo el script y el estilo de la app (por hash), sin incrustar',/default-src 'none'/.test(csp)&&csp.includes('script-src '+h.script+';')&&csp.includes('style-src '+h.style+';')&&/frame-ancestors 'none'/.test(csp)&&/object-src 'none'/.test(csp)&&/base-uri 'none'/.test(csp)&&!/unsafe-eval/.test(csp)&&!/script-src [^;]*unsafe-inline/.test(csp),csp);
 {const ix=await p.request.get(new URL('index.html',APP).href),ixh=await ix.text(),meta=s=>/<meta name="robots" content="noindex, nofollow">/.test(s);
  ok('beta fuera de buscadores: X-Robots-Tag noindex en la app y en index.html, y <meta name="robots" content="noindex, nofollow"> en los dos',H['x-robots-tag']==='noindex'&&ix.headers()['x-robots-tag']==='noindex'&&meta(html)&&meta(ixh),[H['x-robots-tag'],ix.headers()['x-robots-tag']])}
+ok("tipografías solo de la propia app (font-src 'self')",csp.includes("font-src 'self'")&&html.includes("font-src 'self'"),csp);
 ok('nosniff, referrer no-referrer, X-Frame-Options DENY',H['x-content-type-options']==='nosniff'&&H['referrer-policy']==='no-referrer'&&H['x-frame-options']==='DENY',H);
 const meta=await p.evaluate(()=>(document.querySelector('meta[http-equiv="Content-Security-Policy"]')||{}).content||'');
 ok('la misma CSP va en el <meta> del HTML (para alojamientos sin cabeceras), sin frame-ancestors',meta===csp.replace("; frame-ancestors 'none'",'')&&!/frame-ancestors/.test(meta),meta);

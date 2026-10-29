@@ -4,7 +4,7 @@
 //   node tools/publicar.js --check  → comprueba que publicar/ es idéntica a los archivos del proyecto
 const fs=require('fs'),path=require('path'),zlib=require('zlib');
 const R=path.resolve(__dirname,'..'),OUT=path.join(R,'publicar'),ZIP=path.join(R,'publicar.zip');
-const FILES=['index.html','isla_barra_control_mvp.html','sw.js','manifest.webmanifest','_headers',...fs.readdirSync(path.join(R,'icons')).filter(f=>f.endsWith('.png')).sort().map(f=>'icons/'+f)];
+const FILES=['index.html','isla_barra_control_mvp.html','sw.js','manifest.webmanifest','_headers',...fs.readdirSync(path.join(R,'icons')).filter(f=>f.endsWith('.png')).sort().map(f=>'icons/'+f),...fs.readdirSync(path.join(R,'fonts')).filter(f=>/\.(woff2|txt)$/.test(f)).sort().map(f=>'fonts/'+f)];
 const list=d=>fs.existsSync(d)?fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>e.isDirectory()?list(path.join(d,e.name)).map(x=>e.name+'/'+x):[e.name]):[];
 
 function check(){const have=list(OUT).sort(),want=[...FILES].sort(),bad=[];

@@ -5,7 +5,7 @@
 const VERSION='0.2.2';
 const CACHE='isla-barra-app-'+VERSION;
 const APP='isla_barra_control_mvp.html';
-const SHELL=[APP,'manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/maskable-512.png','icons/apple-touch-icon.png','icons/favicon-32.png'];
+const SHELL=[APP,'manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/maskable-512.png','icons/apple-touch-icon.png','icons/favicon-32.png','fonts/montserrat.woff2','fonts/playfair-display.woff2'];
 
 // Una respuesta que llegó tras una redirección (Netlify puede llevar «…mvp.html» a «…mvp») no se puede entregar a
 // una navegación: se guarda una copia limpia con el mismo cuerpo y las mismas cabeceras.

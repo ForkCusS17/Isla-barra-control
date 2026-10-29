@@ -21,7 +21,7 @@ const nav=async(p,label)=>{if(['Instalar la app'].includes(label)){await tap(p,'
 // ── 1. Manifiesto e iconos ───────────────────────────────────────────────────
 let p=await mk();
 if(ROOT){const files=(d=>{const l=x=>fs.readdirSync(x,{withFileTypes:true}).flatMap(e=>e.isDirectory()?l(path.join(x,e.name)).map(y=>e.name+'/'+y):[e.name]);return l(d).sort()})(DIR);
- ok('publicar/ lleva solo lo necesario (index.html, la app, sw.js, manifiesto, iconos y _headers)',JSON.stringify(files)===JSON.stringify(['_headers','icons/apple-touch-icon.png','icons/favicon-32.png','icons/icon-192.png','icons/icon-512.png','icons/maskable-512.png','index.html','isla_barra_control_mvp.html','manifest.webmanifest','sw.js']),files);
+ ok('publicar/ lleva solo lo necesario (index.html, la app, sw.js, manifiesto, iconos, tipografías con su licencia y _headers)',JSON.stringify(files)===JSON.stringify(['_headers','fonts/OFL-Montserrat.txt','fonts/OFL-PlayfairDisplay.txt','fonts/montserrat.woff2','fonts/playfair-display.woff2','icons/apple-touch-icon.png','icons/favicon-32.png','icons/icon-192.png','icons/icon-512.png','icons/maskable-512.png','index.html','isla_barra_control_mvp.html','manifest.webmanifest','sw.js']),files);
  const h=(await p.request.get(APP)).headers();ok('se aplican las cabeceras de _headers (CSP, nosniff, sin incrustar)',/frame-ancestors 'none'/.test(h['content-security-policy']||'')&&h['x-content-type-options']==='nosniff'&&h['x-frame-options']==='DENY'&&h['x-robots-tag']==='noindex',h);
  const r=await mk();await r.goto(srv.base);await r.waitForURL(/isla_barra_control_mvp\.html$/,{timeout:8000}).catch(()=>{});ok('la dirección raíz (index.html) abre la app',/isla_barra_control_mvp\.html$/.test(r.url())&&(await seen(r,'#welcome')),r.url())}
 const man=await (await p.request.get(srv.base+'manifest.webmanifest')).json();
@@ -36,7 +36,11 @@ ok('se registra el service worker',await swReady(p),null);
 await p.waitForTimeout(500);ok('primera visita: no aparece «Hay una versión nueva» (no hay nada nuevo)',!(await seen(p,'#updateBar')),null);
 await tap(p,'#wDemo');const before=await D(p);
 await p.reload();ok('tras recargar, la página la controla el service worker',await p.evaluate(()=>!!navigator.serviceWorker.controller),null);
+const fontsOk=pg=>pg.evaluate(async()=>{await document.fonts.ready;const fam=s=>getComputedStyle(document.querySelector(s)).fontFamily;return document.fonts.check('600 31px "Playfair Display"')&&document.fonts.check('400 15px Montserrat')&&[...document.fonts].filter(f=>f.status==='loaded').map(f=>f.family).sort().join()==='Montserrat,Playfair Display'&&/^"?Playfair Display/.test(fam('.page-title'))&&/^"?Montserrat/.test(fam('body'))});
+ok('tipografías de marca: Playfair Display en los títulos y Montserrat en el resto, cargadas desde la propia app',await fontsOk(p),null);
+ok('las tipografías quedan en la caché del service worker',await p.evaluate(async()=>{const k=(await caches.keys()).find(x=>x.startsWith('isla-barra-app-'));const c=await caches.open(k);return !!(await c.match('fonts/montserrat.woff2'))&&!!(await c.match('fonts/playfair-display.woff2'))}),null);
 await p.context().setOffline(true);srv.ctl.offline=true;await p.reload();
+ok('sin conexión se ven las tipografías de marca',await fontsOk(p),null);
 ok('sin conexión la app se abre con sus datos (bar de ejemplo)',(await seen(p,'#page-dashboard'))&&(await seen(p,'#demoBadge'))&&JSON.stringify(await D(p))===JSON.stringify(before),[await D(p),before]);
 await tap(p,'.mobile-nav button:has-text("Carta")');ok('sin conexión se navega (Mi carta)',await seen(p,'#page-drinks'),null);
 await p.context().setOffline(false);srv.ctl.offline=false;

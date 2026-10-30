@@ -109,6 +109,8 @@ const OLD={schema:5,app:'Isla & Barra Control',settings:{marginMin:65,mode:'full
   {id:'d5',name:'Café solo',category:'Café',price:1.4,taxRate:0,otherCost:0.1,recipeItems:[]},
   {id:'d6',name:'Agua',category:'Otro',price:1.5,taxRate:0,otherCost:0.2,recipeItems:[]},
   {id:'d7',name:'Licor de hierbas',category:'Licor',price:3,taxRate:0,otherCost:2.5,recipeItems:[]}]};
+const formDiag=p=>p.evaluate(()=>{const f=document.getElementById('drinkForm');return{visible:!!(f&&f.offsetParent),valid:f?f.checkValidity():null,invalid:f?[...f.elements].filter(e=>e.willValidate&&!e.checkValidity()).map(e=>e.id+'='+e.value+' ('+e.validationMessage+')'):[],active:document.activeElement&&(document.activeElement.id||document.activeElement.tagName),drinks:data.drinks.length,ev:(window.__ev||[]).slice(-8)}}).catch(e=>String(e));
+const watchForm=p=>p.evaluate(()=>{window.__ev=[];if(window.__evOn)return;window.__evOn=1;['pointerdown','touchstart','touchend','mousedown','click','submit','invalid'].forEach(t=>document.addEventListener(t,e=>window.__ev.push(t+':'+(e.target.id||e.target.tagName+'«'+(e.target.textContent||'').trim().slice(0,14)+'»')),true))});
 const rowNames=p=>p.locator('#drinkList .carta-row .cr-name').allInnerTexts();
 const rowCosts=async p=>(await p.locator('#drinkList .carta-row .cr-nums').allInnerTexts()).map(t=>{const m=t.replace(/\s+/g,' ').match(/Coste ([\d.,]+) €/);return m?Number(m[1].replace(/\./g,'').replace(',','.')):NaN});
 const rowMargins=async p=>(await p.locator('#drinkList .carta-row .cr-nums').allInnerTexts()).map(t=>{const m=t.replace(/\s+/g,' ').match(/Margen ([-\d.,]+) ?%/);return m?Number(m[1].replace(/\./g,'').replace(',','.')):null});
@@ -144,8 +146,8 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const c=await mk(dev,OLD);await
  await checkScreen(c,wd,'receta propia');
  await tap(c,'#rcEdit');
  ok(`[${wd}] «Editar» abre el formulario con la bebida`,(await seen(c,'#drinkForm'))&&(await c.inputValue('#dName'))==='Ron con hielo'&&(await text(c,'#drinkFormTitle'))==='Editar bebida',null);
- await c.fill('#dPrice','7');await tap(c,'#drinkForm button:has-text("Guardar bebida")');
- ok(`[${wd}] al guardar se cierra el formulario y la fila muestra el precio nuevo`,!(await seen(c,'#drinkForm'))&&/Precio 7,00 €/.test(await text(c,'#drinkList .carta-row:has-text("Ron con hielo")')),await text(c,'#drinkList .carta-row:has-text("Ron con hielo")'));
+ await c.fill('#dPrice','7');await watchForm(c);await tap(c,'#drinkForm button:has-text("Guardar bebida")');
+ ok(`[${wd}] al guardar se cierra el formulario y la fila muestra el precio nuevo`,!(await seen(c,'#drinkForm'))&&/Precio 7,00 €/.test(await text(c,'#drinkList .carta-row:has-text("Ron con hielo")')),[await text(c,'#drinkList .carta-row:has-text("Ron con hielo")'),await formDiag(c)]);
  await tap(c,'#drinkList .carta-row:has-text("Agua")');await tap(c,'#rcDelete');
  ok(`[${wd}] «Eliminar» pide confirmación dentro de la página`,(await seen(c,'#appConfirm'))&&/Agua/.test(await text(c,'#appConfirmText')),null);
  await tap(c,'#appConfirmYes');
@@ -154,8 +156,8 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const c=await mk(dev,OLD);await
  await tap(c,'#drinkAdd');
  ok(`[${wd}] «Añadir bebida» abre el formulario vacío`,(await seen(c,'#drinkForm'))&&(await c.inputValue('#dName'))===''&&(await c.locator('#drinkAdd').getAttribute('aria-expanded'))==='true',null);
  await checkScreen(c,wd,'Mi carta con el formulario');
- await c.fill('#dName','Refresco de cola');await c.selectOption('#dCategory','Refresco');await c.fill('#dPrice','2.5');await tap(c,'#drinkForm button:has-text("Guardar bebida")');
- ok(`[${wd}] la bebida nueva aparece en la lista y crea el chip «Refrescos 1»`,(await rowNames(c)).includes('Refresco de cola')&&(await c.locator('#cartaCats .cat-chip').allInnerTexts()).map(t=>t.replace(/\s+/g,' ').trim()).includes('Refrescos 1'),await c.locator('#cartaCats .cat-chip').allInnerTexts());
+ await c.fill('#dName','Refresco de cola');await c.selectOption('#dCategory','Refresco');await c.fill('#dPrice','2.5');await watchForm(c);await tap(c,'#drinkForm button:has-text("Guardar bebida")');
+ ok(`[${wd}] la bebida nueva aparece en la lista y crea el chip «Refrescos 1»`,(await rowNames(c)).includes('Refresco de cola')&&(await c.locator('#cartaCats .cat-chip').allInnerTexts()).map(t=>t.replace(/\s+/g,' ').trim()).includes('Refrescos 1'),[await c.locator('#cartaCats .cat-chip').allInnerTexts(),await formDiag(c)]);
  ok(`[${wd}] el resumen de la carta queda debajo de la lista`,await c.evaluate(()=>{const l=document.getElementById('cartaPanel'),s=document.getElementById('drinkSummaryPanel');return!!(l.compareDocumentPosition(s)&Node.DOCUMENT_POSITION_FOLLOWING)&&/Coste directo medio/.test(s.innerText)}),null);
  ok(`[${wd}] el resumen de la carta incluye cada categoría`,/Cóctel \(2\)/.test(await text(c,'#drinkSummary'))&&/Refresco \(1\)/.test(await text(c,'#drinkSummary')),await text(c,'#drinkSummary'));
  // estado vacío y biblioteca
@@ -176,4 +178,4 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const c=await mk(dev,OLD);await
 
 // FIN
 ok('sin errores de JavaScript ni diálogos del navegador',pages.every(x=>x.errs.length===0&&x.dl.length===0),pages.map(x=>[x.errs,x.dl]));
-const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO guía y Mi carta: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,300):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});
+const pass=T.filter(x=>x[0]).length;console.log(`RESULTADO guía y Mi carta: ${pass}/${T.length}`);T.forEach(x=>console.log((x[0]?'OK   ':'FALLA ')+x[1]+(x[2]?'  → '+x[2].slice(0,1200):'')));if(pass<T.length)process.exitCode=1;await b.close()})().catch(e=>{console.log('FAIL',e.message,'· última comprobación:',T.length?T[T.length-1][1]:'ninguna');process.exit(1)});

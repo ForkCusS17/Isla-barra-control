@@ -13,6 +13,7 @@ const PHONE={...devices['iPhone 13'],reducedMotion:'reduce',acceptDownloads:true
 function png(w,h){const row=w*3+1,raw=Buffer.alloc(row*h);for(let y=0;y<h;y++)for(let x=0;x<w;x++){const o=y*row+1+x*3;raw[o]=(x*7)&255;raw[o+1]=(y*5)&255;raw[o+2]=120}
  const ch=(t,d)=>{const l=Buffer.alloc(4);l.writeUInt32BE(d.length);const td=Buffer.concat([Buffer.from(t),d]);const c=Buffer.alloc(4);c.writeUInt32BE(zlib.crc32(td)>>>0);return Buffer.concat([l,td,c])};
  const ih=Buffer.alloc(13);ih.writeUInt32BE(w,0);ih.writeUInt32BE(h,4);ih[8]=8;ih[9]=2;return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),ch('IHDR',ih),ch('IDAT',zlib.deflateSync(raw)),ch('IEND',Buffer.alloc(0))])}
+fs.writeFileSync(path.join(TMP,'albaran.pdf'),Buffer.from('%PDF-1.4\n% albarán de ejemplo para la prueba\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n'));
 const PHOTO={name:'factura.png',mimeType:'image/png',buffer:png(2400,1600)},PDF={name:'factura.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n')},FAKE={name:'trampa.pdf',mimeType:'application/pdf',buffer:Buffer.from('<html><script>alert(1)</script></html>')};
 const ing=(id,name,category,subcategory,qty,price,unit='ml')=>({id,name,category,subcategory,supplier:'',format:'Botella 70 cl',unit,packUnit:unit,packInput:qty,packQty:qty,packPrice:price,notes:'',active:true});
 const SEED={schema:7,settings:{mode:'full',started:true,guideHidden:true},business:{name:'Bar Compras',location:'Arrecife',period:'Octubre'},ingredients:[ing('g1','Ginebra Beefeater','Destilados','Ginebras',700,16),ing('r1','Ron Carta Blanca','Destilados','Rones',700,14)],drinks:[],sales:[],stocks:[],diagnostics:[]};
@@ -39,6 +40,7 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev);
  ok(`[${wd}] Mi barra › «Compras y facturas» abre la pantalla vacía con «Nueva factura»`,(await seen(p,'#page-purchases'))&&(await seen(p,'#purNew'))&&/Todavía no hay facturas/.test(await text(p,'#purList')),await text(p,'#purList'));
  await tap(p,'#purNew');
  ok(`[${wd}] factura nueva: fecha de hoy y una línea vacía`,(await p.inputValue('#purDate'))==='2026-10-30'&&(await p.locator('.pur-line').count())===1,null);
+ ok(`[${wd}] sin cuentas no se ofrece «Leer la factura con IA» (necesita la función de Supabase)`,!(await seen(p,'#purRead')),null);
  // Archivos
  await p.setInputFiles('#purFile',[PHOTO,PDF,FAKE]);await until(async()=>(await p.locator('.pur-file').count())>=2);
  let ed=await p.evaluate(()=>purEdit.files.map(f=>({t:f.type,s:f.size,n:f.name})));
@@ -163,6 +165,25 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev,SEED,{bypa
  m.st.invoices.set('b0000000-0000-4000-8000-000000000001',{id:'b0000000-0000-4000-8000-000000000001',bar_id:bar.id,supplier:'Otro',number:'X-1',status:'borrador',data:{supplier:'Otro',number:'X-1',lines:[]}});
  await tap(e1,'#purNew');await e1.fill('#purSupplier','Otro');await e1.fill('#purNumber','X-1');await line(e1,0,{text:'algo',kind:'otro',amount:'1'});await tap(e1,'#purSave');
  ok('número repetido en la nube: la factura se queda en el dispositivo y lo dice',await until(async()=>/número de factura repetido en la nube/.test(await text(e1,'#purList'))),await text(e1,'#purList'));
+ // Lectura con IA (función «leer-factura» simulada)
+ await tap(e1,'#purNew');
+ ok('IA: «Leer la factura con IA» desactivado hasta añadir la foto o el PDF',(await e1.locator('#purRead').isDisabled()),null);
+ await e1.setInputFiles('#purFile','/home/user/albaran_ejemplo/albaran_ejemplo.pdf'.replace('/home/user/albaran_ejemplo/albaran_ejemplo.pdf',path.join(TMP,'albaran.pdf')));await until(async()=>(await e1.locator('.pur-file').count())===1);
+ m.ctl.aiFail=422;await tap(e1,'#purRead');await until(async()=>/No se ha podido completar: La IA no ha podido leer este documento/.test(await text(e1,'#toast')));
+ ok('IA: si la lectura falla lo explica y no cambia nada',/La IA no ha podido leer este documento/.test(await text(e1,'#toast'))&&(await e1.locator('.pur-line').count())===1&&(await e1.inputValue('#purSupplier'))==='',await text(e1,'#toast'));
+ m.ctl.aiFail=0;await tap(e1,'#purRead');await until(async()=>(await e1.locator('.pur-line').count())===6);
+ const call=m.st.ai[m.st.ai.length-1];
+ ok('IA: la app envía el PDF tal cual (empieza por %PDF) a la función, con el bar abierto',call&&call.bar===bar.id&&call.files.length===1&&call.files[0].type==='application/pdf'&&call.files[0].head==='%PDF-',call);
+ ok('IA: rellena proveedor, número, fecha y total',(await e1.inputValue('#purSupplier'))==='Distribuciones Ejemplo Atlántico, S.L.'&&(await e1.inputValue('#purNumber'))==='ALB-2026-0147'&&(await e1.inputValue('#purDate'))==='2026-10-30'&&(await e1.inputValue('#purTotal'))==='347,95',null);
+ const ls=await e1.evaluate(()=>purEdit.lines.map(l=>({t:l.text,k:l.kind,i:l.ingredientId,q:l.qtyTxt,p:l.packsTxt,a:l.amountTxt,x:l.taxType,r:l.rateTxt,f:l.newFormat,rev:l.reviewed})));
+ ok('IA: 6 líneas con su tipo (producto, envase, portes, descuento), cantidades, envases, importes e IGIC',ls.length===6&&ls.map(l=>l.k).join()==='producto,producto,producto,envase,portes,descuento'&&ls[0].q==='1'&&ls[0].p==='6'&&ls[0].a==='90'&&ls[0].x==='IGIC'&&ls[0].r==='7'&&ls[1].p==='24'&&ls[3].x==='none'&&ls[5].a==='10',ls);
+ ok('IA: «GINEBRA LONDON DRY 70 CL» se propone como tu «Ginebra Beefeater»; lo que no tienes queda por elegir',ls[0].i==='g1'&&ls[1].i===''&&ls[2].i==='',ls.map(l=>l.i));
+ ok('IA: ninguna línea queda revisada sola y no se confirma nada',ls.every(l=>!l.rev)&&/faltan 6 por revisar/.test(await text(e1,'#purConfirm')),await text(e1,'#purConfirm'));
+ ok('IA: muestra los avisos de la lectura',/Leída con IA: 6 líneas/.test(await text(e1,'#purAIInfo'))&&/La fecha de entrega está escrita a mano/.test(await text(e1,'#purAIInfo')),await text(e1,'#purAIInfo'));
+ ok('IA: el cuadre avisa si las líneas leídas no suman el total',/No cuadra/.test(await text(e1,'#purTotals')),await text(e1,'#purTotals'));
+ await tap(e1,'#purClose');
+ if(await seen(l1,'#purClose'))await tap(l1,'#purClose');
+ ok('IA: el lector no tiene «Leer la factura con IA»',!(await seen(l1,'#purRead'))&&!(await seen(l1,'#purNew')),null);
  for(const p of [e1,a1,l1])ok('nube: sin violaciones de la CSP ni errores ('+(p===e1?'editor':p===a1?'administrador':'lector')+')',(await p.evaluate(()=>window.__csp?window.__csp.length:0))===0&&p.errs.length===0,p.errs);
  s.server.close();m.server.close()}
 

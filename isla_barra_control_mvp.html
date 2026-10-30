@@ -138,7 +138,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
  <div class="field"><label for="iTaxType">Impuesto</label><select id="iTaxType" data-on-change="syncTaxFields()"><option value="">Sin indicar</option><option value="none">Sin impuesto</option><option value="IGIC">IGIC</option><option value="IVA">IVA</option></select></div>
  <div class="field tax-dep"><label for="iTaxRate">Tipo de impuesto (%)</label><input id="iTaxRate" type="number" inputmode="decimal" min="0" max="100" step="0.01" placeholder="Ej. 7"></div>
  <div class="field tax-dep"><label for="iTaxIncl">El precio escrito</label><select id="iTaxIncl"><option value="0">No incluye el impuesto</option><option value="1">Incluye el impuesto</option></select></div>
- <div class="field tax-dep"><label for="iTaxCost">El escandallo usa</label><select id="iTaxCost"><option value="0">Coste sin impuesto (el bar lo recupera)</option><option value="1">Coste con impuesto (es un gasto del bar)</option></select></div>
+ <div class="field tax-dep"><label for="iTaxCost">El escandallo usa</label><select id="iTaxCost"><option value="0">Sin impuesto (se recupera)</option><option value="1">Con impuesto (es un gasto)</option></select></div>
  <div class="field"><label for="iFormat">Formato de compra</label><input id="iFormat" placeholder="Botella, caja, bolsa…"></div>
  <div class="field"><label for="iSupplier">Proveedor (opcional)</label><input id="iSupplier"></div>
  <div class="field full"><label for="iNotes">Notas (opcional)</label><input id="iNotes" placeholder="Marca, proveedor, formato, fecha de precio"></div><div class="field full more-row"><button class="btn ghost small more-toggle" type="button" aria-expanded="false" data-on-click="toggleAdv(this)">Más opciones</button></div>

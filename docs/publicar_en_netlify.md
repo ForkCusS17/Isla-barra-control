@@ -42,9 +42,9 @@ Cuando recibas un `publicar.zip` nuevo:
 
 ## 5. Después de publicar
 
-- **Avisos legales:** en la app (Más → Acerca de → Avisos legales) ya figuran el titular, el NIF, el domicilio y el proveedor de alojamiento (Netlify, Inc.). Siguen marcados como provisionales hasta que los revise un profesional. Si cambia algún dato, hay que actualizar la app y volver a subirla.
+- **Avisos legales:** en la app (Más → Acerca de → Avisos legales) figuran el titular, el NIF (sin domicilio, como en la web) y el proveedor de alojamiento (Netlify, Inc.). Siguen marcados como provisionales hasta que los revise un profesional. Si cambia algún dato, hay que actualizar la app y volver a subirla.
 - **Copias de seguridad:** recuerda a quien la use que los datos solo están en su dispositivo. Debe usar «Exportar copia» con regularidad.
-- **Correo de contacto:** la app usa islaybarra.hosteleria@gmail.com, una dirección provisional. Si un día pasáis a un dominio propio, hay que cambiarla en la app, en los textos legales y en las redes.
+- **Correo de contacto:** la app usa info@islaybarra.es, igual que la web. Si cambia, hay que cambiarlo en la app, en la web y en las redes.
 
 ## Si algo falla
 

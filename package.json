@@ -1,6 +1,6 @@
 {
   "name": "isla-barra-control",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "description": "Isla & Barra Control: herramienta privada de consultoría para hostelería (un único HTML)",
   "scripts": {

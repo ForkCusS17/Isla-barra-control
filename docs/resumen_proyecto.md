@@ -2,14 +2,14 @@
 
 ## Quién y qué
 - **Marca:** Isla & Barra, «Ideas digitales para hostelería». Consultoría para bares, restaurantes, hoteles, cafeterías y coctelerías en Canarias.
-- **Titular:** Samuel Garcia Gutierrez (Arrecife). Correo provisional: islaybarra.hosteleria@gmail.com. Instagram: @islaybarra.hosteleria.
+- **Titular:** Samuel Garcia Gutierrez (Arrecife). Correo: info@islaybarra.es (app y web). Instagram: @islaybarra.hosteleria.
 - **Dominio:** islaybarra.es, comprado en Hostalia, que también gestiona los DNS.
   - Web: https://islaybarra.es
   - App: https://app.islaybarra.es
   - Las dos están alojadas en Netlify.
 - **Código:** repositorio GitHub `ForkCusS17/Isla-barra-control` (rama `main`). El archivo `CLAUDE.md` del repositorio tiene todas las reglas, la arquitectura y el estado al detalle: es lo primero que hay que leer.
 
-## La app: Isla & Barra Control (versión 0.3.0)
+## La app: Isla & Barra Control (versión 0.3.1)
 Herramienta para el consultor, pensada para usarla desde el móvil en las visitas a los locales. Es un único archivo HTML, sin frameworks. Se instala en la pantalla de inicio y funciona sin conexión.
 
 **Qué hace:**
@@ -92,7 +92,6 @@ Herramienta para el consultor, pensada para usarla desde el móvil en las visita
 - **Cuentas y correo:**
   - Probar las cuentas a fondo con el Supabase real: varios dispositivos, usuarios de bar, sin conexión.
   - Configurar un correo propio (SMTP) para invitar por correo y para «He olvidado mi contraseña».
-  - Valorar un correo con el dominio (por ejemplo, hola@islaybarra.es) y cambiarlo después en la app, la web y los avisos legales.
 - **Pruebas en móviles reales:** comprobar en iPhone y Android las copias, el PDF y el modo sin conexión.
 - **Próximas mejoras propuestas:**
   - Quitar los atributos `style` para cerrar del todo la CSP.

@@ -73,7 +73,10 @@ await a.reload();ok('el primer dispositivo, al volver, recibe lo último de la n
 // ── 3. Usuarios de un bar (editor y lector) ─────────────────────────────────
 await nav(a,'Cuenta y bares');await tap(a,'#switchBar');await until(()=>seen(a,'#barList'));
 await tap(a,'#barList .gate-item:has-text("Bar Uno") button:has-text("Usuarios")');await until(()=>seen(a,'#memberForm'));
-ok('Usuarios del bar: lista vacía y formulario «Dar acceso»',/Nadie más tiene acceso/.test(await text(a,'#memberList')),await text(a,'#memberList'));
+ok('Usuarios del bar: lista vacía y formulario «Dar acceso» (mientras carga, «Cargando usuarios…»)',await until(async()=>/Nadie más tiene acceso/.test(await text(a,'#memberList'))),await text(a,'#memberList'));
+await a.fill('#memberEmail','escrito@bar.es');await a.selectOption('#memberRole','lector');await a.evaluate(()=>showGate('members'));
+ok('al volver a dibujar «Usuarios» (nube lenta) se conserva el correo y el permiso escritos',(await a.inputValue('#memberEmail'))==='escrito@bar.es'&&(await a.inputValue('#memberRole'))==='lector',[await a.inputValue('#memberEmail'),await a.inputValue('#memberRole')]);
+await a.fill('#memberEmail','');await a.selectOption('#memberRole','editor');
 await a.fill('#memberEmail','encargado@bar.es');await tap(a,'#memberAdd');
 ok('dar acceso a un correo sin invitar: explica que antes hay que invitarlo en Supabase',await until(async()=>/aún no tiene cuenta/.test(await text(a,'#gateMsg'))),await text(a,'#gateMsg'));
 m.addUser('encargado@bar.es','clave-encargado');m.addUser('socio@bar.es','clave-socio');

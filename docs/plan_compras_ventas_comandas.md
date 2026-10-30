@@ -1,6 +1,6 @@
 # Compras, ventas del TPV y comandas: análisis y plan por fases
 
-Estado: **propuesta pendiente de aprobación** (30-10-2026). No hay código escrito. Partimos de la versión 0.3.1 con `npm test` en verde.
+Estado: **propuesta pendiente de aprobación** (30-10-2026, actualizada con las respuestas del usuario). No hay código escrito. Partimos de la versión 0.3.1 con `npm test` en verde.
 
 ## 1. De dónde partimos
 
@@ -200,10 +200,10 @@ Tablas nuevas, con RLS y el mismo patrón que hoy (`is_admin`, `is_member`, `can
 | `pos_mappings` (fase B) | Columnas recordadas por TPV y alias artículo → bebida | igual | igual |
 
 **Detalles:**
-- **Storage:** políticas en `storage.objects` del bucket `facturas`: leer si `is_admin() or is_member(<bar de la ruta>)`; subir, cambiar y borrar si `can_edit(<bar de la ruta>)`.
+- **Storage:** políticas en `storage.objects` del bucket `facturas`: leer, subir, cambiar y borrar solo si `can_edit(<bar de la ruta>)` (administrador o editor; el lector no ve las fotos).
 - **Factura única:** restricción por bar, proveedor y número.
 - **Confirmar como una sola operación:** función `confirm_invoice(p_invoice)` para que una factura confirmada no se pueda editar y se marque una sola vez. Aplicar el coste en «Mi barra» toca el JSON del bar (otra escritura), así que la factura guarda «coste aplicado: sí/no» y la app lo reintenta si hubo conflicto.
-- **Lector:** ve el registro de compras, pero no sube, no confirma y no borra (pregunta 4: ¿debe ver las fotos?).
+- **Lector:** ve los datos del registro de compras, **no las fotos** (decidido), y no sube, no confirma y no borra. La política de lectura de Storage es `is_admin() or can_edit(<bar de la ruta>)`.
 - **Fase B:** las ventas importadas se quedan en el JSON (`sales`); solo los alias van a tabla, porque se reutilizan.
 - **Simulación:** `tests/supabase_mock.js` tendría que imitar Storage y las tablas nuevas con los mismos permisos.
 
@@ -221,18 +221,32 @@ Tablas nuevas, con RLS y el mismo patrón que hoy (`is_admin`, `is_member`, `can
   - el informe debe decir de dónde vienen las ventas (TPV, fecha y archivo) y qué artículos no se pudieron convertir.
 - **Textos legales:** privacidad y condiciones de uso cambian; siguen pendientes de revisión profesional.
 
-## 10. Plan recomendado por fases
+## 10. Plan recomendado por fases (actualizado con las respuestas del 30-10-2026)
 
-| Paso | Versión | Qué | Por qué en este orden |
+Sin exportaciones de TPV disponibles, el orden pasa a ser **compras primero** y el TPV cuando haya archivos reales.
+
+| Paso | Versión | Qué | Necesita |
 |---|---|---|---|
-| 0 | 0.3.2 | Precios con miles («1.234,50») en `parsePrice` y pegar lista | Lo necesitan las fases A y B |
-| 1 | 0.4.0 | **B1: importar ventas del TPV (CSV y .xlsx)** al periodo de ventas existente | Es lo que más trabajo manual quita, reutiliza `sales` y `theoSales`, no necesita Storage ni tocar privacidad. Necesita exportaciones reales |
-| 2 | 0.5.0 | **A1: registro de compras manual con foto**, alias, coste confirmado y «Sumar compras del periodo» en el control de stock | Necesita Storage, tablas, plan de Supabase y textos de privacidad |
-| 3 | fuera de la app | Prototipo de lectura automática con facturas reales (A2 frente a A4) | Decidir con datos, no con promesas |
-| 4 | 0.6.0 | A2 o A4 como relleno del borrador, si el prototipo lo justifica | |
-| — | — | C: no construir; revisar B2 (API de TPV) si un TPV se repite | |
+| 1 | 0.3.2 | **Impuesto por producto** (esquema 7) y precios con miles («1.234,50») en `parsePrice` y pegar lista | Nada externo; todo en el dispositivo |
+| 2 | 0.4.0 | **A1: registro de compras manual con foto**, alias por proveedor, coste confirmado línea a línea e histórico de precios, «Sumar compras del periodo» en el control de stock | Ejecutar el SQL nuevo en Supabase (tablas y bucket), textos de privacidad, revisar plan de Supabase |
+| 3 | fuera de la app | Prototipo de lectura automática con facturas reales (OCR en el móvil frente a IA en el servidor) | 15-20 facturas anonimizadas |
+| 4 | 0.5.0 | **B1: importar ventas del TPV** (CSV y .xlsx) | Al menos una exportación real de «ventas por artículo» |
+| 5 | 0.6.0 | Lectura automática como relleno del borrador, si el prototipo lo justifica | |
+| — | — | C: no construir el comandero; estudiar la API de un TPV (B2) si se repite en muchos bares | |
 
-Si no hay exportaciones de TPV a mano, se empieza por A1 y B1 va después.
+### Impuesto por producto (paso 1)
+- Cada producto de «Mi barra» lleva:
+  - **impuesto**: IGIC, IVA o ninguno;
+  - **tipo** (%);
+  - si el **precio escrito incluye** el impuesto o no.
+- La app guarda las dos cifras, **coste sin impuesto** y **coste con impuesto**, calculadas desde lo escrito. El escandallo usa una de las dos según un ajuste por producto («El impuesto de este producto: se recupera / es coste»), que por defecto es «se recupera».
+- **Migración:** los productos actuales quedan con «Impuesto: sin indicar» y su coste no cambia.
+- Las facturas (paso 2) traen el impuesto de cada línea y lo proponen para el producto; se confirma como el resto.
+- No se fija ningún tipo por defecto: los tipos de IGIC e IVA los decide el usuario.
+
+### Regla de precio al confirmar una factura
+- Propuesta por defecto, pendiente de confirmar: **el último precio** pasa a ser el coste del producto, con histórico de precios para ver la evolución.
+- La media ponderada se puede añadir después como dato del informe, sin cambiar el escandallo.
 
 ## 11. Pruebas estimadas
 
@@ -245,12 +259,14 @@ Si no hay exportaciones de TPV a mano, se empieza por A1 y B1 va después.
 
 Total: unas 250-300 comprobaciones nuevas, que llevarían la batería de unas 1.140 a unas 1.400-1.450.
 
-## 12. Preguntas abiertas
+## 12. Decisiones y preguntas
 
-1. ¿Qué TPV usan los bares con los que trabajas, y puedes conseguir una exportación de «ventas por artículo» (CSV o Excel) de uno o dos, sin datos de clientes ni de camareros?
-2. El coste de «Mi barra», ¿va **sin IGIC** (lo habitual si el bar se lo deduce) o **con IGIC**? Hoy la app no lo distingue.
-3. Al confirmar una factura, el coste del producto, ¿pasa a ser el **último precio** (recomendado para el escandallo) o la **media ponderada**?
-4. ¿Debe el usuario «solo lectura» de un bar ver las fotos de las facturas, o solo los datos?
+**Respuestas del 30-10-2026:**
+1. Aún no hay acceso a exportaciones de TPV, así que la fase B espera.
+2. El impuesto (IGIC, IVA o ninguno) se podrá indicar en cada producto.
+3. El usuario «solo lectura» ve **solo los datos** de las compras, no las fotos de las facturas. En Storage solo pueden leer el administrador y los editores.
+
+**Pendiente:** confirmar la regla de precio (último precio, propuesto por defecto).
 
 ## Fuentes consultadas (30-10-2026)
 - Veri\*factu y aplazamiento: [Infoautónomos](https://www.infoautonomos.com/blog/verifactu-cuando-es-obligatorio-a-quien-afecta/), [Grupo Albatros, RDL 15/2025](https://grupoalbatros.org/2026/02/23/verifactu-aplazamiento-2027-rdl-15-2025/), [Webpsilon (posible aplazamiento a 2028, sin BOE)](https://www.webpsilon.com/blog/verifactu-que-es-cuando-entra-en-vigor-y-a-quien-afecta/), [Cruz Guillén Abogados](https://cruzguillenabogados.com/aplazamiento-verifactu-2027-fechas-claves/).

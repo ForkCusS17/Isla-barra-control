@@ -3,7 +3,7 @@
 // enlaces de invitación y de contraseña olvidada, sesión caducada, cerrar sesión y subir datos anteriores.
 // Emulación de móvil (390 y 360 px) y solo toques; no se llaman funciones de la app.
 const {chromium,devices}=require('./env');const srv=require('./server');const sm=require('./supabase_mock');const {noOverflow,wide,smallTargets,contrastFails}=require('./helpers');
-const fs=require('fs'),path=require('path');const T=[];const ok=(n,c,x)=>{T.push([!!c,n,c?'':JSON.stringify(x)]);console.log('· '+(c?'ok ':'MAL ')+n)};
+const fs=require('fs'),path=require('path');const T=[];const ok=(n,c,x)=>{T.push([!!c,n,c?'':JSON.stringify(x)]);console.log('· '+(c?'ok ':'MAL ')+n+(c?'':' → '+String(JSON.stringify(x)).slice(0,300)))};
 const PHONE={...devices['iPhone 13'],reducedMotion:'reduce'},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}};
 const AXE=fs.readFileSync(require.resolve('axe-core/axe.min.js'),'utf8');const KEYV='clave-publica-de-prueba',BK='islaBarraControlMVP_v1';
 (async()=>{const m=await sm.start(KEYV);const s=await srv.start({cloud:{url:m.base,key:KEYV}});const APP=s.base+'isla_barra_control_mvp.html';const b=await chromium.launch();const pages=[];

@@ -6,7 +6,7 @@ const {chromium,devices}=require('./env');const srv=require('./server');const sm
 const fs=require('fs'),path=require('path'),zlib=require('zlib');const [,,F]=process.argv;const APP_URL=/^https?:/.test(F)?F:'file://'+F;const T=[];
 const TMP=path.join(__dirname,'tmp')+path.sep;fs.mkdirSync(TMP,{recursive:true});
 const AXE=require.resolve('axe-core/axe.min.js');
-const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
+const ok=(n,c,x)=>{T.push([!!c,n,c?'':JSON.stringify(x)]);console.log('· '+(c?'ok ':'MAL ')+n+(c?'':' → '+String(JSON.stringify(x)).slice(0,300)))};
 const KEY='islaBarraControlMVP_v1';
 const PHONE={...devices['iPhone 13'],reducedMotion:'reduce',acceptDownloads:true},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}};
 // PNG de prueba de 2400 × 1600 (la app debe reducirlo a 1600 px de lado mayor y guardarlo en JPEG)
@@ -98,7 +98,8 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev);
  await tap(p,'#purClose');
  // Duplicado y alias
  await tap(p,'#purNew');await p.fill('#purSupplier','distribuciones lanzarote');await p.fill('#purNumber','F-101');await line(p,0,{text:'beefeater 70cl'});
- ok(`[${wd}] alias: el mismo texto del mismo proveedor propone la ginebra y 6 envases por unidad`,(await p.inputValue('#pl_ing_0'))==='g1'&&(await p.inputValue('#pl_packs_0'))==='6'&&/como la última vez/.test(await text(p,'#toast')),[await p.inputValue('#pl_ing_0'),await p.inputValue('#pl_packs_0')]);
+ let tAlias='';const sawAlias=await until(async()=>/como la última vez/.test(tAlias=await text(p,'#toast')),3000);
+ ok(`[${wd}] alias: el mismo texto del mismo proveedor propone la ginebra y 6 envases por unidad`,(await p.inputValue('#pl_ing_0'))==='g1'&&(await p.inputValue('#pl_packs_0'))==='6'&&sawAlias,[await p.inputValue('#pl_ing_0'),await p.inputValue('#pl_packs_0'),tAlias]);
  await tap(p,'#purSave');
  ok(`[${wd}] el mismo número del mismo proveedor no se guarda dos veces`,/Ya hay una factura nº F-101/.test(await text(p,'#toast'))&&(await INVS(p)).length===1,await text(p,'#toast'));
  await tap(p,'#purClose');
@@ -132,6 +133,15 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev);
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev,SEED,{bypassCSP:true});await toPurchases(p);await tap(p,'#purNew');await line(p,0,{text:'X',ing:'g1',tax:'IGIC'});
  await p.addScriptTag({path:AXE});const v=await p.evaluate(async()=>(await axe.run(document.getElementById('page-purchases'),{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa']},resultTypes:['violations']})).violations.map(x=>({id:x.id,n:x.nodes.length,t:x.nodes.slice(0,3).map(y=>y.target.join(' '))})));
  ok(`[${wd}] axe (WCAG 2.1 AA) en la factura: sin incumplimientos`,v.length===0,v)}
+
+// Safari en navegación privada (y WebKit de Playwright) no deja guardar Blob en IndexedDB: se simula y la foto se guarda igual
+{const p=await mk(PHONE);await p.context().addInitScript(()=>{const o=IDBObjectStore.prototype.put;IDBObjectStore.prototype.put=function(v,...r){if(v&&typeof v==='object'&&Object.values(v).some(x=>x instanceof Blob))throw new DOMException('Error preparing Blob/File data to be stored in object store','DataCloneError');return o.call(this,v,...r)}});await p.reload();
+ await toPurchases(p);await tap(p,'#purNew');await p.setInputFiles('#purFile',[PHOTO]);await until(async()=>(await p.locator('#purFiles img').count())===1);
+ ok('sin Blob en IndexedDB (Safari privado): la foto se guarda igual y se ve',(await p.locator('#purFiles img').count())===1&&!/No se ha podido guardar/.test(await text(p,'#toast')),await text(p,'#toast'));
+ await p.fill('#purSupplier','Privado');await p.fill('#purNumber','P-1');await line(p,0,{text:'algo',kind:'otro',amount:'1'});await tap(p,'#purSave');await until(async()=>/P-1/.test(await text(p,'#purList')));
+ await p.reload();await toPurchases(p);await tap(p,'.pur-row:has-text("P-1")');
+ ok('…y al volver a abrir la factura la foto se lee del dispositivo (1600 px)',await until(()=>p.evaluate(()=>{const im=document.querySelector('#purFiles img');return !!im&&im.src.startsWith('blob:')&&im.naturalWidth===1600})),null);
+ await p.context().close()}
 
 // ══ 2. Con cuentas contra el Supabase simulado ══
 {const KEYV='clave-publica-de-prueba',m=await sm.start(KEYV),s=await srv.start({cloud:{url:m.base,key:KEYV}}),APP=s.base+'isla_barra_control_mvp.html';

@@ -2,7 +2,7 @@
 // y guía «Añadir a pantalla de inicio» (iPhone y Android). Solo toques; sirve la app con su propio servidor
 // para simular versiones nuevas sin tocar el disco.
 const {chromium,devices,NAME}=require('./env');const {start}=require('./server');const {restamp}=require('../tools/stamp');const {noOverflow,wide,smallTargets,contrastFails}=require('./helpers');
-const fs=require('fs'),path=require('path');const T=[];const ok=(n,c,x)=>{T.push([!!c,n,c?'':JSON.stringify(x)]);console.log('· '+(c?'ok ':'MAL ')+n)};/* progreso visible si la serie se corta */
+const fs=require('fs'),path=require('path');const T=[];const ok=(n,c,x)=>{T.push([!!c,n,c?'':JSON.stringify(x)]);console.log('· '+(c?'ok ':'MAL ')+n+(c?'':' → '+String(JSON.stringify(x)).slice(0,300)))};/* progreso visible si la serie se corta */
 const PHONE={...devices['iPhone 13'],reducedMotion:'reduce'},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}},ANDROID={...devices['Pixel 7'],reducedMotion:'reduce'};
 // APP_ROOT=publicar: la misma serie, sirviendo solo la carpeta de publicación (como la recibiría el alojamiento).
 const ROOT=process.env.APP_ROOT||'',DIR=path.join(__dirname,'..',ROOT),TAG=ROOT?' · '+ROOT+'/':'';
@@ -36,11 +36,13 @@ ok('se registra el service worker',await swReady(p),null);
 await p.waitForTimeout(500);ok('primera visita: no aparece «Hay una versión nueva» (no hay nada nuevo)',!(await seen(p,'#updateBar')),null);
 await tap(p,'#wDemo');const before=await D(p);
 await p.reload();ok('tras recargar, la página la controla el service worker',await p.evaluate(()=>!!navigator.serviceWorker.controller),null);
-const fontsOk=pg=>pg.evaluate(async()=>{await document.fonts.ready;const fam=s=>getComputedStyle(document.querySelector(s)).fontFamily;return document.fonts.check('600 31px "Playfair Display"')&&document.fonts.check('400 15px Montserrat')&&[...document.fonts].filter(f=>f.status==='loaded').map(f=>f.family).sort().join()==='Montserrat,Playfair Display'&&/^"?Playfair Display/.test(fam('.page-title'))&&/^"?Montserrat/.test(fam('body'))});
-ok('tipografías de marca: Playfair Display en los títulos y Montserrat en el resto, cargadas desde la propia app',await fontsOk(p),null);
+// Firefox devuelve FontFace.family entre comillas («"Playfair Display"») y puede repetir caras: se normaliza. Devuelve el detalle para diagnosticar.
+const fontsInfo=pg=>pg.evaluate(async()=>{await document.fonts.ready;const fam=s=>getComputedStyle(document.querySelector(s)).fontFamily;const r={checkTitle:document.fonts.check('600 31px "Playfair Display"'),checkBody:document.fonts.check('400 15px Montserrat'),loaded:[...new Set([...document.fonts].filter(f=>f.status==='loaded').map(f=>f.family.replace(/["']/g,'')))].sort().join(),title:fam('.page-title'),body:fam('body')};r.ok=r.checkTitle&&r.checkBody&&r.loaded==='Montserrat,Playfair Display'&&/^"?Playfair Display/.test(r.title)&&/^"?Montserrat/.test(r.body);return r});
+let fi;
+ok('tipografías de marca: Playfair Display en los títulos y Montserrat en el resto, cargadas desde la propia app',(fi=await fontsInfo(p)).ok,fi);
 ok('las tipografías quedan en la caché del service worker',await p.evaluate(async()=>{const k=(await caches.keys()).find(x=>x.startsWith('isla-barra-app-'));const c=await caches.open(k);return !!(await c.match('fonts/montserrat.woff2'))&&!!(await c.match('fonts/playfair-display.woff2'))}),null);
 await p.context().setOffline(true);srv.ctl.offline=true;await p.reload();
-ok('sin conexión se ven las tipografías de marca',await fontsOk(p),null);
+ok('sin conexión se ven las tipografías de marca',(fi=await fontsInfo(p)).ok,fi);
 ok('sin conexión la app se abre con sus datos (bar de ejemplo)',(await seen(p,'#page-dashboard'))&&(await seen(p,'#demoBadge'))&&JSON.stringify(await D(p))===JSON.stringify(before),[await D(p),before]);
 await tap(p,'.mobile-nav button:has-text("Carta")');ok('sin conexión se navega (Mi carta)',await seen(p,'#page-drinks'),null);
 await p.context().setOffline(false);srv.ctl.offline=false;

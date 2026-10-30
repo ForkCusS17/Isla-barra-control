@@ -9,12 +9,12 @@
   - Las dos están alojadas en Netlify.
 - **Código:** repositorio GitHub `ForkCusS17/Isla-barra-control` (rama `main`). El archivo `CLAUDE.md` del repositorio tiene todas las reglas, la arquitectura y el estado al detalle: es lo primero que hay que leer.
 
-## La app: Isla & Barra Control (versión 0.3.1)
+## La app: Isla & Barra Control (versión 0.3.2)
 Herramienta para el consultor, pensada para usarla desde el móvil en las visitas a los locales. Es un único archivo HTML, sin frameworks. Se instala en la pantalla de inicio y funciona sin conexión.
 
 **Qué hace:**
 - **Ficha del bar:** nombre, localidad y periodo analizado.
-- **Mi barra:** productos por estantes, con alta rápida, pegar una lista, plantillas por tipo de negocio y clasificación automática. Calcula el coste por ml, g o unidad.
+- **Mi barra:** productos por estantes, con alta rápida, pegar una lista, plantillas por tipo de negocio y clasificación automática. Calcula el coste por ml, g o unidad. Cada producto puede llevar su impuesto (IGIC, IVA o ninguno) y elegir si el escandallo usa el coste con o sin impuesto (0.3.2).
 - **Mi carta:**
   - Las bebidas con su coste directo, margen bruto y avisos, filtradas por categoría, con buscador y orden.
   - Biblioteca de 35 cócteles clásicos con medidas orientativas.
@@ -62,7 +62,7 @@ Herramienta para el consultor, pensada para usarla desde el móvil en las visita
 - Tipografías de marca (Playfair Display y Montserrat) servidas desde la propia app.
 - Mientras sea beta, la app está fuera de los buscadores (noindex).
 
-**Pruebas:** 18 series automáticas (1138 comprobaciones), solo con toques en móvil a 390 y 360 px. Las cuentas se prueban contra un Supabase simulado. GitHub ejecuta las pruebas en Chromium, Firefox y WebKit en cada cambio.
+**Pruebas:** 19 series automáticas (1191 comprobaciones), solo con toques en móvil a 390 y 360 px. Las cuentas se prueban contra un Supabase simulado. GitHub ejecuta las pruebas en Chromium, Firefox y WebKit en cada cambio.
 
 **Cómo se publica:**
 1. `npm run publicar` genera `publicar.zip`.
@@ -84,6 +84,9 @@ Herramienta para el consultor, pensada para usarla desde el móvil en las visita
 - `www` → CNAME a `frolicking-speculoos-84d8e7.netlify.app` (la web).
 - `app` → CNAME a `appislaybarra.netlify.app` (la app).
 - Los registros de correo de Hostalia (MX, SPF, mx, pop3, imap, smtp, webmail) no se tocan.
+
+## Plan aprobado (30-10-2026)
+Compras, ventas del TPV y comandas: `docs/plan_compras_ventas_comandas.md`. Siguiente: registro de compras con foto de la factura (0.4.0). El TPV espera a tener una exportación real; el comandero no se construye.
 
 ## Pendiente
 - **Legal y contenido:**

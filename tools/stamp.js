@@ -12,10 +12,12 @@ function hashes(html){const s=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)
 // script-src-attr 'none': la app no usa JavaScript en atributos (data-on-* y un único despachador).
 // style-src-attr 'unsafe-inline': la app aún usa atributos style en el HTML que genera.
 // El hash impide ejecutar cualquier <script> que no sea el de la app (inyectado, externo o modificado).
-function policy(h,meta){return[`default-src 'none'`,`script-src ${h.script}`,`script-src-attr 'none'`,`style-src ${h.style}`,`style-src-attr 'unsafe-inline'`,`img-src 'self' data: blob:`,`font-src 'self'`,`manifest-src 'self'`,`worker-src 'self'`,`connect-src 'self'`,`base-uri 'none'`,`form-action 'none'`,`object-src 'none'`,...(meta?[]:[`frame-ancestors 'none'`])].join('; ')}
-function restamp(html){const h=hashes(html),tag=`<meta http-equiv="Content-Security-Policy" content="${policy(h,true)}">`;
+// Origen de la nube (const CLOUD={url:'…'} en el HTML): la app solo puede conectar con él y consigo misma.
+function cloudOrigin(html){const m=html.match(/const CLOUD=\{url:'([^']*)'/);if(!m||!m[1])return'';try{return new URL(m[1]).origin}catch(e){return''}}
+function policy(h,meta,origin){return[`default-src 'none'`,`script-src ${h.script}`,`script-src-attr 'none'`,`style-src ${h.style}`,`style-src-attr 'unsafe-inline'`,`img-src 'self' data: blob:`,`font-src 'self'`,`manifest-src 'self'`,`worker-src 'self'`,`connect-src 'self'${origin?' '+origin:''}`,`base-uri 'none'`,`form-action 'none'`,`object-src 'none'`,...(meta?[]:[`frame-ancestors 'none'`])].join('; ')}
+function restamp(html){const h=hashes(html),o=cloudOrigin(html),tag=`<meta http-equiv="Content-Security-Policy" content="${policy(h,true,o)}">`;
  const out=/<meta http-equiv="Content-Security-Policy"[^>]*>/.test(html)?html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/,tag):html.replace('<meta charset="utf-8">\n','<meta charset="utf-8">\n'+tag+'\n');
- return{html:out,csp:policy(h,false)}}
+ return{html:out,csp:policy(h,false,o)}}
 function headersFile(csp){return `# Cabeceras de seguridad para el alojamiento (Netlify o Cloudflare Pages). Lo escribe tools/stamp.js: no editar a mano.
 # X-Robots-Tag y <meta name="robots">: la beta no debe aparecer en buscadores; quitar ambos al lanzar.
 # GitHub Pages no admite cabeceras propias: allí solo actúa la CSP del <meta> del HTML (sin frame-ancestors ni nosniff).
@@ -34,7 +36,7 @@ function headersFile(csp){return `# Cabeceras de seguridad para el alojamiento (
 /sw.js
   Cache-Control: no-cache
 `}
-module.exports={restamp,policy,hashes};
+module.exports={restamp,policy,hashes,cloudOrigin};
 if(require.main===module){const html=fs.readFileSync(HTML,'utf8'),r=restamp(html),hf=headersFile(r.csp),cur=fs.existsSync(HEADERS)?fs.readFileSync(HEADERS,'utf8'):'';
  if(process.argv.includes('--check')){const bad=[];if(r.html!==html)bad.push('la CSP del <meta> del HTML');if(hf!==cur)bad.push('_headers');if(bad.length){console.log('Desactualizado: '+bad.join(' y ')+'. Ejecuta: node tools/stamp.js');process.exit(1)}console.log('CSP al día');}
  else{fs.writeFileSync(HTML,r.html);fs.writeFileSync(HEADERS,hf);console.log('CSP escrita en el HTML y en _headers')}}

@@ -19,7 +19,7 @@ const importFile=async(p,file)=>{const [fc]=await Promise.all([p.waitForEvent('f
 const W=(name,o)=>{const f=TMP+name;fs.writeFileSync(f,typeof o==='string'?o:JSON.stringify(o));return f};
 
 // ── 1. Cabeceras y CSP ───────────────────────────────────────────────────────
-let p=await mk();const res=await p.request.get(APP);const H=res.headers(),csp=H['content-security-policy']||'';const html=fs.readFileSync(path.join(ROOT,'isla_barra_control_mvp.html'),'utf8'),h=hashes(html);
+let p=await mk();const res=await p.request.get(APP);const H=res.headers(),csp=H['content-security-policy']||'';const html=fs.readFileSync(path.join(ROOT,'isla_barra_control_mvp.html'),'utf8'),h=hashes(await res.text());/* se compara con la página servida (las pruebas la sirven sin nube) */
 ok('cabecera CSP: nada por defecto, solo el script y el estilo de la app (por hash), sin incrustar',/default-src 'none'/.test(csp)&&csp.includes('script-src '+h.script+';')&&csp.includes('style-src '+h.style+';')&&/frame-ancestors 'none'/.test(csp)&&/object-src 'none'/.test(csp)&&/base-uri 'none'/.test(csp)&&!/unsafe-eval/.test(csp)&&!/script-src [^;]*unsafe-inline/.test(csp),csp);
 {const ix=await p.request.get(new URL('index.html',APP).href),ixh=await ix.text(),meta=s=>/<meta name="robots" content="noindex, nofollow">/.test(s);
  ok('beta fuera de buscadores: X-Robots-Tag noindex en la app y en index.html, y <meta name="robots" content="noindex, nofollow"> en los dos',H['x-robots-tag']==='noindex'&&ix.headers()['x-robots-tag']==='noindex'&&meta(html)&&meta(ixh),[H['x-robots-tag'],ix.headers()['x-robots-tag']])}

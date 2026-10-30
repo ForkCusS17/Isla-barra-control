@@ -21,7 +21,7 @@ Estos pasos se hacen una sola vez, desde un ordenador. No hace falta programar.
 ## 3. Cerrar el registro y poner la dirección de la app
 1. **Authentication → Sign In / Providers** (o *Providers*): en **Email**, deja activado el inicio con correo y **desactiva «Allow new users to sign up»** (permitir registro). Guarda.
 2. **Authentication → URL Configuration**:
-   - **Site URL:** `https://app.islaybarra.es`
+   - **Site URL:** `https://app.islaybarra.es/isla_barra_control_mvp.html` (la dirección completa de la app: si pones solo `https://app.islaybarra.es`, los enlaces de los correos pierden la sesión por el camino)
    - **Redirect URLs:** añade `https://app.islaybarra.es/**`
 3. Guarda.
 
@@ -43,9 +43,11 @@ Estas dos son públicas: van dentro de la app y no dan acceso a nada sin iniciar
 
 **No me mandes nunca** la clave **service_role** / **secret**, ni la contraseña de la base de datos. Esas dan acceso total.
 
-## Más adelante: dar acceso a un bar
-Cuando la nueva versión esté publicada:
-1. En Supabase: **Authentication → Users → Invite user** → correo de la persona del bar. Le llega un correo para crear su contraseña.
-2. En la app, como administrador: **Mis bares → (el bar) → Usuarios → Añadir** ese correo, como *editor* (puede cambiar datos) o *lector* (solo ve).
+## Dar acceso a una persona de un bar (versión 0.3.0 o posterior)
+1. **Crear su cuenta en Supabase** (elige una):
+   - **Sin correo propio configurado (lo habitual al principio):** **Authentication → Users → Add user → Create new user** con su correo y una **contraseña provisional**; marca **Auto Confirm User**. Dale la contraseña en persona o por teléfono. Al entrar, que la cambie en **Más → Cuenta y bares → Cambiar mi contraseña**.
+   - **Con correo propio configurado (SMTP):** **Authentication → Users → Invite user** con su correo. Le llega un enlace para crear su contraseña. El servidor de correo gratuito de Supabase solo envía a los miembros de tu equipo de Supabase, así que para invitar por correo a los bares hay que configurar uno propio en **Authentication → Emails → SMTP Settings** (por ejemplo, el de Hostalia si contratas correo con tu dominio). Te ayudo cuando llegue el momento.
+2. **Darle acceso al bar** desde la app, como administrador: **Mis bares → (el bar) → Usuarios** → su correo → **Puede editar** o **Solo lectura** → **Dar acceso**.
 
-Nota: Supabase envía pocos correos por hora con su servidor de pruebas. Si vas a invitar a varios bares, conviene configurar tu propio servidor de correo en **Authentication → Emails → SMTP Settings** (por ejemplo, el de Hostalia si contratas correo con tu dominio). Te ayudo cuando llegue el momento.
+Quitar el acceso: en esa misma pantalla, **Quitar acceso** (la cuenta no se borra; para borrarla, Supabase › Authentication › Users).
+«He olvidado mi contraseña» también envía un correo, así que tiene la misma limitación hasta que configures el correo propio.

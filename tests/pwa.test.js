@@ -6,7 +6,7 @@ const fs=require('fs'),path=require('path');const T=[];const ok=(n,c,x)=>{T.push
 const PHONE={...devices['iPhone 13'],reducedMotion:'reduce'},SMALL={...PHONE,viewport:{width:360,height:740},screen:{width:360,height:740}},ANDROID={...devices['Pixel 7'],reducedMotion:'reduce'};
 // APP_ROOT=publicar: la misma serie, sirviendo solo la carpeta de publicación (como la recibiría el alojamiento).
 const ROOT=process.env.APP_ROOT||'',DIR=path.join(__dirname,'..',ROOT),TAG=ROOT?' · '+ROOT+'/':'';
-const HTML=fs.readFileSync(path.join(DIR,'isla_barra_control_mvp.html'),'utf8'),SW=fs.readFileSync(path.join(DIR,'sw.js'),'utf8');
+const HTML=require('./server').localHtml(fs.readFileSync(path.join(DIR,'isla_barra_control_mvp.html'),'utf8')),SW=fs.readFileSync(path.join(DIR,'sw.js'),'utf8');
 const CUR=HTML.match(/APP_VERSION='([^']+)'/)[1];/* versión publicada; las pruebas simulan la siguiente */
 const pngSize=b=>[b.readUInt32BE(16),b.readUInt32BE(20)];
 (async()=>{const srv=await start({root:ROOT});const APP=srv.base+'isla_barra_control_mvp.html';const b=await chromium.launch();const pages=[];
@@ -67,7 +67,7 @@ ok('…y los datos siguen ahí',JSON.stringify(await D(p))===JSON.stringify(befo
 delete srv.override['sw.js'];delete srv.override['isla_barra_control_mvp.html'];
 
 // ── 4b. Dirección sin «.html» (Netlify puede servir la app en /isla_barra_control_mvp) ──
-{const HT={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}/* sin caché HTTP: sin conexión solo puede responder el service worker */,app=(v)=>{if(!v)return{body:HTML,headers:HT};const r=restamp(HTML.replace(`APP_VERSION='${CUR}'`,`APP_VERSION='${v}'`));return{body:r.html,headers:{...HT,'Content-Security-Policy':r.csp}}};
+{const HT={'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}/* sin caché HTTP: sin conexión solo puede responder el service worker */,app=(v)=>{if(!v){const r=restamp(HTML);return{body:r.html,headers:{...HT,'Content-Security-Policy':r.csp}}}const r=restamp(HTML.replace(`APP_VERSION='${CUR}'`,`APP_VERSION='${v}'`));return{body:r.html,headers:{...HT,'Content-Security-Policy':r.csp}}};
  const BARE=srv.base+'isla_barra_control_mvp';
  const run=async(label,redirect)=>{
   srv.override['isla_barra_control_mvp']=app();if(redirect)srv.override['isla_barra_control_mvp.html']={status:301,headers:{Location:'/isla_barra_control_mvp'}};else delete srv.override['isla_barra_control_mvp.html'];

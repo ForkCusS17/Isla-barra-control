@@ -73,12 +73,14 @@ Deno.serve(async (req) => {
   const auth = req.headers.get("Authorization") || "";
   if (!/^Bearer\s+\S+/.test(auth)) return json({ error: "Falta la sesión" }, 401);
 
-  let body: { bar_id?: unknown; files?: unknown };
+  let body: { bar_id?: unknown; files?: unknown; check?: unknown };
   try {
     body = await req.json();
   } catch {
     return json({ error: "Petición no válida" }, 400);
   }
+  // Comprobación de la app: ¿está la función instalada y con la clave? (sin leer nada ni gastar)
+  if (body && body.check === true) return json({ ok: true, ready: !!Deno.env.get("ANTHROPIC_API_KEY") });
   const bar = typeof body.bar_id === "string" ? body.bar_id : "";
   const files = Array.isArray(body.files) ? body.files : [];
   if (!/^[0-9a-f-]{36}$/i.test(bar)) return json({ error: "Bar no válido" }, 400);

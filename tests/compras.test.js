@@ -166,7 +166,16 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev,SEED,{bypa
  await tap(e1,'#purNew');await e1.fill('#purSupplier','Otro');await e1.fill('#purNumber','X-1');await line(e1,0,{text:'algo',kind:'otro',amount:'1'});await tap(e1,'#purSave');
  ok('número repetido en la nube: la factura se queda en el dispositivo y lo dice',await until(async()=>/número de factura repetido en la nube/.test(await text(e1,'#purList'))),await text(e1,'#purList'));
  // Lectura con IA (función «leer-factura» simulada)
- await tap(e1,'#purNew');
+ const checks=()=>m.st.aiChecks||0;let c0=checks();
+ m.ctl.aiMissing=true;await e1.reload();await toPurchases(e1);await tap(e1,'#purNew');
+ await e1.waitForTimeout(400);
+ ok('IA: sin la función instalada en Supabase no aparece «Leer la factura con IA»',!(await seen(e1,'#purRead'))&&await seen(e1,'#purSupplier'),null);
+ m.ctl.aiMissing=false;m.ctl.aiNoKey=true;await tap(e1,'#purClose');await tap(e1,'#purNew');await until(()=>checks()>c0);await e1.waitForTimeout(200);
+ ok('IA: con la función pero sin la clave ANTHROPIC_API_KEY tampoco aparece',checks()>c0&&!(await seen(e1,'#purRead')),checks());
+ m.ctl.aiNoKey=false;c0=checks();await tap(e1,'#purClose');await tap(e1,'#purNew');await until(async()=>await seen(e1,'#purRead'));
+ ok('IA: con la función y la clave aparece el botón (lo comprueba sin leer nada)',await seen(e1,'#purRead')&&checks()===c0+1&&m.st.ai.length===0,checks());
+ await tap(e1,'#purClose');await tap(e1,'#purNew');
+ ok('IA: una vez comprobado no vuelve a preguntar',checks()===c0+1,checks());
  ok('IA: «Leer la factura con IA» desactivado hasta añadir la foto o el PDF',(await e1.locator('#purRead').isDisabled()),null);
  await e1.setInputFiles('#purFile','/home/user/albaran_ejemplo/albaran_ejemplo.pdf'.replace('/home/user/albaran_ejemplo/albaran_ejemplo.pdf',path.join(TMP,'albaran.pdf')));await until(async()=>(await e1.locator('.pur-file').count())===1);
  m.ctl.aiFail=422;await tap(e1,'#purRead');await until(async()=>/No se ha podido completar: La IA no ha podido leer este documento/.test(await text(e1,'#toast')));

@@ -2,7 +2,9 @@
 
 El botón **«Leer la factura con IA»** (Compras y facturas, en una factura en borrador con su foto o PDF) envía los archivos a una función de tu Supabase. Esa función se los pasa a **Claude** (Anthropic), que devuelve proveedor, número, fechas, total y líneas. La app los pone como **borrador**: tú eliges el producto de Mi barra cuando falte, revisas cada línea y confirmas. No se confirma nada solo.
 
-Solo funciona con cuentas, para el administrador y los editores del bar (el lector no lo ve) y con conexión a internet.
+Solo funciona con cuentas, para el administrador y los editores del bar (el lector no lo ve) y con conexión a internet. **El botón no aparece hasta que la función está instalada y tiene la clave** (pasos 2 y 3): al abrir una factura, la app pregunta a la función si está lista, sin leer nada ni gastar saldo. Mientras tanto, las facturas se registran a mano.
+
+Anthropic funciona con saldo de prepago (mínimo 5 $). Deja desactivada la recarga automática.
 
 ## 1. Crear la clave de Claude
 1. Entra en **https://console.anthropic.com** y crea una cuenta (puedes usar el correo de la marca).

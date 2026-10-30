@@ -9,7 +9,7 @@
   - Las dos están alojadas en Netlify.
 - **Código:** repositorio GitHub `ForkCusS17/Isla-barra-control` (rama `main`). El archivo `CLAUDE.md` del repositorio tiene todas las reglas, la arquitectura y el estado al detalle: es lo primero que hay que leer.
 
-## La app: Isla & Barra Control (versión 0.3.2)
+## La app: Isla & Barra Control (versión 0.3.3)
 Herramienta para el consultor, pensada para usarla desde el móvil en las visitas a los locales. Es un único archivo HTML, sin frameworks. Se instala en la pantalla de inicio y funciona sin conexión.
 
 **Qué hace:**
@@ -19,6 +19,8 @@ Herramienta para el consultor, pensada para usarla desde el móvil en las visita
   - Las bebidas con su coste directo, margen bruto y avisos, filtradas por categoría, con buscador y orden.
   - Biblioteca de 35 cócteles clásicos con medidas orientativas.
   - Cada receta permite cambiar el producto o la medida.
+  - Al añadir un cóctel se puede elegir cualquier producto de la barra para cada ingrediente, o crear uno nuevo con nombre, formato y precio.
+  - «Revisar cócteles con mi barra» muestra qué producto usa cada ingrediente, avisa de lo que falta y permite cambiarlo en varios cócteles a la vez (0.3.3).
 - **Stock:** ventas del periodo, consumo teórico, control de stock (real frente a teórico) y seguimiento de las desviaciones.
 - **Diagnóstico:** hallazgos con evidencia, recomendación, cómo comprobarla y resultado.
 - **Informe:** se puede imprimir o guardar en PDF y descargar en TXT.
@@ -62,7 +64,7 @@ Herramienta para el consultor, pensada para usarla desde el móvil en las visita
 - Tipografías de marca (Playfair Display y Montserrat) servidas desde la propia app.
 - Mientras sea beta, la app está fuera de los buscadores (noindex).
 
-**Pruebas:** 19 series automáticas (1191 comprobaciones), solo con toques en móvil a 390 y 360 px. Las cuentas se prueban contra un Supabase simulado. GitHub ejecuta las pruebas en Chromium, Firefox y WebKit en cada cambio.
+**Pruebas:** 20 series automáticas (1254 comprobaciones), solo con toques en móvil a 390 y 360 px. Las cuentas se prueban contra un Supabase simulado. GitHub ejecuta las pruebas en Chromium, Firefox y WebKit en cada cambio.
 
 **Cómo se publica:**
 1. `npm run publicar` genera `publicar.zip`.

@@ -19,7 +19,7 @@ await tap(p,'#footAbout');ok('el pie del Resumen enlaza a «Acerca de» con la v
 await tap(p,'.mobile-nav button:has-text("Resumen")');await tap(p,'.mobile-nav button:has-text("Más")');await tap(p,'#page-more button:has-text("Acerca de")');
 ok('Más › Acerca de: versión y fecha visibles',(await seen(p,'#page-about'))&&new RegExp('Versión '+V[0].replace(/\./g,'\\.')+' \\(beta\\) · 30 de octubre de 2026').test(await text(p,'#aboutVersion')),await text(p,'#aboutVersion'));
 ok('la pestaña «Más» queda marcada',(await p.locator('.mobile-nav button[aria-current="page"]').innerText()).includes('Más'),null);
-ok('novedades de la versión actual',/0\.3\.3 · 30 de octubre de 2026/.test(await text(p,'#aboutNews'))&&(await p.locator('#aboutNews li').count())>=3,await text(p,'#aboutNews'));
+ok('novedades de la versión actual',/0\.4\.0 · 30 de octubre de 2026/.test(await text(p,'#aboutNews'))&&(await p.locator('#aboutNews li').count())>=3,await text(p,'#aboutNews'));
 const href=await p.getAttribute('#feedbackBtn','href');const q=new URL(href);const body=decodeURIComponent(href.split('body=')[1]||'');const ua=await p.evaluate(()=>navigator.userAgent);
 ok('«Enviar comentario» abre un correo con asunto, versión y navegador',q.protocol==='mailto:'&&new RegExp('Isla & Barra Control '+V[0].replace(/\./g,'\\.')).test(decodeURIComponent(href.split('subject=')[1].split('&')[0]))&&body.includes('Versión: '+V[0])&&body.includes('Navegador: '+ua)&&/Instalada: no/.test(body),body);
 const D=await p.evaluate(()=>[data.business.name,...data.ingredients.slice(0,5).map(i=>i.name),...data.drinks.slice(0,5).map(d=>d.name)]);

@@ -9,7 +9,7 @@
   - Las dos están alojadas en Netlify.
 - **Código:** repositorio GitHub `ForkCusS17/Isla-barra-control` (rama `main`). El archivo `CLAUDE.md` del repositorio tiene todas las reglas, la arquitectura y el estado al detalle: es lo primero que hay que leer.
 
-## La app: Isla & Barra Control (versión 0.3.3)
+## La app: Isla & Barra Control (versión 0.4.0)
 Herramienta para el consultor, pensada para usarla desde el móvil en las visitas a los locales. Es un único archivo HTML, sin frameworks. Se instala en la pantalla de inicio y funciona sin conexión.
 
 **Qué hace:**
@@ -21,6 +21,7 @@ Herramienta para el consultor, pensada para usarla desde el móvil en las visita
   - Cada receta permite cambiar el producto o la medida.
   - Al añadir un cóctel se puede elegir cualquier producto de la barra para cada ingrediente, o crear uno nuevo con nombre, formato y precio.
   - «Revisar cócteles con mi barra» muestra qué producto usa cada ingrediente, avisa de lo que falta y permite cambiarlo en varios cócteles a la vez (0.3.3).
+- **Compras y facturas (0.4.0):** foto o PDF de cada factura, líneas con producto, cantidad, envases e impuesto, cuadre con el total, revisión línea a línea y, al confirmar, el último precio pasa a Mi barra con histórico. Recuerda cómo llama cada proveedor a cada producto. Con cuentas, las facturas van a la nube y sus fotos solo las ven el administrador y los editores. Requiere volver a ejecutar `supabase/schema.sql` en Supabase.
 - **Stock:** ventas del periodo, consumo teórico, control de stock (real frente a teórico) y seguimiento de las desviaciones.
 - **Diagnóstico:** hallazgos con evidencia, recomendación, cómo comprobarla y resultado.
 - **Informe:** se puede imprimir o guardar en PDF y descargar en TXT.
@@ -64,7 +65,7 @@ Herramienta para el consultor, pensada para usarla desde el móvil en las visita
 - Tipografías de marca (Playfair Display y Montserrat) servidas desde la propia app.
 - Mientras sea beta, la app está fuera de los buscadores (noindex).
 
-**Pruebas:** 20 series automáticas (1254 comprobaciones), solo con toques en móvil a 390 y 360 px. Las cuentas se prueban contra un Supabase simulado. GitHub ejecuta las pruebas en Chromium, Firefox y WebKit en cada cambio.
+**Pruebas:** 21 series automáticas (1353 comprobaciones), solo con toques en móvil a 390 y 360 px. Las cuentas se prueban contra un Supabase simulado. GitHub ejecuta las pruebas en Chromium, Firefox y WebKit en cada cambio.
 
 **Cómo se publica:**
 1. `npm run publicar` genera `publicar.zip`.
@@ -88,7 +89,7 @@ Herramienta para el consultor, pensada para usarla desde el móvil en las visita
 - Los registros de correo de Hostalia (MX, SPF, mx, pop3, imap, smtp, webmail) no se tocan.
 
 ## Plan aprobado (30-10-2026)
-Compras, ventas del TPV y comandas: `docs/plan_compras_ventas_comandas.md`. Siguiente: registro de compras con foto de la factura (0.4.0). El TPV espera a tener una exportación real; el comandero no se construye.
+Compras, ventas del TPV y comandas: `docs/plan_compras_ventas_comandas.md`. Hecho: impuesto por producto (0.3.2), biblioteca con cualquier producto y «Revisar cócteles con mi barra» (0.3.3), registro de compras con foto (0.4.0). Siguiente: prueba de lectura automática de facturas con facturas reales. El TPV espera a tener una exportación real; el comandero no se construye.
 
 ## Pendiente
 - **Legal y contenido:**

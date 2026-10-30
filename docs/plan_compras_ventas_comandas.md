@@ -1,6 +1,6 @@
 # Compras, ventas del TPV y comandas: análisis y plan por fases
 
-Estado: **propuesta pendiente de aprobación** (30-10-2026, actualizada con las respuestas del usuario). No hay código escrito. Partimos de la versión 0.3.1 con `npm test` en verde.
+Estado: **aprobado** (30-10-2026). Hecho: paso 1 (0.3.2) y paso 2, registro de compras (0.4.0). Siguiente: paso 3, prototipo de lectura automática con facturas reales. No hay código escrito. Partimos de la versión 0.3.1 con `npm test` en verde.
 
 ## 1. De dónde partimos
 

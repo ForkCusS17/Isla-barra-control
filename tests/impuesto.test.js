@@ -31,7 +31,7 @@ const ginCost=async p=>{await tap(p,'.mobile-nav button:has-text("Carta")');retu
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev);
  // ── Migración desde el esquema 6 ──
  let d=await D(p);const g=ING(d,'g1');
- ok(`[${wd}] migración: esquema 7 y los productos antiguos quedan «Sin indicar» con el mismo coste (0,02 €/ml)`,d.schema===7&&g.taxType===''&&g.taxRate===0&&g.taxIncluded===false&&g.taxIsCost===false&&near(g.unitCost,0.02),g);
+ ok(`[${wd}] migración: esquema actual (8) y los productos antiguos quedan «Sin indicar» con el mismo coste (0,02 €/ml)`,d.schema===8&&g.taxType===''&&g.taxRate===0&&g.taxIncluded===false&&g.taxIsCost===false&&near(g.unitCost,0.02),g);
  ok(`[${wd}] migración: valores raros se limpian (tipo desconocido → sin indicar; 250 % → 100 %; −5 % → 0 %)`,ING(d,'x1').taxType===''&&ING(d,'x1').taxIncluded===false&&ING(d,'x1').taxIsCost===false&&near(ING(d,'x1').unitCost,0.01)&&ING(d,'x2').taxRate===100&&near(ING(d,'x2').unitCost,0.01)&&ING(d,'x3').taxRate===0&&near(ING(d,'x3').unitCost,0.01),[ING(d,'x1'),ING(d,'x2'),ING(d,'x3')]);
  ok(`[${wd}] Mi carta: el gin-tonic sigue costando 1,00 € tras migrar`,/Coste 1,00 €/.test(await ginCost(p)),await ginCost(p));
  // ── Formulario: sin indicar → campos ocultos ──

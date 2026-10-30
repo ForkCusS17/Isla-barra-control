@@ -2,7 +2,7 @@
 # X-Robots-Tag y <meta name="robots">: la beta no debe aparecer en buscadores; quitar ambos al lanzar.
 # GitHub Pages no admite cabeceras propias: allí solo actúa la CSP del <meta> del HTML (sin frame-ancestors ni nosniff).
 /*
-  Content-Security-Policy: default-src 'none'; script-src 'sha256-jGMqr5AaIXr8Oj4F/Vog9KK3srLT/U1KMMatWOzGQ/w='; script-src-attr 'none'; style-src 'sha256-QZQYLGwmiHGgCVB5qwvlNMgERC6NbqpxFYdgh/FsIGg='; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; manifest-src 'self'; worker-src 'self'; connect-src 'self' https://exdfobyizokiykxhhjpt.supabase.co; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'sha256-mAAjkR1sDv1zUoIlW/GyeMSS+sIUG351YbOhvyPeLq8='; script-src-attr 'none'; style-src 'sha256-cEDf2F5NyUECrXnr1Bc013nbOLxhqUkc2PwsKnHC1Cs='; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; manifest-src 'self'; worker-src 'self'; connect-src 'self' https://exdfobyizokiykxhhjpt.supabase.co; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   X-Frame-Options: DENY

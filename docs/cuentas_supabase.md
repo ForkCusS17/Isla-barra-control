@@ -43,6 +43,14 @@ Estas dos son públicas: van dentro de la app y no dan acceso a nada sin iniciar
 
 **No me mandes nunca** la clave **service_role** / **secret**, ni la contraseña de la base de datos. Esas dan acceso total.
 
+## Compras y facturas (versión 0.4.0): volver a ejecutar el SQL
+La 0.4.0 añade la tabla de facturas y un almacén privado para sus fotos. Hay que hacerlo **una vez, antes de usar «Compras y facturas» con cuentas**:
+1. **SQL Editor → New query**: copia **todo** `supabase/schema.sql` (la versión nueva), pégalo y pulsa **Run**. Se puede ejecutar aunque ya lo hicieras antes: no borra nada.
+2. Comprueba en **Storage** que aparece el almacén **facturas** marcado como privado (*Private*).
+3. Revisa tu plan: el gratuito incluye 1 GB de archivos (unas 3.000 páginas de factura reducidas) y se pausa si pasa una semana sin uso. Para usarla a diario con bares, el plan Pro (desde 25 $/mes, 100 GB) evita la pausa. Comprueba los precios en supabase.com/pricing.
+
+Permisos: el administrador y los editores de un bar ven, suben y borran sus facturas y fotos; el usuario de solo lectura ve los datos de las facturas, no las fotos. Una factura confirmada ya no se puede cambiar; solo el administrador puede borrarla. El SQL se ha comprobado en PostgreSQL 16 con una imitación mínima de Supabase (`supabase/pruebas/`), no en tu proyecto real.
+
 ## Dar acceso a una persona de un bar (versión 0.3.0 o posterior)
 1. **Crear su cuenta en Supabase** (elige una):
    - **Sin correo propio configurado (lo habitual al principio):** **Authentication → Users → Add user → Create new user** con su correo y una **contraseña provisional**; marca **Auto Confirm User**. Dale la contraseña en persona o por teléfono. Al entrar, que la cambie en **Más → Cuenta y bares → Cambiar mi contraseña**.

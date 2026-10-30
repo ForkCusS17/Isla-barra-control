@@ -153,6 +153,60 @@ begin
     from public.bar_members m join auth.users u on u.id = m.user_id where m.bar_id = p_bar order by u.email;
 end $$;
 
+-- ── Compras y facturas (versión 0.4.0) ──
+-- Cada factura es una fila con sus líneas en «data» (el mismo objeto que guarda la app). Las ven el administrador y los
+-- usuarios del bar; solo el administrador y los editores las crean o cambian. Una factura confirmada ya no se edita
+-- (solo se puede borrar, y entonces solo el administrador). Sus fotos o PDF van al almacén privado «facturas», en la
+-- carpeta del bar («<id del bar>/<id de la factura>/<archivo>»), y solo los ven el administrador y los editores.
+create table if not exists public.purchase_invoices (
+  id uuid primary key,
+  bar_id uuid not null references public.bars(id) on delete cascade,
+  supplier text not null default '' check (length(supplier) <= 120),
+  number text not null default '' check (length(number) <= 60),
+  invoice_date date,
+  status text not null default 'borrador' check (status in ('borrador','confirmada')),
+  total numeric,
+  data jsonb not null default '{}'::jsonb check (octet_length(data::text) <= 200000),
+  created_by uuid references auth.users(id) on delete set null default auth.uid(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists purchase_invoices_bar on public.purchase_invoices(bar_id, invoice_date);
+create unique index if not exists purchase_invoices_number on public.purchase_invoices(bar_id, lower(supplier), number) where number <> '';
+alter table public.purchase_invoices enable row level security;
+
+drop policy if exists invoices_read on public.purchase_invoices;
+create policy invoices_read on public.purchase_invoices for select using (public.is_admin() or public.is_member(bar_id));
+drop policy if exists invoices_insert on public.purchase_invoices;
+create policy invoices_insert on public.purchase_invoices for insert with check (public.can_edit(bar_id));
+drop policy if exists invoices_update on public.purchase_invoices;
+create policy invoices_update on public.purchase_invoices for update using (public.can_edit(bar_id) and status = 'borrador') with check (public.can_edit(bar_id));
+drop policy if exists invoices_delete on public.purchase_invoices;
+create policy invoices_delete on public.purchase_invoices for delete using (public.is_admin() or (public.can_edit(bar_id) and status = 'borrador'));
+grant select, insert, update, delete on public.purchase_invoices to authenticated;
+
+-- Almacén privado de fotos y PDF (10 MB por archivo; solo JPEG, PNG, WebP y PDF).
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('facturas', 'facturas', false, 10485760, array['image/jpeg','image/png','image/webp','application/pdf'])
+on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+
+-- Bar de un archivo del almacén (la primera carpeta de su ruta); null si no es un id válido.
+create or replace function public.facturas_bar(p_name text) returns uuid
+language plpgsql immutable as $$
+begin
+  return split_part(p_name, '/', 1)::uuid;
+exception when others then
+  return null;
+end $$;
+
+drop policy if exists facturas_select on storage.objects;
+create policy facturas_select on storage.objects for select to authenticated using (bucket_id = 'facturas' and public.can_edit(public.facturas_bar(name)));
+drop policy if exists facturas_insert on storage.objects;
+create policy facturas_insert on storage.objects for insert to authenticated with check (bucket_id = 'facturas' and public.can_edit(public.facturas_bar(name)));
+drop policy if exists facturas_update on storage.objects;
+create policy facturas_update on storage.objects for update to authenticated using (bucket_id = 'facturas' and public.can_edit(public.facturas_bar(name))) with check (bucket_id = 'facturas' and public.can_edit(public.facturas_bar(name)));
+drop policy if exists facturas_delete on storage.objects;
+create policy facturas_delete on storage.objects for delete to authenticated using (bucket_id = 'facturas' and public.can_edit(public.facturas_bar(name)));
+
 -- Las funciones solo las pueden llamar usuarios con sesión iniciada.
 revoke all on function public.save_bar_data(uuid, jsonb, integer), public.admin_create_bar(text), public.admin_rename_bar(uuid, text),
   public.admin_add_member(uuid, text, text), public.admin_remove_member(uuid, uuid), public.admin_bar_members(uuid) from public, anon;

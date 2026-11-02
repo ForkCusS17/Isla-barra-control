@@ -1,5 +1,6 @@
 // Interfaz en móvil: emulación de teléfono (390 px, táctil) y solo toques; sin llamar a funciones de la app.
 const {chromium,devices}=require('./env');const path=require('path');const TMP=path.join(__dirname,'tmp')+path.sep;require('fs').mkdirSync(TMP,{recursive:true});const fs=require('fs');const [,,F,J]=process.argv;const APP_URL=/^https?:/.test(F)?F:'file://'+F;const T=[];
+const {pdfCheck}=require('./helpers');
 const ok=(n,c,x)=>T.push([!!c,n,c?'':JSON.stringify(x)]);
 const canon=o=>JSON.stringify(o,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort()):v);
 const PHONE={...devices['iPhone 13'],acceptDownloads:true,reducedMotion:'reduce'};
@@ -9,7 +10,7 @@ const mk=async()=>{const c=await b.newContext(PHONE);await c.addInitScript(()=>{
 const tap=(p,sel)=>p.locator(sel).filter({visible:true}).first().tap({timeout:6000}).catch(e=>{throw new Error('toque en '+sel+': '+e.message.split('\n')[0]+' | '+e.message.split('\n').filter(l=>/intercepts|not visible|not stable|outside of the viewport|not enabled|detached/.test(l)).slice(-2).join(' / ').slice(0,400))});
 const visibleIn=async(p,sel)=>{const l=p.locator(sel).filter({visible:true}).first();if(!await l.count())return null;const r=await l.boundingBox();return r&&r.width>0&&r.height>0&&r.x>=0&&r.x+r.width<=390+1?r:null};
 const importByTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:10000}),tap(p,sel)]);await fc.setFiles(file);await p.locator('#importConfirm').waitFor({state:'visible',timeout:3000});p.ask=await p.locator('#importConfirm').innerText();await tap(p,'#importYes');await p.waitForTimeout(200)};
-const downloadByTap=async(p,sel)=>{const [dl]=await Promise.all([p.waitForEvent('download',{timeout:4000}),tap(p,sel)]);return{name:dl.suggestedFilename(),text:fs.readFileSync(await dl.path(),'utf8')}};
+const downloadByTap=async(p,sel)=>{const [dl]=await Promise.all([p.waitForEvent('download',{timeout:4000}),tap(p,sel)]);const buf=fs.readFileSync(await dl.path());return{name:dl.suggestedFilename(),text:buf.toString('utf8'),buf}};
 // 1. Exportar copia en móvil
 let p=await mk();
 ok('emulación móvil: 390 px de ancho y pantalla táctil',(await p.evaluate(()=>[innerWidth,matchMedia('(pointer:coarse)').matches,'ontouchstart' in window]))+''==='390,true,true',await p.evaluate(()=>[innerWidth,matchMedia('(pointer:coarse)').matches]));
@@ -57,8 +58,11 @@ await nav('Ajustes');ok('toque › Más › Ajustes: pantalla visible y sin desb
 await nav('Resumen');ok('toque › Resumen: pantalla visible y sin desbordamiento',await shown('dashboard'),null);
 await tap(u,'#page-dashboard button:has-text("Ver informe")');
 ok('Resumen › «Ver informe»: abre el informe con los datos introducidos y sin desbordamiento',await shown('report')&&/Bar Toques/.test(await u.locator('#reportContent').innerText())&&/Mojito sin medida estándar/.test(await u.locator('#reportContent').innerText()),null);
-await tap(u,'#page-report button:has-text("Imprimir / guardar PDF")');
-ok('Informe › «Imprimir / guardar PDF» invoca window.print',(await u.evaluate(()=>window.__prints))===1,await u.evaluate(()=>window.__prints));
+const pf=await downloadByTap(u,'#page-report button:has-text("Descargar informe PDF")'),pc=pdfCheck(pf.buf);
+ok('Informe › «Descargar informe PDF» descarga un .pdf válido con el informe, sin pasar por imprimir',/^informe-bar-toques-\d{4}-\d{2}-\d{2}\.pdf$/.test(pf.name)&&!pc.bad.length&&pc.pages>=1&&/Bar Toques/.test(pc.s)&&/Evidencia \\\(hecho\\\):/.test(pc.s)&&/Mojito sin medida estándar/.test(pc.s)&&(await u.evaluate(()=>window.__prints))===0,[pf.name,pc.bad,pc.pages,(pc.s.match(/.{0,40}Mojito.{0,60}/g)||[]).slice(0,4)]);
+ok('Informe › tras el PDF: aviso «Informe PDF descargado» y el botón vuelve a estar activo',/Informe PDF descargado/.test(await u.locator('#toast').innerText())&&await u.locator('#reportPdf').isEnabled(),null);
+await tap(u,'#page-report button:has-text("Imprimir")');
+ok('Informe › «Imprimir» invoca window.print',(await u.evaluate(()=>window.__prints))===1,await u.evaluate(()=>window.__prints));
 const tx=await downloadByTap(u,'#page-report button:has-text("Descargar informe TXT")');
 ok('Informe › «Descargar informe TXT» descarga un .txt con el informe',/^informe-isla-barra-\d{4}-\d{2}-\d{2}\.txt$/.test(tx.name)&&/Bar Toques/.test(tx.text)&&/Evidencia \(hecho\): Visita: sin medidor/.test(tx.text),tx.name);
 await nav('Resumen');const ex2=await downloadByTap(u,'#page-dashboard button:has-text("Exportar copia")');const before2=canon(await D());fs.writeFileSync(TMP+'ui_copia2.json',ex2.text);

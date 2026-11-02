@@ -29,7 +29,7 @@ const meta=await p.evaluate(()=>(document.querySelector('meta[http-equiv="Conten
 ok('la misma CSP va en el <meta> del HTML (para alojamientos sin cabeceras), sin frame-ancestors',meta===csp.replace("; frame-ancestors 'none'",'')&&!/frame-ancestors/.test(meta),meta);
 ok('el <meta> CSP va antes de cualquier estilo o script',/<meta charset="utf-8">\n<meta http-equiv="Content-Security-Policy"/.test(html)&&html.indexOf('http-equiv="Content-Security-Policy"')<html.indexOf('<style>'),null);
 await tap(p,'#wDemo');await tour(p);await nav(p,'Carta');await tap(p,'#libOpen');await tap(p,'#libBack');await tap(p,'#drinkList .carta-row:has-text("Mojito")');
-await nav(p,'Informe');await tap(p,'button:has-text("Imprimir / guardar PDF")');await Promise.all([p.waitForEvent('download'),tap(p,'button:has-text("Descargar informe TXT")')]);await nav(p,'Resumen');await Promise.all([p.waitForEvent('download'),tap(p,'#dashExport')]);
+await nav(p,'Informe');await tap(p,'#page-report button:has-text("Imprimir")');await Promise.all([p.waitForEvent('download'),tap(p,'#reportPdf')]);await Promise.all([p.waitForEvent('download'),tap(p,'button:has-text("Descargar informe TXT")')]);await nav(p,'Resumen');await Promise.all([p.waitForEvent('download'),tap(p,'#dashExport')]);
 ok('recorrer toda la app (bar de ejemplo, biblioteca, receta, informe, descargas) sin ninguna violación de la CSP',(await p.evaluate(()=>window.__csp)).length===0,await p.evaluate(()=>window.__csp));
 ok('…y el service worker se registra con la CSP',await within(p.evaluate(()=>navigator.serviceWorker.ready.then(()=>true)),8000,false),null);
 const inj=await p.evaluate(()=>{const s=document.createElement('script');s.textContent='window.__inyectado=1';document.body.appendChild(s);return window.__inyectado===1});

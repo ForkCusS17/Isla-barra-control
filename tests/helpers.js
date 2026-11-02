@@ -5,4 +5,10 @@ const smallTargets=(p,scope)=>p.evaluate(s=>[...document.querySelectorAll(s.spli
 const contrastFails=p=>p.evaluate(()=>{const rgb=s=>{const m=s.match(/[\d.]+/g)||[0,0,0,0];return m.map(Number)};const lum=([r,g,b])=>{const f=x=>{x/=255;return x<=0.03928?x/12.92:((x+0.055)/1.055)**2.4};return .2126*f(r)+.7152*f(g)+.0722*f(b)};
  const bgOf=el=>{for(let e=el;e;e=e.parentElement){const c=rgb(getComputedStyle(e).backgroundColor);if((c[3]===undefined||c[3]>0.5))return c}return[255,255,255]};const bad=[];
  document.querySelectorAll('body *').forEach(el=>{if(!el.offsetParent&&getComputedStyle(el).position!=='fixed')return;const own=[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim());if(!own)return;const cs=getComputedStyle(el);if(cs.visibility==='hidden'||Number(cs.opacity)<0.5)return;let op=1;for(let e=el;e;e=e.parentElement)op*=Number(getComputedStyle(e).opacity);if(op<0.95)return;const a=lum(rgb(cs.color)),b2=lum(bgOf(el)),r=(Math.max(a,b2)+.05)/(Math.min(a,b2)+.05);if(r<4.5)bad.push(el.tagName+'.'+el.className+' «'+el.textContent.trim().slice(0,30)+'» '+r.toFixed(2))});return bad});
-module.exports={wide,noOverflow,smallTargets,contrastFails};
+// Informe PDF (bytes en latin1): cabecera y final, tabla xref con cada objeto en su sitio, longitud exacta de cada stream y
+// número de páginas. Devuelve la lista de problemas (vacía si está bien) y lo leído.
+const pdfCheck=buf=>{const s=Buffer.from(buf).toString('latin1'),bad=[];if(!s.startsWith('%PDF-1.'))bad.push('cabecera');if(!/%%EOF\n?$/.test(s))bad.push('final');
+ const m=s.match(/startxref\n(\d+)\n%%EOF\n?$/);if(!m||!s.startsWith('xref',+m[1]))bad.push('startxref');else(s.slice(+m[1]).match(/\d{10} 00000 n /g)||[]).forEach((e,i)=>{if(!s.startsWith(`${i+1} 0 obj`,+e.slice(0,10)))bad.push('xref '+(i+1))});
+ for(const x of s.matchAll(/<< \/Length (\d+)[^]*?>>\nstream\n/g)){const at=x.index+x[0].length;if(s.slice(at+ +x[1],at+ +x[1]+10)!=='\nendstream')bad.push('stream en '+x.index)}
+ const pages=+((s.match(/\/Type \/Pages [^]*?\/Count (\d+)/)||[])[1]||0);if(!pages)bad.push('sin páginas');return{bad,pages,s}};
+module.exports={wide,noOverflow,smallTargets,contrastFails,pdfCheck};

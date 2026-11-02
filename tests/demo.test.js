@@ -38,6 +38,15 @@ await p.evaluate(()=>showPage('drinks'));await p.fill('#marginMin','55');await p
 // TXT
 await p.evaluate(()=>showPage('report'));const [dl]=await Promise.all([p.waitForEvent('download'),p.evaluate(()=>downloadReport())]);const txt=fs.readFileSync(await dl.path(),'utf8');
 ok('informe TXT descargable con ficha, tabla y datos pendientes',/Bar Atlántico/.test(txt)&&/Chupito de tequila/.test(txt)&&/Datos pendientes de verificar/.test(txt),txt.slice(0,80));
+// Informe PDF que escribe la app (bar de ejemplo: varias páginas, tablas, tildes, ñ y €; el PDF se lee en latin1 = WinAnsi)
+const {pdfCheck}=require('./helpers');const [dp]=await Promise.all([p.waitForEvent('download'),p.locator('#reportPdf').click()]);const pc=pdfCheck(fs.readFileSync(await dp.path()));
+ok('informe PDF: archivo válido de varias páginas con «Página x de n» y el nombre del bar en el archivo',!pc.bad.length&&pc.pages>=3&&pc.s.includes(`P\xe1gina ${pc.pages} de ${pc.pages}`)&&/^informe-bar-atlantico-ejemplo-ficticio-\d{4}-\d{2}-\d{2}\.pdf$/.test(dp.suggestedFilename()),[pc.bad,pc.pages,dp.suggestedFilename()]);
+ok('informe PDF: ficha, tabla de bebidas, stock y datos pendientes',/Bar Atl\xe1ntico \\\(ejemplo ficticio\\\)/.test(pc.s)&&/\(Chupito de tequila\)/.test(pc.s)&&/Conciliaci\xf3n de stock/.test(pc.s)&&/Datos pendientes de verificar/.test(pc.s),null);
+ok('informe PDF: tildes, ñ y € codificados y ningún carácter sustituido por «?»',/Diagn\xf3stico de barra/.test(pc.s)&&/Ca\xf1a/.test(pc.s)&&/\x80/.test(pc.s)&&(pc.s.match(/\?/g)||[]).length===((await p.locator('#reportContent').innerText()).match(/\?/g)||[]).length,null);
+// Con logo (PNG de 1 px): va al PDF como imagen JPEG; el logo no se guarda, solo se usa para este informe.
+await p.evaluate(()=>{window.__logo=data.settings.brand.logo;data.settings.brand.logo='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=='});
+const [dl2]=await Promise.all([p.waitForEvent('download'),p.locator('#reportPdf').click()]);const pl=pdfCheck(fs.readFileSync(await dl2.path()));await p.evaluate(()=>{data.settings.brand.logo=window.__logo;renderReport()});
+ok('informe PDF con logo: válido y con la imagen JPEG del logo',!pl.bad.length&&/\/Subtype \/Image[^>]*\/Filter \/DCTDecode/.test(pl.s)&&/\/Im1 Do/.test(pl.s),pl.bad);
 // PDF
 /* page.pdf solo existe en Chromium */if(require('./env').NAME==='chromium'){await p.emulateMedia({media:'print'});await p.pdf({path:OUTPDF,format:'A4',printBackground:true,margin:{top:'14mm',bottom:'14mm',left:'12mm',right:'12mm'}});}
 ok('sin errores de JavaScript en todo el recorrido',p.errs.length===0,p.errs);

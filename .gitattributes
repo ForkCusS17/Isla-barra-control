@@ -1,0 +1,8 @@
+# Finales de línea LF en todos los sistemas: la CSP autoriza el <script> y el <style> por hash,
+# y un CRLF (core.autocrlf en Windows) cambia el hash.
+* text=auto eol=lf
+*.woff2 binary
+*.png binary
+*.jpg binary
+*.pdf binary
+*.zip binary

@@ -2,6 +2,8 @@
 // La app se sirve por http://127.0.0.1 (como cuando esté publicada): con file://, el localStorage de los
 // contextos efímeros de Playwright se vaciaba a veces al recargar y las pruebas fallaban de forma intermitente.
 const {spawn}=require('child_process'),path=require('path'),http=require('http'),fs=require('fs');
+// --browser firefox|webkit equivale a BROWSER=… (los scripts de npm lo usan: «BROWSER=x node» no funciona en Windows).
+{const i=process.argv.indexOf('--browser');if(i>0&&process.argv[i+1])process.env.BROWSER=process.argv[i+1]}
 const R=path.resolve(__dirname,'..'),demo=path.join(R,'data','isla_barra_demo_bar_atlantico.json'),exp=path.join(R,'data','expected.json'),tmp=path.join(__dirname,'tmp');
 // Cada serie tiene un tiempo máximo (SUITE_TIMEOUT_MS, 8 min por defecto): si se cuelga se corta y se muestran
 // sus últimas líneas, para saber dónde se quedó.

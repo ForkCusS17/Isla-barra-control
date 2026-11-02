@@ -1,13 +1,13 @@
 {
   "name": "isla-barra-control",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "private": true,
   "description": "Isla & Barra Control: herramienta privada de consultoría para hostelería (un único HTML)",
   "scripts": {
     "test": "node tools/stamp.js --check && node tools/publicar.js --check && node tests/run_all.js",
     "test:parallel": "node tools/stamp.js --check && node tools/publicar.js --check && node tests/run_all.js --parallel",
-    "test:firefox": "BROWSER=firefox node tests/run_all.js",
-    "test:webkit": "BROWSER=webkit node tests/run_all.js",
+    "test:firefox": "node tests/run_all.js --browser firefox",
+    "test:webkit": "node tests/run_all.js --browser webkit",
     "stamp": "node tools/stamp.js",
     "publicar": "node tools/publicar.js",
     "demo": "python3 tools/make_demo.py"

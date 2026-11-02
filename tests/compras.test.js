@@ -87,7 +87,8 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev);
  await tap(p,'#purConfirm');
  const msg=await text(p,'#appConfirmText');
  ok(`[${wd}] confirmar pide confirmación dentro de la página: actualiza 2 precios (último precio) y crea 1 producto`,/Se actualizará el precio de 2 productos de Mi barra con el de esta compra \(último precio\)/.test(msg)&&/Se crearán 1 producto nuevo/.test(msg)&&/ya no se podrá editar/.test(msg),msg);
- await yes(p);await until(async()=>(await INVS(p))[0].status==='confirmada');d=await D(p);inv=await INVS(p);
+ // IndexedDB dice «confirmada» antes de que purApply vuelva a dibujar la factura: se espera también a la pantalla.
+ await yes(p);await until(async()=>(await INVS(p))[0].status==='confirmada'&&(await seen(p,'#purForm .pill.ok')));d=await D(p);inv=await INVS(p);
  const g=G(d,'g1'),tn=d.ingredients.find(i=>i.name==='Tónica premium');
  ok(`[${wd}] confirmada: la ginebra pasa a 15 € (90 € ÷ 6), con IGIC 7 % aparte y escandallo sin impuesto (0,0214 €/ml)`,near(g.packPrice,15)&&g.taxType==='IGIC'&&g.taxRate===7&&!g.taxIncluded&&near(g.unitCost,15/700),g);
  ok(`[${wd}] histórico de precios de la ginebra: 16 € → 15 € con proveedor, fecha e id de la factura`,g.priceHistory.length===1&&g.priceHistory[0].prev===16&&g.priceHistory[0].packPrice===15&&g.priceHistory[0].supplier==='Distribuciones Lanzarote'&&g.priceHistory[0].date==='2026-10-30'&&g.priceHistory[0].invoiceId===inv[0].id,g.priceHistory);

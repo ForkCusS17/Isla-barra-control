@@ -114,7 +114,7 @@ await n1.fill('#newPass2','larga-segura-1');await reloadTap(n1,'#passBtn');
 ok('al guardarla entra en su bar (Bar Dos)',/Bar Dos/.test(await text(n1,'#cloudStatus'))&&m.userBy('nuevo@bar.es').password==='larga-segura-1',await text(n1,'#cloudStatus'));
 let r1=await mk();await tap(r1,'#forgotBtn');ok('«He olvidado mi contraseña» sin correo: pide escribirlo',/Escribe tu correo/.test(await text(r1,'#gateMsg')),await text(r1,'#gateMsg'));
 await r1.fill('#loginEmail','nuevo@bar.es');await tap(r1,'#forgotBtn');
-ok('…con correo: pide el enlace a la nube y avisa sin revelar si la cuenta existe',await until(()=>m.st.recover.includes('nuevo@bar.es'))&&/Si ese correo tiene cuenta/.test(await text(r1,'#gateMsg')),await text(r1,'#gateMsg'));
+ok('…con correo: pide el enlace a la nube y avisa sin revelar si la cuenta existe',await until(async()=>m.st.recover.includes('nuevo@bar.es')&&/Si ese correo tiene cuenta/.test(await text(r1,'#gateMsg')))/* el simulador anota la petición al recibirla; el mensaje cambia al llegar la respuesta */,await text(r1,'#gateMsg'));
 await r1.goto(APP+m.link('nuevo@bar.es','recovery'));await until(()=>seen(r1,'#passForm'));
 ok('enlace de contraseña olvidada: «Nueva contraseña»',/Nueva contraseña/.test(await text(r1,'#authTitle')),await text(r1,'#authTitle'));
 await r1.goto(APP+'#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired');

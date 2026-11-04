@@ -47,14 +47,19 @@ await p.fill('#iSearch','');await p.selectOption('#iFilter','__invalid');
 ok('filtro «sin precio válido»',(await p.evaluate(()=>document.getElementById('ingredientList').innerText)).includes('Hielo')&&(await p.evaluate(()=>document.getElementById('ingredientListCount').textContent))==='1 de 4',null);
 await p.selectOption('#iFilter','');
 await stock(p,{sProduct:'Ron blanco',sStart:'2026-10-07',sEnd:'2026-10-13',sOpening:7000,sPurchases:2800,sClosing:3500,sSalesUse:5000,sTastings:300,sComps:200,sWaste:100,sLegitUse:200,sStatus:'Validados'});
-const C=await p.evaluate(()=>{const s=data.stocks[0];return{a:s.actual,t:s.theoretical,v:s.variance,txt:document.getElementById('stockResult').innerText.replace(/\s+/g,' ')}});
+const C=await p.evaluate(()=>{const s=data.stocks[0];return{a:s.actual,t:s.theoretical,v:s.variance,txt:document.getElementById('stockResult').innerText.replace(/\s+/g,' '),all:document.getElementById('stockResult').textContent.replace(/\s+/g,' '),open:document.querySelector('#stockResult details.detail').open}});
 ok('C: real 6.300 · teórico 5.800 · desviación +500 ml',C.a===6300&&C.t===5800&&C.v===500,C);
-ok('C: avisa de revisar y no afirma pérdida',/Revisar desviación/.test(C.txt)&&/no una prueba de pérdida/.test(C.txt)&&!/Antes de concluir/.test(C.txt),C.txt);
-ok('valoración con el coste unitario del catálogo (stock final 3.500 ml × 0,03 = 105 €)',n2(C.txt).includes('105,00€'),C.txt.slice(0,300));
+ok('C: arriba, el resultado en una frase: «Revisa: se ha gastado 500 ml más de lo esperado» (≈ 15 €, orientativo)',/^Revisa: se ha gastado 500 ml más de lo esperado \(≈ 15,00 €, orientativo\)/.test(C.txt.replace(/\u00a0/g,' ')),C.txt.slice(0,200));
+ok('C: no afirma pérdida y lo dice una sola vez',(C.txt.match(/pérdida/g)||[]).length===1&&/no una prueba de pérdida ni de robo/.test(C.txt)&&!/Antes de sacar conclusiones/.test(C.txt),C.txt);
+ok('C: tres cifras: se esperaba gastar 5800, se ha gastado 6300, diferencia +500 ml',/Se esperaba gastar 5800 ml .*Se ha gastado 6300 ml .*Diferencia \+500 ml/.test(C.txt),C.txt);
+ok('C: el detalle del cálculo está plegado y no se lee hasta abrirlo',C.open===false&&!/Stock inicial/.test(C.txt)&&n2(C.all).includes('Stockinicial7000ml'),C.txt);
+ok('valoración con el coste unitario del catálogo (stock final 3.500 ml × 0,03 = 105 €)',n2(C.all).includes('105,00€'),C.all.slice(0,300));
+await stock(p,{sProduct:'Ron blanco',sStart:'2026-10-14',sEnd:'2026-10-20',sOpening:7000,sPurchases:2800,sClosing:3500,sSalesUse:6250,sStatus:'Validados'});
+{const t=await p.evaluate(()=>document.getElementById('stockResult').innerText.replace(/\s+/g,' '));ok('dentro del margen: «Cuadra» con la diferencia y el margen',/Cuadra: la diferencia \(\+50 ml\) está dentro de tu margen de 100 ml/.test(t)&&!/Revisa:/.test(t),t.slice(0,200))}
 await stock(p,{sProduct:'Ron blanco',sOpening:1000,sPurchases:0,sClosing:12000,sSalesUse:0});
-ok('stock final mayor que inicial + entradas: avisa',/consumo real sale negativo/.test(await p.evaluate(()=>document.getElementById('stockResult').innerText)),null);
+{const t=await p.evaluate(()=>[document.getElementById('stockResult').innerText.replace(/\s+/g,' '),document.getElementById('stockResult').textContent,!!document.querySelector('#stockResult .kpis')]);ok('stock final mayor que inicial + entradas: «Hay un error en los datos», sin diferencia ni valor',/^Hay un error en los datos/.test(t[0])&&/consumo real sale negativo/.test(t[0])&&!/Revisa:|Cuadra|ml más|tu margen/.test(t[0])&&!t[2]&&!/Valor de la diferencia|Tu margen \(umbral\)/.test(t[1]),t[0].slice(0,300))}
 await stock(p,{sProduct:'Ron blanco',sUnit:'g',sStart:'2026-10-01',sEnd:'2026-10-02',sOpening:1000,sPurchases:0,sClosing:500,sSalesUse:500,sStatus:'Validados'});
-ok('unidades incompatibles con el catálogo: avisa',/Unidades incompatibles/.test(await p.evaluate(()=>document.getElementById('stockResult').innerText)),null);
+ok('unidades incompatibles con el catálogo: también es un error en los datos',/Hay un error en los datos.*Unidades incompatibles/.test(await p.evaluate(()=>document.getElementById('stockResult').innerText.replace(/\s+/g,' '))),null);
 const nS=await p.evaluate(()=>data.stocks.length);await stock(p,{sProduct:'X',sStart:'2026-10-10',sEnd:'2026-10-01'});
 ok('fecha final anterior a la inicial: no se guarda',(await p.evaluate(()=>data.stocks.length))===nS,null);
 await p.evaluate(()=>showPage('diagnosis'));await p.fill('#diagFinding','Sin dosificación estándar');await p.fill('#diagEvidence','Visto en la visita: sin medidor');await p.fill('#diagAction','Definir receta en ml y usar medidor');await p.fill('#diagCheck','Comparar consumo por 100 ventas');await p.fill('#diagDue','2026-10-30');await p.click('#diagForm button[type=submit]');

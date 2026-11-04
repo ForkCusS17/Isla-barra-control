@@ -72,9 +72,13 @@ ok('…y se puede deshacer restaurando esa copia',(await p.evaluate(()=>data.ing
 // ── 5. Dos pestañas a la vez ─────────────────────────────────────────────────
 const c2=await b.newContext(PHONE);const a1=watch(await c2.newPage());await a1.goto(APP_URL);await tap(a1,'#wStart');await tap(a1,'#tplSkip');await ficha(a1,'A');
 ok('con una sola pestaña no hay aviso',!(await seen(a1,'#tabWarn')),null);
-const a2=watch(await c2.newPage());await a2.goto(APP_URL);await a2.waitForTimeout(300);
+const a2=watch(await c2.newPage());await a2.goto(APP_URL);
+// Los avisos llegan por BroadcastChannel y por el evento «storage»: con el equipo cargado tardan más de 300 ms,
+// así que se espera a que aparezcan (hasta 5 s) en vez de un tiempo fijo.
+const shows=(p,sel)=>p.locator(sel).waitFor({state:'visible',timeout:5000}).catch(()=>{});
+await shows(a1,'#tabWarn');await shows(a2,'#tabWarn');
 ok('dos pestañas: las dos avisan «La app está abierta en otra pestaña»',(await seen(a1,'#tabWarn'))&&(await seen(a2,'#tabWarn'))&&/otra pestaña o ventana/.test(await text(a2,'#tabWarn')),null);
-await ficha(a1,'A2');await a2.waitForTimeout(300);
+await ficha(a1,'A2');await shows(a2,'#tabConflict');
 ok('si la otra pestaña guarda, esta avisa de que los datos han cambiado',(await seen(a2,'#tabConflict'))&&/han cambiado en otra pestaña/.test(await text(a2,'#tabConflict')),null);
 await ficha(a2,'B');
 ok('guardar en la pestaña desactualizada no pisa los datos: «Este cambio no se ha guardado»',/Este cambio no se ha guardado/.test(await text(a2,'#tabConflict'))&&(await stored(a2))==='A2',await stored(a2));

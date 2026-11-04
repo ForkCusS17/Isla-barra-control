@@ -49,7 +49,7 @@ ok('fechas: 31 oct→1 nov, 31 dic→1 ene, 28 feb (bisiesto)→29 feb, diferenc
 await p.fill('#sEnd','2026-10-27');await p.fill('#sClosing','800');await p.fill('#sSalesUse','400');const c0=await p.evaluate(()=>data.stocks.length);
 await p.click('#stockForm button[type=submit]');await p.click('#stockForm button[type=submit]');
 ok('pulsar «Calcular y guardar» dos veces no duplica el control',(await p.evaluate(()=>data.stocks.length))===c0+1,null);
-await p.evaluate(()=>deleteStock(document.getElementById('sId').value));
+await p.evaluate(()=>deleteStock(document.getElementById('sId').value));ok('eliminar un control pide confirmación dentro de la página (sin confirm())',await p.locator('#appConfirm').isVisible()&&/Eliminar este control/.test(await p.locator('#appConfirm').innerText()),null);await p.click('#appConfirmYes');
 ok('eliminar el control abierto limpia el formulario',(await G(p,'sId'))===''&&(await p.evaluate(()=>data.stocks.length))===c0,null);
 await p.evaluate(()=>{data.stocks.unshift(stockCalc({id:'x9',date:'2026-10-22',start:'2026-10-21',end:'2026-10-27',product:'Ginebra',unit:'ml',opening:2560,purchases:0,closing:100,salesUse:1000,tastings:0,comps:0,waste:0,otherOut:0,threshold:150,status:'Validados',salesId:'',hypothesis:'',cause:'',action:'',result:'',causeState:'Sin analizar',notes:''}));save()});
 const pd1=await p.evaluate(()=>pendingData().filter(x=>/sin hipótesis ni acción/.test(x)).length);

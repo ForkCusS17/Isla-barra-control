@@ -17,7 +17,7 @@ const V=await p.evaluate(()=>[APP_VERSION,APP_DATE]);
 ok('una sola versión: la app, package.json y el service worker dicen lo mismo',V[0]===PKG&&V[0]===SWV,[V[0],PKG,SWV]);
 await tap(p,'#footAbout');ok('el pie del Resumen enlaza a «Acerca de» con la versión',(await seen(p,'#page-about')),null);
 await tap(p,'.mobile-nav button:has-text("Resumen")');await tap(p,'.mobile-nav button:has-text("Más")');await tap(p,'#page-more button:has-text("Acerca de")');
-ok('Más › Acerca de: versión y fecha visibles',(await seen(p,'#page-about'))&&new RegExp('Versión '+V[0].replace(/\./g,'\\.')+' \\(beta\\) · 2 de noviembre de 2026').test(await text(p,'#aboutVersion')),await text(p,'#aboutVersion'));
+ok('Más › Acerca de: versión y fecha visibles',(await seen(p,'#page-about'))&&new RegExp('Versión '+V[0].replace(/\./g,'\\.')+' \\(beta\\) · 4 de noviembre de 2026').test(await text(p,'#aboutVersion')),await text(p,'#aboutVersion'));
 ok('la pestaña «Más» queda marcada',(await p.locator('.mobile-nav button[aria-current="page"]').innerText()).includes('Más'),null);
 ok('novedades de la versión actual',/0\.4\.1 · 30 de octubre de 2026/.test(await text(p,'#aboutNews'))&&(await p.locator('#aboutNews li').count())>=3,await text(p,'#aboutNews'));
 const href=await p.getAttribute('#feedbackBtn','href');const q=new URL(href);const body=decodeURIComponent(href.split('body=')[1]||'');const ua=await p.evaluate(()=>navigator.userAgent);

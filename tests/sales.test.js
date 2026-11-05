@@ -35,7 +35,7 @@ ok('si cambia una receta, el cálculo nuevo cambia (5.540) y el control ya guard
 await p.evaluate(()=>{data.drinks.find(d=>d.id==='mojito').recipeItems[0].qty=50;save()});
 // formulario de ventas
 const n0=await p.evaluate(()=>data.sales.length);
-await p.evaluate(()=>{showPage('stock');resetSalesForm()});await p.fill('#vLabel','Semana 2');await p.fill('#vStart','2026-10-14');await p.fill('#vEnd','2026-10-20');
+await p.evaluate(()=>{showPage('sales');resetSalesForm()});await p.fill('#vLabel','Semana 2');await p.fill('#vStart','2026-10-14');await p.fill('#vEnd','2026-10-20');
 await p.fill('#salesLines .item:nth-child(1) input','10');await p.click('#salesLines .item:nth-child(2) input');
 ok('móvil: al pasar al siguiente campo de ventas no se pierde el foco',await p.evaluate(()=>document.activeElement===document.querySelectorAll('#salesLines input')[1]),null);
 await p.fill('#salesLines .item:nth-child(2) input','5');await p.fill('#vEnd','2026-10-01');await p.click('#salesForm button[type=submit]');

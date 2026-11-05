@@ -51,6 +51,8 @@ await nav('Stock');ok('toque › Stock: pantalla visible y sin desbordamiento',a
 await tap(u,'#sMore summary');for(const [k,x] of Object.entries({sProduct:'Ron blanco',sStart:'2026-10-07',sEnd:'2026-10-13',sOpening:'7000',sPurchases:'2800',sClosing:'3500',sSalesUse:'5000',sTastings:'800'}))await u.fill('#'+k,x);
 await tap(u,'#stockForm button:has-text("Calcular y guardar control")');
 const st=(await D()).stocks;ok('Stock: «Calcular y guardar control» guarda el ejemplo C (6.300 / 5.800 / +500 ml)',st.length===1&&st[0].actual===6300&&st[0].theoretical===5800&&st[0].variance===500,st);
+await tap(u,'#goSales');ok('toque › Stock › «Ir a Ventas»: pantalla Ventas con su formulario y sin desbordamiento',(await shown('sales'))&&(await u.locator('#salesForm').isVisible()),null);
+await tap(u,'#salesBack');ok('toque › Ventas › «← Control de stock» vuelve a Stock',await shown('stock'),null);
 await nav('Diagnóstico');ok('toque › Diagnóstico: pantalla visible y sin desbordamiento',await shown('diagnosis'),null);
 await u.fill('#diagFinding','Mojito sin medida estándar');await u.fill('#diagEvidence','Visita: sin medidor en barra');await u.fill('#diagAction','Usar medidor 7 días');await u.fill('#diagCheck','Comparar ron por 100 mojitos');await tap(u,'#diagForm button:has-text("Guardar hallazgo")');
 const dg=(await D()).diagnostics;ok('Diagnóstico: «Guardar hallazgo» guarda el hallazgo con su evidencia',dg.length===1&&dg[0].evidence==='Visita: sin medidor en barra',dg);

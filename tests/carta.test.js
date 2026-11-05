@@ -67,10 +67,11 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const g=await mk(dev);await tap
  await nav(g,'Carta');ok(`[${wd}] Mi carta también muestra el paso 3 completado`,/^Paso 3 de 6 · Mi carta: 3 bebidas con receta · Con receta: 3 de 3/.test(await sb(g,'drinks'))&&/✓ Paso completado/.test(await sb(g,'drinks')),await sb(g,'drinks'));
  await tap(g,'#sb_drinks .stepbar-next');
  // Paso 4: ventas y control
- ok(`[${wd}] paso 4 · «Siguiente paso» abre Stock con ventas y control`,(await shown(g,'stock'))&&(await seen(g,'#salesForm'))&&(await seen(g,'#stockForm'))&&(await g.locator('#salesLines input').count())===3,null);
+ ok(`[${wd}] paso 4 · «Siguiente paso» abre Stock con el control y el acceso a «Ventas»`,(await shown(g,'stock'))&&(await seen(g,'#stockForm'))&&(await seen(g,'#goSales'))&&!(await seen(g,'#salesForm')),null);
+ await tap(g,'#goSales');ok(`[${wd}] «Ir a Ventas» abre la pantalla Ventas con las 3 bebidas de la carta`,(await shown(g,'sales'))&&(await seen(g,'#salesForm'))&&(await g.locator('#salesLines input').count())===3,null);await tap(g,'#salesBack');
  ok(`[${wd}] paso 4 · qué falta: ventas y un control`,/^Paso 4 de 6 · Ventas y un control de stock · Ventas: no · Controles: 0/.test(await sb(g,'stock'))&&/Falta: anotar las ventas del periodo .* y guardar un control de stock/.test(await sb(g,'stock')),await sb(g,'stock'));
  await nav(g,'Resumen');await tap(g,'#guideGo');ok(`[${wd}] paso 4 · «Continuar» del Resumen abre Stock`,await shown(g,'stock'),null);
- await g.fill('#vStart','2026-10-01');await g.fill('#vEnd','2026-10-07');await g.locator('#salesLines input').first().fill('10');await tap(g,'#salesForm button:has-text("Guardar ventas")');
+ await tap(g,'#goSales');await g.fill('#vStart','2026-10-01');await g.fill('#vEnd','2026-10-07');await g.locator('#salesLines input').first().fill('10');await tap(g,'#salesForm button:has-text("Guardar ventas")');await tap(g,'#salesBack');
  ok(`[${wd}] paso 4 · al guardar ventas: «Ventas: sí · Controles: 0» y solo falta el control`,/Ventas: sí · Controles: 0/.test(await sb(g,'stock'))&&/^.*Falta: guardar un control de stock/.test(await sb(g,'stock'))&&!/anotar las ventas/.test(await sb(g,'stock')),await sb(g,'stock'));
  await tap(g,'#sMore summary');for(const [k,x] of Object.entries({sProduct:'Ron Carta Blanca',sStart:'2026-10-01',sEnd:'2026-10-07',sOpening:'7000',sPurchases:'2800',sClosing:'3500',sSalesUse:'5000',sTastings:'800'}))await g.fill('#'+k,x);
  await tap(g,'#stockForm button:has-text("Calcular y guardar control")');

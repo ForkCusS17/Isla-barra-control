@@ -29,6 +29,7 @@ const newControl=async p=>{await p.waitForTimeout(200);await tap(p,'#stockForm b
 for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev);await toStock(p);
  // ── Paso 1: el producto se busca en Mi barra ──
  ok(`[${wd}] cuatro pasos a la vista y «Más detalles (opcional)» cerrado al empezar`,(await p.locator('#page-stock .step-h').filter({visible:true}).count())===4&&!(await p.evaluate(()=>document.getElementById('sMore').open))&&!(await seen(p,'#sTastings')),null);
+ ok(`[${wd}] un control nuevo no ofrece el seguimiento de la desviación ni el formulario de ventas de toda la carta`,(await p.evaluate(()=>document.getElementById('sFollow').classList.contains('hidden')))&&!(await seen(p,'#salesForm'))&&(await seen(p,'#goSales')),null);
  await typeIn(p,'#sProduct','ron');
  ok(`[${wd}] buscar «ron»: propone Ron blanco de Mi barra (no la ginebra) y ofrece añadir uno nuevo`,/Ron blanco/.test(await text(p,'#sProdBox'))&&!/Ginebra/.test(await text(p,'#sProdBox'))&&(await seen(p,'#sAddProd')),await text(p,'#sProdBox'));
  await tap(p,'#sProdBox button:has-text("Ron blanco")');ok(`[${wd}] sin cantidades, el resultado no dice «Cuadra»: pide los datos`,/Introduce los datos/.test(await text(p,'#stockResult')),await text(p,'#stockResult'));
@@ -44,17 +45,23 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev);await toS
  ok(`[${wd}] escribir lo vendido no pierde el foco y suma 40 × 50 + 40 × 50 + 20 × 50 = 5000 ml`,(await p.evaluate(()=>document.activeElement&&document.activeElement.id))==='sold_d3'&&/se esperaba gastar 5000 ml/.test(await text(p,'#sSoldSum')),await text(p,'#sSoldSum'));
  await tap(p,'#sMore summary');await typeIn(p,'#sTastings',800);
  ok(`[${wd}] «Más detalles»: lo esperado por ventas se calcula solo (5000, no editable)`,(await p.inputValue('#sSalesUse'))==='5000'&&(await p.evaluate(()=>document.getElementById('sSalesUse').readOnly)),await p.inputValue('#sSalesUse'));
- ok(`[${wd}] vista previa: «Revisa: se ha gastado 500 ml más de lo esperado (≈ 10,00 €, orientativo)»`,/^Revisa: se ha gastado 500 ml más de lo esperado \(≈ 10,00 €, orientativo\)/.test((await text(p,'#stockResult')).replace(/ /g,' ')),await text(p,'#stockResult'));
+ ok(`[${wd}] vista previa: «Revisa: se han gastado 500 ml de más (≈ 0,7 botellas · ≈ 10,00 €, orientativo)»`,/^Revisa: se han gastado 500 ml de más \(≈ 0,7 botellas · ≈ 10,00 €, orientativo\)/.test((await text(p,'#stockResult')).replace(/ /g,' ')),await text(p,'#stockResult'));
  await tap(p,'#stockForm button:has-text("Calcular y guardar control")');
  let d=await D(p);const s=d.stocks.find(x=>x.product==='Ron blanco'),sp=s&&d.sales.find(x=>x.id===s.salesId);
  ok(`[${wd}] guardado: real 6300 · teórico 5800 · desviación +500 (los cálculos no cambian)`,s&&s.actual===6300&&s.theoretical===5800&&s.variance===500&&s.salesUse===5000,s);
  ok(`[${wd}] las ventas del paso 3 quedan en un periodo con las mismas fechas, enlazado al control`,sp&&sp.start==='2026-10-07'&&sp.end==='2026-10-13'&&sp.lines.length===3&&sp.lines.every(l=>l.qty===(l.drinkId==='d3'?20:40)),sp);
+ {const r=await text(p,'#stockResult'),all=await p.evaluate(()=>document.getElementById('stockResult').textContent);
+  ok(`[${wd}] resultado guardado sin jerga a la vista: ni «Fase», ni «Datos sin validar», ni «margen», ni signos`,!/Fase del seguimiento|Datos sin validar|margen|\+500/.test(r)&&/Diferencia 500 ml de más · aviso a partir de 100 ml/.test(r.replace(/ /g,' ')),r);
+  ok(`[${wd}] lo técnico sigue en «Ver detalle del cálculo» (plegado): fase y estado de los datos`,/Fase del seguimiento/.test(all)&&/Sin validar/.test(all)&&!(await p.evaluate(()=>document.querySelector('#stockResult details.detail').open)),null)}
+ ok(`[${wd}] una vez guardado, el control ya ofrece el seguimiento de la desviación`,!(await p.evaluate(()=>document.getElementById('sFollow').classList.contains('hidden'))),null);
  // ── Editar: vuelven las vendidas y se conserva lo guardado ──
  await newControl(p);
  ok(`[${wd}] «Nuevo control» vacía los pasos y vuelve a cerrar «Más detalles»`,(await p.inputValue('#sProduct'))===''&&!(await seen(p,'[data-sold]'))&&!(await p.evaluate(()=>document.getElementById('sMore').open)),null);
  await tap(p,`#stockHistory tr:has-text("Ron blanco") button:has-text("Ver")`);await tap(p,'#stockResult button:has-text("Editar y hacer seguimiento")');
  ok(`[${wd}] editar el control: producto, vendidas (40) y «Más detalles» abierto con las degustaciones`,(await p.inputValue('#sProduct'))==='Ron blanco'&&(await p.inputValue('#sold_d1'))==='40'&&(await p.evaluate(()=>document.getElementById('sMore').open))&&(await p.inputValue('#sTastings'))==='800',null);
+ ok(`[${wd}] al editar un control guardado sí aparece el seguimiento de la desviación`,!(await p.evaluate(()=>document.getElementById('sFollow').classList.contains('hidden'))),null);
  await newControl(p);
+ ok(`[${wd}] «Nuevo control» vuelve a quitar el seguimiento`,await p.evaluate(()=>document.getElementById('sFollow').classList.contains('hidden')),null);
 
  // ── Añadir un producto nuevo sin salir de la pantalla ──
  await typeIn(p,'#sProduct','Arehucas');
@@ -86,6 +93,7 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev);await toS
  await tap(p,'#stockForm button:has-text("Calcular y guardar control")');
  d=await D(p);const s2=d.stocks.find(x=>x.product==='Arehucas Oro'),sp2=s2&&d.sales.find(x=>x.id===s2.salesId);
  ok(`[${wd}] control de Arehucas Oro: 2100 gastados frente a 3000 esperados → −900 ml; ventas en su periodo`,s2&&s2.actual===2100&&s2.theoretical===3000&&s2.variance===-900&&sp2&&sp2.lines.length===1&&sp2.lines[0].qty===60,s2);
+ ok(`[${wd}] diferencia en palabras: «Revisa: se han gastado 900 ml de menos (≈ 1,3 botellas · …)»`,/^Revisa: se han gastado 900 ml de menos \(≈ 1,3 botellas · ≈ 12,21 €, orientativo\)/.test((await text(p,'#stockResult')).replace(/ /g,' ')),await text(p,'#stockResult'));
  await tap(p,'.mobile-nav button:has-text("Carta")');
  ok(`[${wd}] Mi carta muestra el combinado nuevo`,/Arehucas Oro con Coca-Cola/.test(await text(p,'#page-drinks')),null);
  await toStock(p);await newControl(p);
@@ -93,7 +101,7 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev);await toS
  // ── Controles antiguos con un producto escrito a mano ──
  await tap(p,`#stockHistory tr:has-text("Licor de la casa") button:has-text("Ver")`);await tap(p,'#stockResult button:has-text("Editar y hacer seguimiento")');
  ok(`[${wd}] control antiguo con un producto que no está en Mi barra: se abre con sus datos y lo esperado a mano (500)`,(await p.inputValue('#sProduct'))==='Licor de la casa'&&/no está en Mi barra/.test(await text(p,'#sProdBox'))&&(await p.inputValue('#sSalesUse'))==='500'&&!(await p.evaluate(()=>document.getElementById('sSalesUse').readOnly)),await text(p,'#sProdBox'));
- ok(`[${wd}] su resultado no cambia: 600 gastados frente a 500 → +100 ml`,/Cuadra: la diferencia \(\+100 ml\)/.test(await text(p,'#stockResult')),await text(p,'#stockResult'));
+ ok(`[${wd}] su resultado no cambia: 600 gastados frente a 500 → 100 ml de más, sin pasar del aviso`,/Cuadra: 100 ml de más, sin pasar del aviso de 100 ml/.test(await text(p,'#stockResult')),await text(p,'#stockResult'));
  await newControl(p);
 
  // ── Móvil: con las cajas abiertas, sin desbordamiento, botones ≥ 44 px y contraste ──

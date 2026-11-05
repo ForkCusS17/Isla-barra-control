@@ -19,7 +19,9 @@ const stored=p=>p.evaluate(k=>{try{return JSON.parse(localStorage.getItem(k)).bu
 const importTap=async(p,sel,file)=>{const [fc]=await Promise.all([p.waitForEvent('filechooser',{timeout:4000}),tap(p,sel)]);await fc.setFiles(file);await p.locator('#importConfirm').waitFor({state:'visible',timeout:3000});await tap(p,'#importYes');await p.waitForTimeout(150)};
 // Simula el navegador: persist() y persisted() con un resultado fijo y cuenta las peticiones.
 // (El contador va en sessionStorage: sobrevive si el navegador vuelve a ejecutar el script de inicio en la misma pestaña.)
-const fakePersist=(granted)=>{if(!navigator.storage)return;const n=()=>+(sessionStorage.getItem('__pc')||0);Object.defineProperty(window,'__persistCalls',{get:n,configurable:true});navigator.storage.persist=()=>{sessionStorage.setItem('__pc',n()+1);return Promise.resolve(granted)};navigator.storage.persisted=()=>Promise.resolve(granted)};
+// (Se sustituye en el prototipo de StorageManager y en el objeto: WebKit puede no conservar la sustitución en el objeto.)
+const fakePersist=(granted)=>{if(!navigator.storage)return;const n=()=>+(sessionStorage.getItem('__pc')||0);Object.defineProperty(window,'__persistCalls',{get:n,configurable:true});const persist=()=>{sessionStorage.setItem('__pc',n()+1);return Promise.resolve(granted)},persisted=()=>Promise.resolve(granted);
+ for(const o of [typeof StorageManager!=='undefined'&&StorageManager.prototype,navigator.storage])if(o){try{Object.defineProperty(o,'persist',{value:persist,configurable:true,writable:true});Object.defineProperty(o,'persisted',{value:persisted,configurable:true,writable:true})}catch(e){}}};
 
 // ── 1. Recordatorio de copia ─────────────────────────────────────────────────
 let p=await mk(PHONE,fakePersist,false);await tap(p,'#wStart');await tap(p,'#tplSkip');
@@ -31,7 +33,7 @@ ok('«Exportar copia» desde el recordatorio descarga la copia y el aviso desapa
 {const q=await mk();await tap(q,'#wDemo');ok('con el bar de ejemplo no se pide copia',!(await seen(q,'#backupNag')),null)}
 
 // ── 2. Almacenamiento persistente ────────────────────────────────────────────
-ok('se pide almacenamiento persistente una vez, al guardar los primeros datos',(await p.evaluate(()=>window.__persistCalls))===1&&(await p.evaluate(k=>JSON.parse(localStorage.getItem(k+'_dispositivo')).persistAsked,KEY))===true,await p.evaluate(()=>window.__persistCalls));
+ok('se pide almacenamiento persistente una vez, al guardar los primeros datos',(await p.evaluate(()=>window.__persistCalls))===1&&(await p.evaluate(k=>JSON.parse(localStorage.getItem(k+'_dispositivo')).persistAsked,KEY))===true,await p.evaluate(k=>({llamadas:window.__persistCalls,ss:sessionStorage.getItem('__pc'),simulada:/sessionStorage/.test(String(navigator.storage.persist)),pedido:(JSON.parse(localStorage.getItem(k+'_dispositivo')||'{}')).persistAsked}),KEY));
 await ficha(p,'Bar Real 2');ok('…y no se vuelve a pedir en cada guardado',(await p.evaluate(()=>window.__persistCalls))===1,null);
 await nav(p,'Ajustes');
 ok('Ajustes › Datos: «no concedido», explicado, con «Pedir almacenamiento persistente»',/no concedido/.test(await text(p,'#persistLine'))&&(await seen(p,'#persistAsk')),await text(p,'#persistLine'));

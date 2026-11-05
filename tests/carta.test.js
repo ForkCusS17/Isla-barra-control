@@ -73,7 +73,8 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const g=await mk(dev);await tap
  await nav(g,'Resumen');await tap(g,'#guideGo');ok(`[${wd}] paso 4 · «Continuar» del Resumen abre Stock`,await shown(g,'stock'),null);
  await tap(g,'#goSales');await g.fill('#vStart','2026-10-01');await g.fill('#vEnd','2026-10-07');await g.locator('#salesLines input').first().fill('10');await tap(g,'#salesForm button:has-text("Guardar ventas")');await tap(g,'#salesBack');
  ok(`[${wd}] paso 4 · al guardar ventas: «Ventas: sí · Controles: 0» y solo falta el control`,/Ventas: sí · Controles: 0/.test(await sb(g,'stock'))&&/^.*Falta: guardar un control de stock/.test(await sb(g,'stock'))&&!/anotar las ventas/.test(await sb(g,'stock')),await sb(g,'stock'));
- await tap(g,'#sMore summary');for(const [k,x] of Object.entries({sProduct:'Ron Carta Blanca',sStart:'2026-10-01',sEnd:'2026-10-07',sOpening:'7000',sPurchases:'2800',sClosing:'3500',sSalesUse:'5000',sTastings:'800'}))await g.fill('#'+k,x);
+ await tap(g,'#sMore summary');for(const [k,x] of Object.entries({sProduct:'Ron Carta Blanca',sStart:'2026-10-01',sEnd:'2026-10-07',sOpening:'7000',sPurchases:'2800',sClosing:'3500',sTastings:'800'}))await g.fill('#'+k,x);
+ ok(`[${wd}] paso 4 · el control toma solas las ventas guardadas de esas fechas`,(await g.inputValue('#sSales'))!==''&&/Sale de las ventas guardadas/.test(await text(g,'#sSoldSrc')),await g.inputValue('#sSales'));
  await tap(g,'#stockForm button:has-text("Calcular y guardar control")');
  ok(`[${wd}] paso 4 completado: «Siguiente paso: Un hallazgo con evidencia»`,/✓ Paso completado/.test(await sb(g,'stock'))&&(await text(g,'#sb_stock .stepbar-next'))==='Siguiente paso: Un hallazgo con evidencia',await sb(g,'stock'));
  await tap(g,'#sb_stock .stepbar-next');

@@ -7,7 +7,7 @@ const mk=async()=>{const c=await b.newContext({viewport:{width:390,height:800},a
 await c.addInitScript(()=>{if(!/isla_barra_control_mvp\.html$/.test(location.pathname)||window.name==='semilla')return;window.name='semilla';try{if(!localStorage.getItem('islaBarraControlMVP_v1'))localStorage.setItem('islaBarraControlMVP_v1',JSON.stringify({settings:{mode:'full'}}))}catch(e){}});
 const p=await c.newPage();p.errs=[];p.dl=[];p.on('pageerror',e=>p.errs.push(String(e).slice(0,100)));p.on('dialog',d=>{p.dl.push(d.message().slice(0,80));d.accept()});await p.goto(APP_URL);return p};
 const imp=async(p,f)=>{await p.setInputFiles('#importFile',f);await p.click('#importYes');await p.waitForTimeout(150)};
-const sel=async(p,name,unit,sid)=>{await p.evaluate(()=>{showPage('stock');clearStockForm()});await p.fill('#sProduct',name);await p.selectOption('#sUnit',unit);if(sid!==null)await p.selectOption('#sSales',sid||'v-sem41')};
+const sel=async(p,name,unit,sid)=>{await p.evaluate(()=>{showPage('stock');clearStockForm();document.getElementById('sMore').open=true});await p.fill('#sProduct',name);await p.selectOption('#sUnit',unit);if(sid!==null)await p.selectOption('#sSales',sid||'v-sem41')};
 const val=(p,id)=>p.evaluate(i=>document.getElementById(i).value,id);
 let p=await mk();await imp(p,J);
 ok('demo con ventas: 2 periodos y 6 controles enlazados',(await p.evaluate(()=>data.sales.length===2&&data.stocks.filter(s=>s.salesId==='v-sem41').length===5&&data.stocks.filter(s=>s.salesId==='v-sem42').length===1)),null);
@@ -17,7 +17,7 @@ await sel(p,'Ron blanco','ml');
 const bd=await p.evaluate(()=>document.getElementById('salesBreakdown').innerText);
 ok('se muestra el desglose: Mojito 54 × 50 + Cuba libre 46 × 50 = 5000 ml',n2(bd).includes(n2('Mojito 54 × 50 + Cuba libre 46 × 50 = 5000 ml')),bd);
 ok('al elegir las ventas se rellenan las fechas del control',(await val(p,'sStart'))==='2026-10-07'&&(await val(p,'sEnd'))==='2026-10-13',null);
-for(const [k,x] of Object.entries({sOpening:7000,sPurchases:2800,sClosing:3500,sTastings:300,sComps:200,sWaste:100,sLegitUse:200}))await p.fill('#'+k,String(x));await p.selectOption('#sStatus','Validados');await p.click('#stockForm button[type=submit]');
+for(const [k,x] of Object.entries({sOpening:7000,sPurchases:2800,sClosing:3500,sTastings:300,sComps:200,sWaste:100,sLegitUse:200}))await p.fill('#'+k,String(x));await p.evaluate(()=>document.getElementById('sMore').open=true);await p.selectOption('#sStatus','Validados');await p.click('#stockForm button[type=submit]');
 const C=await p.evaluate(()=>({s:data.stocks[0],txt:document.getElementById('stockResult').innerText.replace(/\s+/g,' ')}));
 ok('ejemplo C con ventas automáticas: real 6.300 · teórico 5.800 · desviación +500 ml',C.s.actual===6300&&C.s.theoretical===5800&&C.s.variance===500&&C.s.salesUse===5000&&C.s.salesId==='v-sem41',C.s);
 ok('el resultado indica que las ventas se calcularon con recetas',/calculadas con recetas/.test(C.txt),C.txt.slice(0,200));

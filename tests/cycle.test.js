@@ -32,11 +32,11 @@ await p.evaluate(()=>{editStock('s-lima');document.getElementById('sFollow').ope
 const b1=await p.evaluate(()=>data.stocks.find(s=>s.id==='s-lima').causeState);
 await p.fill('#sCause','Medición repetida con probeta: el envase pierde 100 ml por derrames.');await p.click('#stockForm button[type=submit]');
 const b2=await p.evaluate(()=>data.stocks.find(s=>s.id==='s-lima').causeState);
-await p.selectOption('#sStatus','Validados');await p.click('#stockForm button[type=submit]');
+await p.evaluate(()=>document.getElementById('sMore').open=true);await p.selectOption('#sStatus','Validados');await p.click('#stockForm button[type=submit]');
 const b3=await p.evaluate(()=>{const s=data.stocks.find(x=>x.id==='s-lima');return{c:s.causeState,stg:stageOf(s)}});
 ok('«Causa comprobada» exige explicar cómo se comprobó y tener los datos validados',b1==='Sin analizar'&&b2==='Sin analizar'&&b3.c==='Causa comprobada'&&b3.stg==='Causa comprobada',[b1,b2,b3]);
 ok('informe: la causa comprobada solo aparece cuando se marca como tal',/Causa comprobada: Medición repetida/.test(await p.evaluate(()=>{showPage('report');return reportContent.innerText})),null);
-await p.evaluate(()=>{showPage('stock');clearStockForm()});await p.fill('#sProduct','Ron blanco');await p.selectOption('#sUnit','ml');await p.fill('#sStart','2026-10-21');await p.fill('#sEnd','2026-10-27');await p.fill('#sOpening','3000');
+await p.evaluate(()=>{showPage('stock');clearStockForm();document.getElementById('sMore').open=true});await p.fill('#sProduct','Ron blanco');await p.selectOption('#sUnit','ml');await p.fill('#sStart','2026-10-21');await p.fill('#sEnd','2026-10-27');await p.fill('#sOpening','3000');
 const w1=await txt(p,'stockResult');
 ok('continuidad: avisa si el stock inicial no coincide con el final del control anterior (1250 ml)',/no coincide con el stock final del control anterior \(1250 ml/.test(w1),w1.slice(0,400));
 await p.fill('#sOpening','1250');ok('continuidad: con el stock inicial correcto no avisa',!/no coincide con el stock final/.test(await txt(p,'stockResult')),null);
@@ -46,7 +46,7 @@ await p.evaluate(()=>nextControl('s-ron2'));const nx=await p.evaluate(()=>{const
 ok('nuevo control a partir del anterior: producto, stock inicial = final anterior (1250), inicio = día siguiente, sin fecha final',nx.p==='Ron blanco'&&nx.o==='1250'&&nx.s==='2026-10-21'&&nx.e===''&&nx.id===''&&nx.th==='300',nx);
 const dd=await p.evaluate(()=>[dayAdd('2026-10-31',1),dayAdd('2026-12-31',1),dayAdd('2028-02-28',1),dayDiff('2026-10-13','2026-10-14')]);
 ok('fechas: 31 oct→1 nov, 31 dic→1 ene, 28 feb (bisiesto)→29 feb, diferencia de 1 día',dd.join()==='2026-11-01,2027-01-01,2028-02-29,1',dd);
-await p.fill('#sEnd','2026-10-27');await p.fill('#sClosing','800');await p.fill('#sSalesUse','400');const c0=await p.evaluate(()=>data.stocks.length);
+await p.fill('#sEnd','2026-10-27');await p.fill('#sClosing','800');await p.evaluate(()=>document.getElementById('sMore').open=true);await p.fill('#sSalesUse','400');const c0=await p.evaluate(()=>data.stocks.length);
 await p.click('#stockForm button[type=submit]');await p.click('#stockForm button[type=submit]');
 ok('pulsar «Calcular y guardar» dos veces no duplica el control',(await p.evaluate(()=>data.stocks.length))===c0+1,null);
 await p.evaluate(()=>deleteStock(document.getElementById('sId').value));ok('eliminar un control pide confirmación dentro de la página (sin confirm())',await p.locator('#appConfirm').isVisible()&&/Eliminar este control/.test(await p.locator('#appConfirm').innerText()),null);await p.click('#appConfirmYes');

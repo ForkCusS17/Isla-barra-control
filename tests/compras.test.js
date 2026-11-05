@@ -105,7 +105,7 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev);
  ok(`[${wd}] el mismo número del mismo proveedor no se guarda dos veces`,/Ya hay una factura nº F-101/.test(await text(p,'#toast'))&&(await INVS(p)).length===1,await text(p,'#toast'));
  await tap(p,'#purClose');
  // Stock
- await tap(p,'.mobile-nav button:has-text("Stock")');await p.fill('#sProduct','Ginebra Beefeater');await p.selectOption('#sUnit','ml');await p.fill('#sStart','2026-10-25');await p.fill('#sEnd','2026-10-31');
+ await tap(p,'.mobile-nav button:has-text("Stock")');await p.fill('#sProduct','Ginebra Beefeater');await tap(p,'#sMore summary');await p.selectOption('#sUnit','ml');await p.fill('#sStart','2026-10-25');await p.fill('#sEnd','2026-10-31');
  await tap(p,'#sSumPurchases');
  ok(`[${wd}] control de stock: «Sumar compras del periodo» pone 4200 ml y dice de qué factura`,(await p.inputValue('#sPurchases'))==='4200'&&/Distribuciones Lanzarote nº F-101 \(2026-10-30\): 4200 ml/.test(await text(p,'#purchasesBreakdown')),[await p.inputValue('#sPurchases'),await text(p,'#purchasesBreakdown')]);
  await p.fill('#sEnd','2026-10-29');await tap(p,'#sSumPurchases');

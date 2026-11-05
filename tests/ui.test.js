@@ -48,7 +48,7 @@ await u.locator('#recipeLines select').selectOption({index:1});await u.fill('#re
 const dr=(await D()).drinks;ok('Mi carta › Añadir bebida: «+ Añadir ingrediente» y «Guardar bebida» guardan el mojito (50 ml de ron) y el margen sale en la lista',dr.length===1&&dr[0].name==='Mojito'&&dr[0].recipeItems.length===1&&dr[0].recipeItems[0].qty===50&&/76,67\s*%/.test(await u.locator('#drinkList').innerText()),[dr,await u.locator('#drinkList').innerText()]);
 await tap(u,'#libOpen');ok('toque › Mi carta › Añadir desde la biblioteca: pantalla visible y sin desbordamiento',await shown('library'),null);await tap(u,'#libBack');
 await nav('Stock');ok('toque › Stock: pantalla visible y sin desbordamiento',await shown('stock'),null);
-for(const [k,x] of Object.entries({sProduct:'Ron blanco',sStart:'2026-10-07',sEnd:'2026-10-13',sOpening:'7000',sPurchases:'2800',sClosing:'3500',sSalesUse:'5000',sTastings:'800'}))await u.fill('#'+k,x);
+await tap(u,'#sMore summary');for(const [k,x] of Object.entries({sProduct:'Ron blanco',sStart:'2026-10-07',sEnd:'2026-10-13',sOpening:'7000',sPurchases:'2800',sClosing:'3500',sSalesUse:'5000',sTastings:'800'}))await u.fill('#'+k,x);
 await tap(u,'#stockForm button:has-text("Calcular y guardar control")');
 const st=(await D()).stocks;ok('Stock: «Calcular y guardar control» guarda el ejemplo C (6.300 / 5.800 / +500 ml)',st.length===1&&st[0].actual===6300&&st[0].theoretical===5800&&st[0].variance===500,st);
 await nav('Diagnóstico');ok('toque › Diagnóstico: pantalla visible y sin desbordamiento',await shown('diagnosis'),null);

@@ -119,7 +119,7 @@ for(const [dev,wd] of [[PHONE,390],[SMALL,360]]){const p=await mk(dev);
  await p.reload();await until(()=>p.evaluate(()=>invReady));
  ok(`[${wd}] tras recargar, la factura sigue (guardada en el dispositivo)`,(await INVS(p)).length===1&&(await INVS(p))[0].status==='confirmada',null);
  if(wd===390){await tap(p,'.mobile-nav button:has-text("Más")');await tap(p,'#page-more button:has-text("Ajustes")');const [dl]=await Promise.all([p.waitForEvent('download'),tap(p,'#page-settings button:has-text("Exportar copia")')]);const f=TMP+'copia_compras.json';await dl.saveAs(f);const js=JSON.parse(fs.readFileSync(f,'utf8'));
-  ok('la copia exportada incluye las facturas (sin las fotos) y el esquema 8',js.schema===8&&Array.isArray(js.purchases)&&js.purchases.length===1&&js.purchases[0].lines.length===4&&!JSON.stringify(js.purchases).includes('blob')&&Array.isArray(js.purchaseAliases),[js.schema,js.purchases&&js.purchases.length]);
+  ok('la copia exportada incluye las facturas (sin las fotos) y el esquema 9',js.schema===9&&Array.isArray(js.purchases)&&js.purchases.length===1&&js.purchases[0].lines.length===4&&!JSON.stringify(js.purchases).includes('blob')&&Array.isArray(js.purchaseAliases),[js.schema,js.purchases&&js.purchases.length]);
   const q=await mk(PHONE,{schema:7,ingredients:[],drinks:[],stocks:[],diagnostics:[],business:{}});await q.setInputFiles('#importFile',f);await q.locator('#importConfirm').waitFor({state:'visible',timeout:5000});
   ok('importar avisa de cuántas facturas trae (sin sus fotos)',/1 facturas sin sus fotos/.test(await text(q,'#importConfirmText')),await text(q,'#importConfirmText'));
   await q.click('#importYes');await until(async()=>(await INVS(q)).length===1);
